@@ -39,6 +39,8 @@ Jika Supabase mengganti `redirect_to` menjadi `http://localhost:3000`, URL ngrok
 
 Pada Authentication → Email Templates → Confirm signup, pastikan link menggunakan `{{ .ConfirmationURL }}`. Scanner keamanan email dapat membuka link sekali pakai sebelum pengguna; untuk email organisasi dengan Safe Links, gunakan template OTP (`{{ .Token }}`) dan form OTP khusus sebelum mengandalkan konfirmasi link.
 
+Supabase email bawaan memiliki rate limit ketat dan bukan untuk pendaftaran publik. Pasang custom SMTP sebelum demo banyak pengguna. Jika UI menampilkan batas pengiriman tercapai, tunggu cooldown; jangan mengulang signup/resend karena setiap request memperpanjang masalah operasional.
+
 Ngrok URL gratis berubah setiap tunnel baru. Update redirect URL setiap domain berubah. Jangan membagikan halaman selama `GET /api/health` bukan HTTP `200`.
 
 ## Deploy ke Vercel
@@ -53,6 +55,8 @@ SUPABASE_SERVICE_ROLE_KEY
 ```
 
 Jangan memakai prefix `NEXT_PUBLIC_` untuk Groq atau service-role key.
+
+Salin URL dan publishable/anon key dari project Supabase yang sama. Setelah mengubah `NEXT_PUBLIC_*`, restart server lokal atau redeploy Vercel karena nilai tersebut ditanam ke bundle browser saat build/start.
 
 Deploy:
 

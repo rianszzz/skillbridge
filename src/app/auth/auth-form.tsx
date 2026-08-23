@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/auth-client";
+import { authErrorMessage } from "@/lib/auth-errors";
 
 export default function AuthForm() {
   const router = useRouter();
@@ -29,7 +30,7 @@ export default function AuthForm() {
     const credentials = { email: String(form.get("email")), password: String(form.get("password")) };
     const result = mode === "login" ? await supabase.auth.signInWithPassword(credentials) : await supabase.auth.signUp({ ...credentials, options: { emailRedirectTo: `${location.origin}/auth` } });
     setLoading(false);
-    if (result.error) return setError(result.error.message);
+    if (result.error) return setError(authErrorMessage(result.error));
     if (result.data.session) { router.push("/assess"); router.refresh(); }
     else { setCanResend(true); setMessage("Periksa email untuk konfirmasi akun. Gunakan hanya link konfirmasi terbaru."); }
   }
@@ -39,7 +40,7 @@ export default function AuthForm() {
     setLoading(true); setError(""); setMessage("");
     const { error: resendError } = await supabase.auth.resend({ type: "signup", email, options: { emailRedirectTo: `${location.origin}/auth` } });
     setLoading(false);
-    if (resendError) return setError(resendError.message);
+    if (resendError) return setError(authErrorMessage(resendError));
     setMessage("Link konfirmasi baru dikirim. Abaikan link lama dan buka hanya email terbaru.");
   }
 
