@@ -1,0 +1,5 @@
+{
+  "DKV-01": "Poster festival kampus untuk mahasiswa baru. Tujuannya mengumumkan acara. Warna dipilih agar ramai. Hanya satu versi final dibuat dan belum ada feedback atau iterasi.",
+  "DKV-02": "Landing acara karier untuk mahasiswa tingkat akhir. Iterasi pertama memakai semua informasi sekaligus, iterasi kedua memperjelas judul dan tombol daftar. Warna biru dipilih untuk rasa profesional, tetapi belum diuji kepada pengguna.",
+  "DKV-03": "Dashboard kesiapan kerja untuk mahasiswa tingkat akhir yang perlu memahami skor dan gap dengan cepat. Iterasi pertama memakai kartu setara; feedback menunjukkan skor dan tindakan sulit ditemukan. Iterasi kedua membesarkan skor, membatasi warna status, memperkuat hierarki, dan menguji layout desktop serta mobile. Constraint utama adalah aksesibilitas kontras dan kepadatan informasi."
+}
