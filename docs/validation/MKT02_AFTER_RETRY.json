@@ -1,0 +1,77 @@
+{
+  "generated_at": "2026-08-24T03:21:13.583Z",
+  "results": [
+    {
+      "run": 1,
+      "http_status": 200,
+      "latency_ms": 7651,
+      "assessment_id": "26b64dbc-d78e-400d-8e5c-26d57a529baf",
+      "sufficiency": "insufficient_evidence",
+      "final_score": null,
+      "criteria": [
+        {
+          "id": "marketing_methodology",
+          "score": null,
+          "sufficiency": "insufficient_evidence"
+        },
+        {
+          "id": "marketing_data_use",
+          "score": null,
+          "sufficiency": "insufficient_evidence"
+        },
+        {
+          "id": "marketing_measurable_results",
+          "score": null,
+          "sufficiency": "insufficient_evidence"
+        },
+        {
+          "id": "marketing_report_quality",
+          "score": null,
+          "sufficiency": "insufficient_evidence"
+        }
+      ],
+      "error": null
+    },
+    {
+      "run": 2,
+      "http_status": 502,
+      "latency_ms": 5517,
+      "assessment_id": null,
+      "sufficiency": null,
+      "final_score": null,
+      "criteria": [],
+      "error": "Penilaian AI belum dapat diproses. Coba lagi beberapa saat."
+    },
+    {
+      "run": 3,
+      "http_status": 200,
+      "latency_ms": 7061,
+      "assessment_id": "73837986-05f7-4a30-8940-33c5e9f48711",
+      "sufficiency": "insufficient_evidence",
+      "final_score": null,
+      "criteria": [
+        {
+          "id": "marketing_methodology",
+          "score": null,
+          "sufficiency": "insufficient_evidence"
+        },
+        {
+          "id": "marketing_data_use",
+          "score": null,
+          "sufficiency": "insufficient_evidence"
+        },
+        {
+          "id": "marketing_measurable_results",
+          "score": null,
+          "sufficiency": "insufficient_evidence"
+        },
+        {
+          "id": "marketing_report_quality",
+          "score": null,
+          "sufficiency": "insufficient_evidence"
+        }
+      ],
+      "error": null
+    }
+  ]
+}

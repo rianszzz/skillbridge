@@ -20,12 +20,12 @@ export async function POST(request: Request) {
     parseGitHubUrl(body.sourceUrl);
     const evidence = await fetchGitHubEvidence(body.sourceUrl);
     const result = await evaluateEvidence(body.role as Role, body.sourceUrl, evidence);
-    return Response.json(await saveAssessment(user.id, result, evidence));
+    return Response.json(await saveAssessment(user.id, result, evidence), { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Penilaian belum dapat diproses.";
     const clientError = ["URL", "persetujuan", "Format", "maksimal", "memerlukan", "menerima", "Teks laporan", "wajib diisi"].some((part) => message.includes(part));
     const status = error instanceof AuthError ? 401 : clientError ? 400 : message.includes("ditemukan") ? 404 : 502;
-    return Response.json({ error: message }, { status });
+    return Response.json({ error: status >= 500 ? "Penilaian AI belum dapat diproses. Coba lagi beberapa saat." : message }, { status, headers: { "Cache-Control": "private, no-store" } });
   }
 }
 
@@ -60,7 +60,7 @@ async function handleFileAssessment(request: Request, userId: string) {
   try {
     const result = await evaluateEvidence(role, file.name, evidenceText);
     const saved = await saveAssessment(userId, { ...result, evidenceType: field === "design" ? "image" : "pdf" }, evidenceText, { type: field === "design" ? "image" : "pdf", contentHash: createHash("sha256").update(bytes).digest("hex"), storagePath, metadata: { filename: file.name, bytes: bytes.length }, modelName });
-    return Response.json(saved);
+    return Response.json(saved, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
     await db.storage.from("evidence-private").remove([storagePath]);
     throw error;

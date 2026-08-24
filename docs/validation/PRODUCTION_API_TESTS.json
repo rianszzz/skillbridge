@@ -1,0 +1,77 @@
+{
+  "generated_at": "2026-08-24T03:22:57.420Z",
+  "tests": [
+    {
+      "name": "health",
+      "status": 200,
+      "latency_ms": 1322,
+      "cache_control": "no-store",
+      "body_summary": "{\"status\":\"ok\",\"service\":\"skillbridge-ai\",\"checks\":{\"supabase\":true}}"
+    },
+    {
+      "name": "assessments anonymous",
+      "status": 401,
+      "latency_ms": 598,
+      "cache_control": "public, max-age=0, must-revalidate",
+      "body_summary": "{\"error\":\"Silakan masuk untuk melanjutkan.\"}"
+    },
+    {
+      "name": "assessments invalid token",
+      "status": 401,
+      "latency_ms": 921,
+      "cache_control": "public, max-age=0, must-revalidate",
+      "body_summary": "{\"error\":\"Silakan masuk untuk melanjutkan.\"}"
+    },
+    {
+      "name": "assessments owner",
+      "status": 200,
+      "latency_ms": 2586,
+      "cache_control": "public, max-age=0, must-revalidate",
+      "body_summary": "[{\"id\":\"73837986-05f7-4a30-8940-33c5e9f48711\",\"createdAt\":\"2026-08-24T03:21:12.721651+00:00\",\"role\":\"Junior Digital Mark"
+    },
+    {
+      "name": "assessment cross-account",
+      "status": 200,
+      "latency_ms": 796,
+      "cache_control": "public, max-age=0, must-revalidate",
+      "body_summary": "[]"
+    },
+    {
+      "name": "assess invalid consent",
+      "status": 400,
+      "latency_ms": 780,
+      "cache_control": "public, max-age=0, must-revalidate",
+      "body_summary": "{\"error\":\"Peran, URL, dan persetujuan wajib diisi.\"}"
+    },
+    {
+      "name": "upload fake PDF",
+      "status": 400,
+      "latency_ms": 754,
+      "cache_control": "private, no-store",
+      "body_summary": "{\"error\":\"Format bukti tidak didukung. Gunakan PDF, PNG, atau JPEG sesuai bidang.\"}"
+    },
+    {
+      "name": "interview cross-account",
+      "status": 404,
+      "latency_ms": 1193,
+      "cache_control": "public, max-age=0, must-revalidate",
+      "body_summary": "{\"error\":\"Penilaian tidak ditemukan.\"}"
+    },
+    {
+      "name": "RLS owner evidence",
+      "status": 200,
+      "rows": 13
+    },
+    {
+      "name": "RLS other evidence",
+      "status": 200,
+      "rows": 0
+    },
+    {
+      "name": "bucket config",
+      "status": 200,
+      "public": false,
+      "file_size_limit": 4194304
+    }
+  ]
+}
