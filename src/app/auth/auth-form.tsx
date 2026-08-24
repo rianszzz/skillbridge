@@ -4,9 +4,9 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/auth-client";
 import { authErrorMessage } from "@/lib/auth-errors";
 
-export default function AuthForm() {
+export default function AuthForm({ initialMode = "login" }: { initialMode?: "login" | "signup" }) {
   const router = useRouter();
-  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [mode, setMode] = useState<"login" | "signup">(initialMode);
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");

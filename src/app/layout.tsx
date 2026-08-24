@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Skillbridge AI", description: "Evalu
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return <html lang="id" data-scroll-behavior="smooth" className={`${body.variable} ${display.variable}`}><body>
     <a className="skip-link" href="#main">Lewati ke konten</a>
-    <header className="site-header"><Link className="brand" href="/"><span>SB</span> Skillbridge AI</Link><nav aria-label="Navigasi utama"><Link href="/assess">Penilaian</Link><Link href="/history">Riwayat</Link><AuthStatus /></nav></header>
+    <header className="site-header"><Link className="brand" href="/"><span>SB</span> Skillbridge AI</Link><nav aria-label="Navigasi utama"><AuthStatus /></nav></header>
     {children}
     <footer>Prototipe evaluasi indikatif berbasis bukti. Bukan verifikasi kompetensi atau jaminan kerja.</footer>
   </body></html>;
