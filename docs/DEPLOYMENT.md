@@ -41,6 +41,8 @@ Pada Authentication → Email Templates → Confirm signup, pastikan link menggu
 
 Supabase email bawaan memiliki rate limit ketat dan bukan untuk pendaftaran publik. Pasang custom SMTP sebelum demo banyak pengguna. Jika UI menampilkan batas pengiriman tercapai, tunggu cooldown; jangan mengulang signup/resend karena setiap request memperpanjang masalah operasional.
 
+Respons signup/resend sukses hanya membuktikan Auth API menerima permintaan, bukan email tiba di inbox. Built-in SMTP hosted dibatasi dan dapat menolak penerima di luar anggota organisasi. Untuk pendaftaran Gmail publik, pasang custom SMTP transaksional dan periksa delivery/bounce pada dashboard provider.
+
 Ngrok URL gratis berubah setiap tunnel baru. Update redirect URL setiap domain berubah. Jangan membagikan halaman selama `GET /api/health` bukan HTTP `200`.
 
 ## Deploy ke Vercel
