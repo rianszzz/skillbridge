@@ -8,7 +8,6 @@
       "run": 1,
       "http_status": 200,
       "latency_ms": 6516,
-      "assessment_id": "2374c079-8cbb-4139-aa8d-8cc0e00d61a7",
       "role": "Junior Web Developer",
       "evidence_sufficiency": "insufficient_evidence",
       "final_score": null,
@@ -38,7 +37,8 @@
           "refs": 2
         }
       ],
-      "error": null
+      "test_result_id": "INF-SMOKE-1",
+      "error_code": null
     },
     {
       "sample_id": "INF-SMOKE",
@@ -46,7 +46,6 @@
       "run": 2,
       "http_status": 200,
       "latency_ms": 4997,
-      "assessment_id": "69505493-a48b-406a-95df-5e02059a1fd1",
       "role": "Junior Web Developer",
       "evidence_sufficiency": "insufficient_evidence",
       "final_score": null,
@@ -76,7 +75,8 @@
           "refs": 2
         }
       ],
-      "error": null
+      "test_result_id": "INF-SMOKE-2",
+      "error_code": null
     },
     {
       "sample_id": "INF-SMOKE",
@@ -84,7 +84,6 @@
       "run": 3,
       "http_status": 200,
       "latency_ms": 3359,
-      "assessment_id": "91c21648-fe57-47d6-b033-e02db410fd41",
       "role": "Junior Web Developer",
       "evidence_sufficiency": "insufficient_evidence",
       "final_score": null,
@@ -114,7 +113,8 @@
           "refs": 2
         }
       ],
-      "error": null
+      "test_result_id": "INF-SMOKE-3",
+      "error_code": null
     },
     {
       "sample_id": "DKV-01",
@@ -122,7 +122,6 @@
       "run": 1,
       "http_status": 200,
       "latency_ms": 21578,
-      "assessment_id": "b7a10940-7cd8-4027-87af-ba6ae90aa6c6",
       "role": "Junior Graphic Designer",
       "evidence_sufficiency": "insufficient_evidence",
       "final_score": null,
@@ -152,7 +151,8 @@
           "refs": 1
         }
       ],
-      "error": null
+      "test_result_id": "DKV-01-1",
+      "error_code": null
     },
     {
       "sample_id": "DKV-02",
@@ -160,7 +160,6 @@
       "run": 1,
       "http_status": 200,
       "latency_ms": 9217,
-      "assessment_id": "ae31a881-922d-42c8-835f-79d5cc4ab561",
       "role": "Junior Graphic Designer",
       "evidence_sufficiency": "insufficient_evidence",
       "final_score": null,
@@ -190,7 +189,8 @@
           "refs": 1
         }
       ],
-      "error": null
+      "test_result_id": "DKV-02-1",
+      "error_code": null
     },
     {
       "sample_id": "DKV-02",
@@ -198,7 +198,6 @@
       "run": 2,
       "http_status": 200,
       "latency_ms": 34712,
-      "assessment_id": "796f7b0c-cfd5-49ba-be8f-79f0f95855ee",
       "role": "Junior Graphic Designer",
       "evidence_sufficiency": "insufficient_evidence",
       "final_score": null,
@@ -228,7 +227,8 @@
           "refs": 0
         }
       ],
-      "error": null
+      "test_result_id": "DKV-02-2",
+      "error_code": null
     },
     {
       "sample_id": "DKV-02",
@@ -236,7 +236,6 @@
       "run": 3,
       "http_status": 200,
       "latency_ms": 21456,
-      "assessment_id": "c07c1580-d567-4946-8790-e4e8c82d01e7",
       "role": "Junior Graphic Designer",
       "evidence_sufficiency": "sufficient",
       "final_score": 58,
@@ -266,7 +265,8 @@
           "refs": 1
         }
       ],
-      "error": null
+      "test_result_id": "DKV-02-3",
+      "error_code": null
     },
     {
       "sample_id": "DKV-03",
@@ -274,7 +274,6 @@
       "run": 1,
       "http_status": 200,
       "latency_ms": 23940,
-      "assessment_id": "7c4ae077-5581-4a84-b187-6847b8fb7095",
       "role": "Junior Graphic Designer",
       "evidence_sufficiency": "sufficient",
       "final_score": 75,
@@ -304,7 +303,8 @@
           "refs": 1
         }
       ],
-      "error": null
+      "test_result_id": "DKV-03-1",
+      "error_code": null
     },
     {
       "sample_id": "MKT-01",
@@ -312,7 +312,6 @@
       "run": 1,
       "http_status": 200,
       "latency_ms": 5599,
-      "assessment_id": "dcd5f471-693f-447a-aea4-a528d8cd4c0f",
       "role": "Junior Digital Marketer",
       "evidence_sufficiency": "insufficient_evidence",
       "final_score": null,
@@ -342,7 +341,8 @@
           "refs": 1
         }
       ],
-      "error": null
+      "test_result_id": "MKT-01-1",
+      "error_code": null
     },
     {
       "sample_id": "MKT-02",
@@ -350,12 +350,12 @@
       "run": 1,
       "http_status": 502,
       "latency_ms": 8886,
-      "assessment_id": null,
       "role": null,
       "evidence_sufficiency": null,
       "final_score": null,
       "criteria": [],
-      "error": "400 {\"error\":{\"message\":\"Generated JSON does not match the expected schema. Please adjust your prompt. See 'failed_generation' for more details. Error: jsonschema: '/criteria' does not validate with /properties/criteria/maxItems: maximum 4 items required, but found 7 items\",\"type\":\"invalid_request_error\",\"code\":\"json_validate_failed\",\"failed_generation\":\"{\\\"rubric_version\\\":\\\"1.0\\\",\\\"evidence_sufficiency\\\":\\\"insufficient_evidence\\\",\\\"criteria\\\":[{\\\"criterion_id\\\":\\\"marketing_methodology\\\",\\\"evidence_sufficiency\\\":\\\"insufficient_evidence\\\",\\\"score\\\":null,\\\"confidence\\\":\\\"low\\\",\\\"reason\\\":\\\"Data tidak dapat diverifikasi; tidak ada pesan, metode evaluasi, atau sumber data; hanya terdapat tujuan, target audiens, dan kanal.\\\",\\\"evidence_refs\\\":[\\\"[PAGE:1]\\\"]},\\\"\\\",{\\\"criterion_id\\\":\\\"marketing_data_use\\\",\\\"evidence_sufficiency\\\":\\\"insufficient_evidence\\\",\\\"score\\\":null,\\\"confidence\\\":\\\"low\\\",\\\"reason\\\":\\\"Tidak ada sumber data, definisi metrik, atau konteks pengambilan data; hanya angka kampanye yang tidak dapat diverifikasi.\\\",\\\"evidence_refs\\\":[\\\"[PAGE:1]\\\"]},\\\"\\\",{\\\"criterion_id\\\":\\\"marketing_measurable_results\\\",\\\"evidence_sufficiency\\\":\\\"insufficient_evidence\\\",\\\"score\\\":null,\\\"confidence\\\":\\\"low\\\",\\\"reason\\\":\\\"Tidak ada baseline, biaya, atau evaluasi; hanya KPI dan hasil aktual tanpa konteks.\\\",\\\"evidence_refs\\\":[\\\"[PAGE:1]\\\"]},\\\"\\\",{\\\"criterion_id\\\":\\\"marketing_report_quality\\\",\\\"evidence_sufficiency\\\":\\\"insufficient_evidence\\\",\\\"score\\\":null,\\\"confidence\\\":\\\"low\\\",\\\"reason\\\":\\\"Laporan tidak terstruktur, tidak ada kesimpulan atau tindak lanjut; hanya data kampanye singkat.\\\",\\\"evidence_refs\\\":[\\\"[PAGE:1]\\\"]}],\\\"strengths\\\":[\\\"Ada data kampanye\\\",\\\"Ada periode kampanye\\\",\\\"Ada target audiens\\\",\\\"Ada kanal\\\"],\\\"gaps\\\":[\\\"Tidak ada baseline\\\",\\\"Tidak ada biaya\\\",\\\"Tidak ada pesan\\\",\\\"Tidak ada evaluasi\\\"],\\\"limitations\\\":[\\\"Data tidak dapat diverifikasi\\\",\\\"Tidak ada sumber data\\\",\\\"Tidak ada definisi metrik\\\",\\\"Tidak ada kesimpulan\\\"]}\"}}"
+      "test_result_id": null,
+      "error_code": "provider_schema_error"
     },
     {
       "sample_id": "MKT-02",
@@ -363,12 +363,12 @@
       "run": 2,
       "http_status": 502,
       "latency_ms": 4864,
-      "assessment_id": null,
       "role": null,
       "evidence_sufficiency": null,
       "final_score": null,
       "criteria": [],
-      "error": "400 {\"error\":{\"message\":\"Generated JSON does not match the expected schema. Please adjust your prompt. See 'failed_generation' for more details. Error: jsonschema: '/criteria' does not validate with /properties/criteria/maxItems: maximum 4 items required, but found 7 items\",\"type\":\"invalid_request_error\",\"code\":\"json_validate_failed\",\"failed_generation\":\"{\\\"rubric_version\\\":\\\"1.0\\\",\\\"evidence_sufficiency\\\":\\\"insufficient_evidence\\\",\\\"criteria\\\":[{\\\"criterion_id\\\":\\\"marketing_methodology\\\",\\\"evidence_sufficiency\\\":\\\"insufficient_evidence\\\",\\\"score\\\":null,\\\"confidence\\\":\\\"low\\\",\\\"reason\\\":\\\"Data tidak dapat diverifikasi; tidak ada pesan, metode evaluasi, atau sumber data; hanya terdapat tujuan, target audiens, dan kanal.\\\",\\\"evidence_refs\\\":[\\\"[PAGE:1]\\\"]},\\\"\\\",{\\\"criterion_id\\\":\\\"marketing_data_use\\\",\\\"evidence_sufficiency\\\":\\\"insufficient_evidence\\\",\\\"score\\\":null,\\\"confidence\\\":\\\"low\\\",\\\"reason\\\":\\\"Tidak ada sumber data, definisi metrik, atau konteks pengambilan data; hanya angka kampanye yang tidak dapat diverifikasi.\\\",\\\"evidence_refs\\\":[\\\"[PAGE:1]\\\"]},\\\"\\\",{\\\"criterion_id\\\":\\\"marketing_measurable_results\\\",\\\"evidence_sufficiency\\\":\\\"insufficient_evidence\\\",\\\"score\\\":null,\\\"confidence\\\":\\\"low\\\",\\\"reason\\\":\\\"Tidak ada baseline, biaya, atau evaluasi; hanya KPI dan hasil aktual tanpa konteks.\\\",\\\"evidence_refs\\\":[\\\"[PAGE:1]\\\"]},\\\"\\\",{\\\"criterion_id\\\":\\\"marketing_report_quality\\\",\\\"evidence_sufficiency\\\":\\\"insufficient_evidence\\\",\\\"score\\\":null,\\\"confidence\\\":\\\"low\\\",\\\"reason\\\":\\\"Laporan tidak terstruktur, tidak ada kesimpulan atau tindak lanjut; hanya data kampanye singkat.\\\",\\\"evidence_refs\\\":[\\\"[PAGE:1]\\\"]}],\\\"strengths\\\":[\\\"Ada data kampanye\\\",\\\"Ada periode kampanye\\\",\\\"Ada target audiens\\\",\\\"Ada kanal\\\"],\\\"gaps\\\":[\\\"Tidak ada baseline\\\",\\\"Tidak ada biaya\\\",\\\"Tidak ada pesan\\\",\\\"Tidak ada evaluasi\\\"],\\\"limitations\\\":[\\\"Data tidak dapat diverifikasi\\\",\\\"Tidak ada sumber data\\\",\\\"Tidak ada definisi metrik\\\",\\\"Tidak ada kesimpulan\\\"]}\"}}"
+      "test_result_id": null,
+      "error_code": "provider_schema_error"
     },
     {
       "sample_id": "MKT-02",
@@ -376,7 +376,6 @@
       "run": 3,
       "http_status": 200,
       "latency_ms": 19736,
-      "assessment_id": "b3923ad0-567b-4a36-a2ef-7bb7c3c09369",
       "role": "Junior Digital Marketer",
       "evidence_sufficiency": "insufficient_evidence",
       "final_score": null,
@@ -406,7 +405,8 @@
           "refs": 1
         }
       ],
-      "error": null
+      "test_result_id": "MKT-02-3",
+      "error_code": null
     },
     {
       "sample_id": "MKT-03",
@@ -414,7 +414,6 @@
       "run": 1,
       "http_status": 200,
       "latency_ms": 18124,
-      "assessment_id": "89cefd07-c0ba-4f67-af95-bbc181c82ee0",
       "role": "Junior Digital Marketer",
       "evidence_sufficiency": "sufficient",
       "final_score": 75,
@@ -444,7 +443,8 @@
           "refs": 1
         }
       ],
-      "error": null
+      "test_result_id": "MKT-03-1",
+      "error_code": null
     }
   ]
 }

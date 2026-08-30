@@ -2,10 +2,14 @@
 
 ## Prasyarat
 
-- Node.js 20+
+- Node.js 22
 - `ngrok` sudah login
 - Vercel CLI sudah login
-- Supabase migration `001_prototype.sql` dan `002_evidence_storage.sql` sudah diterapkan
+- Supabase migration tersedia di `supabase/migrations/`
+
+Database baru: terapkan `001_prototype.sql`, `002_evidence_storage.sql`, lalu `003_security_hardening.sql` berurutan.
+
+Database produksi lama yang sudah memiliki schema 001/002: terapkan **hanya** `003_security_hardening.sql`. Jangan mengulang 001 karena policy dan tabel sudah ada.
 
 ## Share dengan Ngrok
 
@@ -30,8 +34,8 @@ https://<domain-ngrok>/auth
 Untuk sharing aktif saat ini:
 
 ```text
-Site URL: https://hyposulfurous-breann-unsparkling.ngrok-free.dev
-Redirect URL: https://hyposulfurous-breann-unsparkling.ngrok-free.dev/auth
+Site URL: https://<domain-ngrok>
+Redirect URL: https://<domain-ngrok>/auth
 Redirect URL: http://localhost:3001/auth
 ```
 
@@ -66,6 +70,8 @@ Deploy:
 npm run check
 npm run deploy
 ```
+
+`003_security_hardening.sql` wajib selesai sebelum deploy kode ini. Tanpanya endpoint assessment/interview gagal aman karena RPC quota dan transaksi belum tersedia.
 
 Setelah Vercel memberi domain, tambahkan ke Supabase redirect URLs:
 

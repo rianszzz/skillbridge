@@ -17,7 +17,7 @@ export async function GET() {
   }
   const healthy = configured && supabase;
   return Response.json(
-    { status: healthy ? "ok" : "misconfigured", service: "skillbridge-ai", checks: { supabase } },
+    { status: healthy ? "ok" : "unavailable" },
     { status: healthy ? 200 : 503, headers: { "Cache-Control": "no-store" } },
   );
 }

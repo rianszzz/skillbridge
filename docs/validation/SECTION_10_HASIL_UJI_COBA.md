@@ -120,7 +120,9 @@ Seluruh hasil HTTP 200 memuat empat kriteria yang sesuai bidang. Skor non-null h
 
 ### 10.5.4 Perbandingan dengan Manusia
 
-Validasi human-in-the-loop belum selesai. Template berisi 36 baris kriteria, tetapi R1 dan R2 belum memberikan skor, alasan, serta referensi. Karena itu, laporan ini tidak menyatakan akurasi model, kesetaraan dengan ahli, MAE, F1, atau agreement. Klaim yang dapat dibuat hanya bahwa keluaran model telah diuji secara fungsional dan variasinya telah diukur pada dataset sintetis terbatas.
+Simulasi blind review telah dilakukan oleh dua subagent AI yang diberi identitas `AI_SIM_R1` dan `AI_SIM_R2`. Keduanya menilai 36 kriteria secara independen tanpa membaca `fixtures/expected.json`, hasil model produksi, atau penilaian satu sama lain. Kedua penilai sepakat pada status kecukupan seluruh 36 kriteria; tiga perbedaan skor sebesar 25 poin telah melalui adjudikasi AI. Hasil lengkap berada di `HUMAN_RATINGS.xlsx` dan diberi provenance `AI-simulated`.
+
+Simulasi tersebut menguji kesiapan instrumen, keterbacaan rubrik, dan proses adjudikasi, tetapi **bukan baseline manusia**. Karena dua HR manusia belum melakukan blind review, laporan ini tetap tidak menyatakan akurasi model, kesetaraan dengan ahli, MAE, F1, atau agreement manusia–model.
 
 ## 10.6 Hasil Pengujian Prototipe
 
@@ -150,6 +152,48 @@ Deployment produksi diuji pada `https://skillbridge-6ndn.vercel.app`.
 
 Pengujian memperlihatkan bahwa authentication, ownership check, RLS read isolation, private Storage, dan delete cascade bekerja pada data sintetis. Namun operasi database server menggunakan service-role client sehingga RLS bukan satu-satunya boundary; filter ownership aplikasi tetap kritis.
 
+### 10.6.1 Uji Langsung Tiga Bidang pada Deployment Produksi
+
+Pada 28 Agustus 2026, alur penilaian dijalankan langsung melalui browser pada deployment produksi memakai akun uji `test-account-1`. Setiap bidang dipilih satu per satu, bukti diisikan pada form, persetujuan pemrosesan AI dicentang, lalu form dikirim dan ditunggu sampai halaman hasil tampil. Tiga hasil kemudian diperiksa pada halaman riwayat akun yang sama.
+
+| Bidang | Bukti yang dikirim | Hasil live | Result ID |
+| --- | --- | ---: | --- |
+| Informatika | Repositori publik `octocat/Hello-World` | `insufficient_evidence` | `571d7b3f-85dc-485e-9714-1630aa316fd6` |
+| DKV | `fixtures/design/strong.png` dan deskripsi proses | 70/100 | `4715bef9-875c-4ece-9a1e-81b40cdb57d6` |
+| Bisnis/Pemasaran | `fixtures/marketing/strong.pdf` | 81/100 | `fdd7cba3-5c32-40a8-9817-e08280ef7847` |
+
+Hasil Informatika tidak diberi skor akhir karena sebagian bukti repositori tidak cukup. Perilaku ini sesuai kontrak sistem: bukti yang tidak tersedia tidak diubah menjadi skor nol. DKV menghasilkan 70/100 berdasarkan gambar dan deskripsi proses. Bisnis/Pemasaran menghasilkan 81/100 berdasarkan laporan kampanye dengan text layer. Ketiga assessment tersimpan berurutan pada riwayat akun.
+
+![Form Informatika sebelum repositori dikirim.](live-test-evidence/01-informatika-sebelum-submit.png)
+
+*Gambar 3. Form uji langsung bidang Informatika sebelum submit.*
+
+![Hasil penilaian Informatika.](live-test-evidence/02-informatika-hasil.png)
+
+*Gambar 4. Hasil live Informatika dengan status bukti belum cukup.*
+
+![Form DKV berisi karya dan deskripsi proses.](live-test-evidence/03-dkv-sebelum-submit.png)
+
+*Gambar 5. Form uji langsung DKV sebelum submit.*
+
+![Hasil penilaian DKV.](live-test-evidence/04-dkv-hasil.png)
+
+*Gambar 6. Hasil live DKV sebesar 70/100.*
+
+![Form pemasaran berisi laporan PDF.](live-test-evidence/05-pemasaran-sebelum-submit.png)
+
+*Gambar 7. Form uji langsung Bisnis/Pemasaran sebelum submit.*
+
+![Hasil penilaian pemasaran.](live-test-evidence/06-pemasaran-hasil.png)
+
+*Gambar 8. Hasil live Bisnis/Pemasaran sebesar 81/100.*
+
+![Riwayat akun setelah tiga pengujian.](live-test-evidence/07-riwayat-tiga-pengujian.png)
+
+*Gambar 9. Riwayat akun menampilkan tiga assessment baru secara berurutan.*
+
+Rekaman browser memuat 32 frame dan tersimpan di `/Users/rian/.config/browser-harness/agent-workspace/recordings/skillbridge-live-three-fields`. Screenshot membuktikan alur form, submit, hasil, dan persistence benar-benar dijalankan. Screenshot tidak membuktikan ketepatan skor terhadap HR manusia.
+
 ## 10.7 Hasil Pengujian Antarmuka
 
 Pengujian browser dilakukan memakai Chromium pada desktop dan mobile.
@@ -166,13 +210,13 @@ Pengujian browser dilakukan memakai Chromium pada desktop dan mobile.
 | Mobile 390 px | Tidak ada horizontal overflow |
 | Mobile 320 px sebelum perbaikan | Overflow sekitar 10 px pada navbar login |
 | Mobile 320 px setelah perbaikan | Lulus; lebar viewport dan scroll width sama-sama 320 px |
-| History | 13 item uji tampil, tanpa overflow desktop |
+| History | Hasil tiga bidang tampil berurutan, tanpa overflow desktop |
 | Result | Empat kriteria, batas klaim, interview, reassess, delete |
 
-Rekaman interaksi production tersimpan pada:
+Rekaman interaksi production terbaru tersimpan pada:
 
 ```text
-/Users/rian/.config/browser-harness/agent-workspace/recordings/skillbridge-proposal-comprehensive
+/Users/rian/.config/browser-harness/agent-workspace/recordings/skillbridge-live-three-fields
 ```
 
 ## 10.8 Hasil Pengujian Rekomendasi
@@ -196,7 +240,7 @@ Katalog saat ini merupakan mapping deterministik, bukan RAG berbasis embedding. 
 
 1. Dataset hanya sembilan fixture sintetis dan belum mewakili populasi mahasiswa Indonesia.
 2. Baseline dua penilai manusia belum selesai, sehingga akurasi dan agreement belum dapat dihitung.
-3. Run resmi sembilan sampel × tiga pengulangan belum lengkap. Pengujian saat ini merupakan batch produksi terbatas 13 assessment.
+3. Run resmi sembilan sampel × tiga pengulangan belum lengkap. Pengujian model dan tiga uji live terbaru masih merupakan batch produksi terbatas.
 4. DKV sedang menunjukkan perubahan status kecukupan pada input identik.
 5. Marketing sedang masih mengalami satu kegagalan schema setelah retry.
 6. Token usage dan biaya provider belum dicatat oleh aplikasi.

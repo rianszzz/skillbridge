@@ -1,20 +1,13 @@
-import { authenticatedUser, AuthError } from "@/lib/supabase";
+import { authenticatedUser } from "@/lib/supabase";
 import { deleteAssessment, readAssessments } from "@/lib/assessment-store";
+import { assertUuid, errorResponse, hashLogValue, privateResponse, PublicError, securityLog } from "@/lib/api-security";
 
 export async function GET(request: Request) {
-  try { const user = await authenticatedUser(request); const id = new URL(request.url).searchParams.get("id") ?? undefined; return Response.json(await readAssessments(user.id, id), privateResponse()); }
-  catch (error) { return Response.json({ error: errorMessage(error, "Riwayat gagal dibaca.") }, privateResponse(error instanceof AuthError ? 401 : 500)); }
+  try { const user = await authenticatedUser(request); const id = new URL(request.url).searchParams.get("id") ?? undefined; if (id) assertUuid(id); return Response.json(await readAssessments(user.id, id), privateResponse()); }
+  catch (error) { return errorResponse(error, "Riwayat gagal dibaca."); }
 }
 
 export async function DELETE(request: Request) {
-  try { const user = await authenticatedUser(request); const id = new URL(request.url).searchParams.get("id"); if (!id) return Response.json({ error: "ID wajib diisi." }, privateResponse(400)); const deleted = await deleteAssessment(user.id, id); return deleted ? new Response(null, privateResponse(204)) : Response.json({ error: "Hasil tidak ditemukan." }, privateResponse(404)); }
-  catch (error) { return Response.json({ error: errorMessage(error, "Hasil gagal dihapus.") }, privateResponse(error instanceof AuthError ? 401 : 500)); }
+  try { const user = await authenticatedUser(request); const id = new URL(request.url).searchParams.get("id"); if (!id) throw new PublicError("ID wajib diisi.", 400, "missing_id"); assertUuid(id); const deleted = await deleteAssessment(user.id, id); if (!deleted) throw new PublicError("Hasil tidak ditemukan.", 404, "not_found"); securityLog("assessment.deleted", { userHash: hashLogValue(user.id) }); return new Response(null, privateResponse(204)); }
+  catch (error) { return errorResponse(error, "Hasil gagal dihapus."); }
 }
-
-function errorMessage(error: unknown, fallback: string) {
-  if (error instanceof Error) return error.message;
-  if (error && typeof error === "object" && "message" in error && typeof error.message === "string") return error.message;
-  return fallback;
-}
-
-function privateResponse(status = 200) { return { status, headers: { "Cache-Control": "private, no-store" } }; }

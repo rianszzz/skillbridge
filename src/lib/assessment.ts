@@ -1,11 +1,13 @@
 import Groq from "groq-sdk";
 import { calculateFinalScore, rubrics } from "./rubrics";
 import type { AssessmentResult, CriterionScore, Role } from "./types";
+import { secureEvidence } from "./evidence-security";
 
 const allowedScores = new Set([0, 25, 50, 75, 100]);
 
 export async function evaluateEvidence(role: Role, sourceUrl: string, evidence: string): Promise<AssessmentResult> {
   if (!process.env.GROQ_API_KEY) throw new Error("GROQ_API_KEY belum dikonfigurasi.");
+  evidence = secureEvidence(evidence);
   const rubric = rubrics[role];
   const evidenceReferences = availableEvidenceReferences(evidence);
   const client = new Groq({ apiKey: process.env.GROQ_API_KEY, timeout: 30_000, maxRetries: 1 });
@@ -26,18 +28,23 @@ export async function evaluateEvidence(role: Role, sourceUrl: string, evidence: 
   const content = completion.choices[0]?.message?.content;
   if (!content) throw new Error("Groq tidak mengembalikan hasil.");
   const result = JSON.parse(content) as Omit<AssessmentResult, "id" | "createdAt" | "role" | "sourceUrl" | "finalScore">;
-  validateResult(result.criteria, rubric.map(({ id }) => id), evidence);
+  if (role === "Junior Web Developer") {
+    const codeQuality = result.criteria.find(({ criterion_id }) => criterion_id === "web_code_quality");
+    if (codeQuality) Object.assign(codeQuality, { evidence_sufficiency: "insufficient_evidence", score: null, confidence: "low", reason: "Isi source file tidak diambil oleh extractor prototipe.", evidence_refs: [] });
+  }
+  validateResult(result.criteria, rubric.map(({ id }) => id), evidence, role);
   const evidenceSufficiency = result.criteria.every((item) => item.evidence_sufficiency === "sufficient") ? "sufficient" : "insufficient_evidence";
   return { ...result, evidence_sufficiency: evidenceSufficiency, id: crypto.randomUUID(), createdAt: new Date().toISOString(), role, sourceUrl, finalScore: calculateFinalScore(result.criteria, rubric) };
 }
 
-function validateResult(criteria: CriterionScore[], ids: string[], evidence: string) {
+function validateResult(criteria: CriterionScore[], ids: string[], evidence: string, role: Role) {
   if (criteria.length !== ids.length || new Set(criteria.map(({ criterion_id }) => criterion_id)).size !== ids.length) throw new Error("Hasil AI tidak memuat seluruh kriteria tepat sekali.");
   for (const item of criteria) {
     if (!ids.includes(item.criterion_id)) throw new Error("Hasil AI memuat kriteria tidak dikenal.");
     if (item.evidence_sufficiency === "sufficient" && (item.score === null || !allowedScores.has(item.score))) throw new Error("Skor AI tidak valid.");
     if (item.evidence_sufficiency === "insufficient_evidence" && item.score !== null) throw new Error("Bukti tidak cukup tidak boleh memiliki skor.");
     if (item.evidence_sufficiency === "sufficient" && (!item.evidence_refs.length || item.evidence_refs.some((ref) => !hasEvidenceReference(ref, evidence)))) throw new Error("Referensi bukti AI tidak valid.");
+    if (role === "Junior Web Developer" && item.criterion_id === "web_code_quality" && item.evidence_sufficiency !== "insufficient_evidence") throw new Error("Kualitas kode tidak boleh dinilai tanpa isi source file.");
   }
 }
 
@@ -59,16 +66,15 @@ function assessmentSchema(ids: string[], evidenceReferences: string[]) {
         evidence_sufficiency: { type: "string", enum: ["sufficient", "insufficient_evidence"] },
         score: { type: ["integer", "null"], enum: [0, 25, 50, 75, 100, null] },
         confidence: { type: "string", enum: ["low", "medium", "high"] },
-        reason: { type: "string" }, evidence_refs: { type: "array", items: { type: "string", enum: evidenceReferences } },
+        reason: { type: "string", minLength: 1, maxLength: 600 }, evidence_refs: { type: "array", maxItems: 4, items: { type: "string", enum: evidenceReferences } },
       }, required: ["criterion_id", "evidence_sufficiency", "score", "confidence", "reason", "evidence_refs"] } },
-      strengths: { type: "array", items: { type: "string" }, maxItems: 4 }, gaps: { type: "array", items: { type: "string" }, maxItems: 4 }, limitations: { type: "array", items: { type: "string" }, maxItems: 4 },
+      strengths: { type: "array", items: { type: "string", maxLength: 240 }, maxItems: 4 }, gaps: { type: "array", items: { type: "string", maxLength: 240 }, maxItems: 4 }, limitations: { type: "array", items: { type: "string", maxLength: 240 }, maxItems: 4 },
     },
     required: ["rubric_version", "evidence_sufficiency", "criteria", "strengths", "gaps", "limitations"],
   };
 }
 
 function availableEvidenceReferences(evidence: string) {
-  const refs = [...evidence.matchAll(/\[(?:IMAGE|PAGE|DESCRIPTION):\d+\]/g)].map(([ref]) => ref);
-  for (const ref of ["REPOSITORY", "FILES", "COMMITS", "README"]) if (evidence.includes(ref)) refs.push(ref);
+  const refs = [...evidence.matchAll(/^\[(?:IMAGE|PAGE|DESCRIPTION|REPOSITORY|FILES|COMMITS|README):\d+\]$/gm)].map(([ref]) => ref);
   return [...new Set(refs)];
 }

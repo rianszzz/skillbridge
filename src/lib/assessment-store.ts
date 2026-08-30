@@ -13,24 +13,16 @@ export async function saveAssessment(userId: string, result: AssessmentResult, e
   const rubric = await db.from("rubrics").upsert({ career_field: field, target_role: result.role, version: "1.0", criteria: rubrics[result.role], status: "published" }, { onConflict: "career_field,target_role,version" }).select("id").single();
   if (rubric.error) throw rubric.error;
   const evidenceType = stored?.type ?? "github";
-  const evidence = await db.from("evidence").insert({ user_id: userId, evidence_type: evidenceType, source_url: evidenceType === "github" ? stored?.sourceUrl ?? result.sourceUrl : null, storage_path: evidenceType === "github" ? null : stored?.storagePath, content_hash: stored?.contentHash ?? sha256(evidenceText), status: "ready", ai_consent_at: new Date().toISOString(), extraction_metadata: { characters: evidenceText.length, ...stored?.metadata } }).select("id").single();
-  if (evidence.error) throw evidence.error;
-  try {
-    const assessment = await db.from("assessments").insert({ evidence_id: evidence.data.id, rubric_id: rubric.data.id, status: "completed", evidence_sufficiency: result.evidence_sufficiency, final_score: result.finalScore, model_name: stored?.modelName ?? "openai/gpt-oss-20b", prompt_version: "1.0", rubric_version: "1.0", input_hash: sha256(evidenceText), strengths: result.strengths, gaps: result.gaps, limitations: result.limitations }).select("id,created_at").single();
-    if (assessment.error) throw assessment.error;
-    const scores = await db.from("criterion_scores").insert(result.criteria.map((item) => ({ assessment_id: assessment.data.id, criterion_id: item.criterion_id, criterion_weight: rubrics[result.role].find(({ id }) => id === item.criterion_id)!.weight, evidence_sufficiency: item.evidence_sufficiency, score: item.score, confidence: item.confidence, reason: item.reason, evidence_refs: item.evidence_refs })));
-    if (scores.error) throw scores.error;
-    return { ...result, id: assessment.data.id, createdAt: assessment.data.created_at };
-  } catch (error) {
-    if (stored?.storagePath) await db.storage.from("evidence-private").remove([stored.storagePath]);
-    await db.from("evidence").delete().eq("id", evidence.data.id).eq("user_id", userId);
-    throw error;
-  }
+  const scores = result.criteria.map((item) => ({ criterion_id: item.criterion_id, criterion_weight: rubrics[result.role].find(({ id }) => id === item.criterion_id)!.weight, evidence_sufficiency: item.evidence_sufficiency, score: item.score, confidence: item.confidence, reason: item.reason, evidence_refs: item.evidence_refs }));
+  const saved = await db.rpc("save_assessment_atomic", { p_user_id: userId, p_evidence_type: evidenceType, p_source_url: evidenceType === "github" ? stored?.sourceUrl ?? result.sourceUrl : null, p_storage_path: evidenceType === "github" ? null : stored?.storagePath, p_content_hash: stored?.contentHash ?? sha256(evidenceText), p_metadata: { characters: evidenceText.length, ...stored?.metadata }, p_rubric_id: rubric.data.id, p_sufficiency: result.evidence_sufficiency, p_final_score: result.finalScore, p_model_name: stored?.modelName ?? "openai/gpt-oss-20b", p_input_hash: sha256(evidenceText), p_strengths: result.strengths, p_gaps: result.gaps, p_limitations: result.limitations, p_scores: scores }).single();
+  if (saved.error) throw saved.error;
+  const row = saved.data as { assessment_id: string; created_at: string };
+  return { ...result, id: row.assessment_id, createdAt: row.created_at };
 }
 
 export async function readAssessments(userId: string, id?: string) {
   const db = createAdminSupabase();
-  const evidenceQuery = db.from("evidence").select("id,source_url,storage_path,evidence_type,extraction_metadata").eq("user_id", userId);
+  const evidenceQuery = db.from("evidence").select("id,source_url,storage_path,evidence_type,extraction_metadata").eq("user_id", userId).eq("status", "ready").order("created_at", { ascending: false }).limit(100);
   const evidence = await evidenceQuery;
   if (evidence.error) throw evidence.error;
   if (!evidence.data.length) return [];
@@ -50,15 +42,17 @@ export async function readAssessments(userId: string, id?: string) {
 
 export async function deleteAssessment(userId: string, assessmentId: string) {
   const db = createAdminSupabase();
-  const assessments = await readAssessments(userId, assessmentId);
-  if (!assessments.length) return false;
-  const assessment = await db.from("assessments").select("evidence_id,evidence(storage_path)").eq("id", assessmentId).single();
-  if (assessment.error) throw assessment.error;
-  const related = assessment.data.evidence as unknown as { storage_path: string | null };
-  if (related?.storage_path) { const removed = await db.storage.from("evidence-private").remove([related.storage_path]); if (removed.error) throw removed.error; }
-  const deleted = await db.from("evidence").delete().eq("id", assessment.data.evidence_id).eq("user_id", userId);
-  if (deleted.error) throw deleted.error;
-  return true;
+  const pending = await db.rpc("begin_assessment_deletion", { p_user_id: userId, p_assessment_id: assessmentId });
+  if (pending.error) throw pending.error;
+  const row = (pending.data as { evidence_id: string; storage_path: string | null }[])[0];
+  if (!row) return false;
+  if (row.storage_path) {
+    const removed = await db.storage.from("evidence-private").remove([row.storage_path]);
+    if (removed.error) { await db.rpc("cancel_assessment_deletion", { p_user_id: userId, p_evidence_id: row.evidence_id }); throw removed.error; }
+  }
+  const finished = await db.rpc("finish_assessment_deletion", { p_user_id: userId, p_evidence_id: row.evidence_id });
+  if (finished.error) throw finished.error;
+  return Boolean(finished.data);
 }
 
 function sha256(value: string) { return createHash("sha256").update(value).digest("hex"); }

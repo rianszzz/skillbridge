@@ -1,4 +1,5 @@
 import { readFile, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
 
 const baseUrl = process.env.TEST_BASE_URL ?? "https://skillbridge-6ndn.vercel.app";
 const token = process.env.TEST_TOKEN;
@@ -22,7 +23,7 @@ for (const testCase of cases) {
   if (testCase.field === "informatics") {
     response = await fetch(`${baseUrl}/api/assess`, {
       method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}`, "Idempotency-Key": randomUUID() },
       body: JSON.stringify({ role: "Junior Web Developer", sourceUrl: testCase.sourceUrl, consent: true }),
     });
   } else {
@@ -32,7 +33,7 @@ for (const testCase of cases) {
     form.set("consent", "true");
     form.set("description", testCase.description ?? "");
     form.set("file", new File([bytes], testCase.file.split("/").at(-1), { type: testCase.field === "design" ? "image/png" : "application/pdf" }));
-    response = await fetch(`${baseUrl}/api/assess`, { method: "POST", headers: { Authorization: `Bearer ${token}` }, body: form });
+    response = await fetch(`${baseUrl}/api/assess`, { method: "POST", headers: { Authorization: `Bearer ${token}`, "Idempotency-Key": randomUUID() }, body: form });
   }
   const body = await response.json().catch(() => ({}));
   const record = {
@@ -41,12 +42,12 @@ for (const testCase of cases) {
     run: testCase.run,
     http_status: response.status,
     latency_ms: Math.round(performance.now() - started),
-    assessment_id: body.id ?? null,
+    test_result_id: body.id ? `${testCase.id}-${testCase.run}` : null,
     role: body.role ?? null,
     evidence_sufficiency: body.evidence_sufficiency ?? null,
     final_score: body.finalScore ?? null,
     criteria: Array.isArray(body.criteria) ? body.criteria.map((item) => ({ id: item.criterion_id, score: item.score, sufficiency: item.evidence_sufficiency, refs: item.evidence_refs?.length ?? 0 })) : [],
-    error: response.ok ? null : body.error ?? "unknown",
+    error_code: response.ok ? null : body.code ?? `http_${response.status}`,
   };
   results.push(record);
   console.log(`${record.sample_id} run ${record.run}: HTTP ${record.http_status}, ${record.latency_ms} ms, score=${record.final_score}`);

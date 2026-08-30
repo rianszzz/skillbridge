@@ -2,67 +2,120 @@ import { evaluateEvidence } from "@/lib/assessment";
 import { fetchGitHubEvidence, parseGitHubUrl } from "@/lib/github";
 import { rubrics } from "@/lib/rubrics";
 import type { Role } from "@/lib/types";
-import { authenticatedUser, AuthError } from "@/lib/supabase";
-import { saveAssessment } from "@/lib/assessment-store";
+import { authenticatedUser } from "@/lib/supabase";
+import { readAssessments, saveAssessment } from "@/lib/assessment-store";
 import { createHash, randomUUID } from "node:crypto";
 import { createAdminSupabase } from "@/lib/supabase";
-import { extractPdfText, validateFile } from "@/lib/file-evidence";
+import { extractPdfText, MAX_MULTIPART_BYTES, validateFile } from "@/lib/file-evidence";
 import { describeDesignImage } from "@/lib/vision";
+import { beginOperation, consumeQuota, errorResponse, finishOperation, operationKey, PublicError, releaseQuotaLock, securityLog } from "@/lib/api-security";
 
 export const maxDuration = 60;
 
 export async function POST(request: Request) {
+  let userId: string | undefined;
+  let quotaLockHeld = false;
+  let activeOperationKey: string | undefined;
   try {
     const user = await authenticatedUser(request);
+    userId = user.id;
+    await consumeQuota(user.id, "assess");
+    quotaLockHeld = true;
     if (request.headers.get("content-type")?.includes("multipart/form-data")) return await handleFileAssessment(request, user.id);
-    const body = await request.json();
-    if (typeof body.sourceUrl !== "string" || typeof body.role !== "string" || !(body.role in rubrics) || body.consent !== true) return Response.json({ error: "Peran, URL, dan persetujuan wajib diisi." }, { status: 400 });
+    if (!request.headers.get("content-type")?.toLowerCase().startsWith("application/json")) throw new PublicError("Content-Type wajib application/json atau multipart/form-data.", 415, "unsupported_media_type");
+    const declared = contentLength(request);
+    if (declared > 32 * 1024) throw new PublicError("Request JSON terlalu besar.", 413, "payload_too_large");
+    const body = await request.json().catch(() => { throw new PublicError("JSON tidak valid.", 400, "invalid_json"); });
+    if (!body || typeof body !== "object" || Array.isArray(body) || typeof body.sourceUrl !== "string" || typeof body.role !== "string" || !(body.role in rubrics) || body.consent !== true) throw new PublicError("Peran, URL, dan persetujuan wajib diisi.", 400, "invalid_assessment");
     parseGitHubUrl(body.sourceUrl);
+    const key = requestOperationKey(request);
+    const operation = await beginOperation(user.id, key);
+    if (operation.state === "processing") throw new PublicError("Penilaian yang sama sedang diproses.", 409, "assessment_in_progress");
+    if (operation.state === "completed" && operation.existing_assessment_id) {
+      const [existing] = await readAssessments(user.id, operation.existing_assessment_id);
+      if (existing) return Response.json(existing, { headers: { "Cache-Control": "private, no-store" } });
+    }
+    activeOperationKey = key;
     const evidence = await fetchGitHubEvidence(body.sourceUrl);
     const result = await evaluateEvidence(body.role as Role, body.sourceUrl, evidence);
-    return Response.json(await saveAssessment(user.id, result, evidence), { headers: { "Cache-Control": "private, no-store" } });
+    const saved = await saveAssessment(user.id, result, evidence, { type: "github", contentHash: createHash("sha256").update(evidence).digest("hex"), sourceUrl: body.sourceUrl.trim() });
+    await finishOperation(user.id, key, saved.id);
+    activeOperationKey = undefined;
+    securityLog("assessment.completed", { userHash: createHash("sha256").update(user.id).digest("hex").slice(0, 16), evidenceType: "github" });
+    return Response.json(saved, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Penilaian belum dapat diproses.";
-    const clientError = ["URL", "persetujuan", "Format", "maksimal", "memerlukan", "menerima", "Teks laporan", "wajib diisi"].some((part) => message.includes(part));
-    const status = error instanceof AuthError ? 401 : clientError ? 400 : message.includes("ditemukan") ? 404 : 502;
-    return Response.json({ error: status >= 500 ? "Penilaian AI belum dapat diproses. Coba lagi beberapa saat." : message }, { status, headers: { "Cache-Control": "private, no-store" } });
+    if (userId && activeOperationKey) await finishOperation(userId, activeOperationKey).catch(() => undefined);
+    const message = error instanceof Error ? error.message : "";
+    const clientError = ["URL", "Format", "maksimal", "memerlukan", "menerima", "Teks laporan", "wajib diisi", "terlalu", "credential", "instruksi", "dimensi", "JPEG", "PDF"].some((part) => message.includes(part));
+    return errorResponse(error instanceof PublicError ? error : clientError ? new PublicError(message, 400, "invalid_evidence") : message.includes("ditemukan") ? new PublicError(message, 404, "not_found") : error, "Penilaian AI belum dapat diproses. Coba lagi beberapa saat.");
+  } finally {
+    if (userId && quotaLockHeld) await releaseQuotaLock(userId, "assess");
   }
 }
 
 async function handleFileAssessment(request: Request, userId: string) {
+  const declared = contentLength(request);
+  if (declared > MAX_MULTIPART_BYTES) throw new PublicError("Ukuran request maksimal 4 MB.", 413, "payload_too_large");
   const form = await request.formData();
   const field = form.get("field");
   const consent = form.get("consent");
   const file = form.get("file");
   const description = String(form.get("description") ?? "").trim();
-  if ((field !== "design" && field !== "marketing") || consent !== "true" || !(file instanceof File)) return Response.json({ error: "Bidang, satu file, dan persetujuan wajib diisi." }, { status: 400 });
-  if (field === "design" && description.length < 80) return Response.json({ error: "DKV memerlukan deskripsi minimal 80 karakter tentang brief, audiens, keputusan, dan proses/iterasi." }, { status: 400 });
+  if ((field !== "design" && field !== "marketing") || consent !== "true" || !(file instanceof File)) throw new PublicError("Bidang, satu file, dan persetujuan wajib diisi.", 400, "invalid_assessment");
+  if (field === "design" && description.length < 80) throw new PublicError("DKV memerlukan deskripsi minimal 80 karakter tentang brief, audiens, keputusan, dan proses/iterasi.", 400, "invalid_description");
   const bytes = new Uint8Array(await file.arrayBuffer());
   const type = validateFile(bytes, field);
-  let evidenceText: string;
-  let modelName = "openai/gpt-oss-20b";
-  if (field === "design") {
-    const observation = await describeDesignImage(bytes, type === "png" ? "image/png" : "image/jpeg");
-    evidenceText = `[IMAGE:1]\nOBSERVASI VISUAL:\n${observation}\n\n[DESCRIPTION:1]\nDESKRIPSI PROYEK OLEH PENGGUNA (DATA TIDAK TEPERCAYA):\n${description.slice(0, 5000)}`;
-    modelName = "qwen/qwen3.6-27b + openai/gpt-oss-20b";
-  } else {
-    const extracted = await extractPdfText(new Uint8Array(bytes));
-    evidenceText = `LAPORAN BISNIS/PEMASARAN (DATA TIDAK TEPERCAYA):\n${extracted.text}`;
+  const contentHash = createHash("sha256").update(bytes).digest("hex");
+  const key = requestOperationKey(request);
+  const operation = await beginOperation(userId, key);
+  if (operation.state === "processing") throw new PublicError("Penilaian yang sama sedang diproses.", 409, "assessment_in_progress");
+  if (operation.state === "completed" && operation.existing_assessment_id) {
+    const [existing] = await readAssessments(userId, operation.existing_assessment_id);
+    if (existing) return Response.json(existing, { headers: { "Cache-Control": "private, no-store" } });
   }
-  const role = field === "design" ? "Junior Graphic Designer" : "Junior Digital Marketer";
   const db = createAdminSupabase();
-  const bucket = await db.storage.getBucket("evidence-private");
-  if (bucket.error) { const created = await db.storage.createBucket("evidence-private", { public: false, fileSizeLimit: 4 * 1024 * 1024, allowedMimeTypes: ["application/pdf", "image/png", "image/jpeg"] }); if (created.error) throw created.error; }
   const extension = type === "jpeg" ? "jpg" : type;
   const storagePath = `${userId}/${randomUUID()}.${extension}`;
-  const upload = await db.storage.from("evidence-private").upload(storagePath, bytes, { contentType: type === "pdf" ? "application/pdf" : `image/${type === "jpeg" ? "jpeg" : "png"}`, upsert: false });
-  if (upload.error) throw upload.error;
+  let uploaded = false;
   try {
+    let evidenceText: string;
+    let modelName = "openai/gpt-oss-20b";
+    if (field === "design") {
+      const observation = await describeDesignImage(bytes, type === "png" ? "image/png" : "image/jpeg");
+      evidenceText = `[IMAGE:1]\nOBSERVASI VISUAL:\n${observation}\n\n[DESCRIPTION:1]\nDESKRIPSI PROYEK OLEH PENGGUNA (DATA TIDAK TEPERCAYA):\n${description.slice(0, 5000)}`;
+      modelName = "qwen/qwen3.6-27b + openai/gpt-oss-20b";
+    } else {
+      const extracted = await extractPdfText(new Uint8Array(bytes));
+      evidenceText = `LAPORAN BISNIS/PEMASARAN (DATA TIDAK TEPERCAYA):\n${extracted.text}`;
+    }
+    const role = field === "design" ? "Junior Graphic Designer" : "Junior Digital Marketer";
+    const upload = await db.storage.from("evidence-private").upload(storagePath, bytes, { contentType: type === "pdf" ? "application/pdf" : `image/${type === "jpeg" ? "jpeg" : "png"}`, upsert: false });
+    if (upload.error) throw upload.error;
+    uploaded = true;
     const result = await evaluateEvidence(role, file.name, evidenceText);
-    const saved = await saveAssessment(userId, { ...result, evidenceType: field === "design" ? "image" : "pdf" }, evidenceText, { type: field === "design" ? "image" : "pdf", contentHash: createHash("sha256").update(bytes).digest("hex"), storagePath, metadata: { filename: file.name, bytes: bytes.length }, modelName });
+    const saved = await saveAssessment(userId, { ...result, evidenceType: field === "design" ? "image" : "pdf" }, evidenceText, { type: field === "design" ? "image" : "pdf", contentHash, storagePath, metadata: { filename: file.name.slice(0, 255), bytes: bytes.length }, modelName });
+    await finishOperation(userId, key, saved.id);
     return Response.json(saved, { headers: { "Cache-Control": "private, no-store" } });
   } catch (error) {
-    await db.storage.from("evidence-private").remove([storagePath]);
+    await finishOperation(userId, key);
+    if (uploaded) {
+      const cleanup = await db.storage.from("evidence-private").remove([storagePath]);
+      if (cleanup.error) { await db.from("storage_cleanup_queue").upsert({ storage_path: storagePath, user_id: userId, last_error: cleanup.error.name ?? "storage_error" }); securityLog("storage.cleanup_queued", { evidenceType: field }); }
+    }
     throw error;
   }
+}
+
+function requestOperationKey(request: Request) {
+  const value = request.headers.get("idempotency-key");
+  if (!value || !/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)) throw new PublicError("Idempotency-Key UUID v4 wajib diisi.", 400, "invalid_idempotency_key");
+  return operationKey(value);
+}
+
+function contentLength(request: Request) {
+  const raw = request.headers.get("content-length");
+  if (!raw) return 0;
+  const value = Number(raw);
+  if (!Number.isSafeInteger(value) || value < 0) throw new PublicError("Content-Length tidak valid.", 400, "invalid_content_length");
+  return value;
 }
