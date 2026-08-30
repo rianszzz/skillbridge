@@ -1,13 +1,14 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/auth-client";
+import { getSupabase } from "@/lib/auth-client";
 
 export default function AuthGate({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const [authenticated, setAuthenticated] = useState<boolean>();
 
   useEffect(() => {
+    const supabase = getSupabase();
     supabase.auth.getSession().then(({ data }) => {
       const signedIn = Boolean(data.session);
       setAuthenticated(signedIn);

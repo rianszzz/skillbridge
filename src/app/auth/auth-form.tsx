@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/auth-client";
+import { getSupabase } from "@/lib/auth-client";
 import { authErrorMessage } from "@/lib/auth-errors";
 
 export default function AuthForm({ initialMode = "login", next = "/assess" }: { initialMode?: "login" | "signup"; next?: "/assess" }) {
@@ -14,6 +14,7 @@ export default function AuthForm({ initialMode = "login", next = "/assess" }: { 
   const [canResend, setCanResend] = useState(false);
 
   useEffect(() => {
+    const supabase = getSupabase();
     supabase.auth.getSession().then(({ data }) => { if (data.session) router.replace(next); });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => { if (session) router.replace(next); });
     const params = new URLSearchParams(location.hash.slice(1));
@@ -33,6 +34,7 @@ export default function AuthForm({ initialMode = "login", next = "/assess" }: { 
     const form = new FormData(event.currentTarget);
     const credentials = { email: String(form.get("email")), password: String(form.get("password")) };
     try {
+      const supabase = getSupabase();
       const result = mode === "login" ? await supabase.auth.signInWithPassword(credentials) : await supabase.auth.signUp({ ...credentials, options: { emailRedirectTo: `${location.origin}/auth?next=${encodeURIComponent(next)}` } });
       if (result.error) { setCanResend(result.error.code === "email_not_confirmed"); return setError(authErrorMessage(result.error)); }
       if (result.data.session) { router.replace(next); router.refresh(); }
@@ -45,6 +47,7 @@ export default function AuthForm({ initialMode = "login", next = "/assess" }: { 
     if (!email) return setError("Isi email akun yang ingin dikonfirmasi.");
     setLoading(true); setError(""); setMessage("");
     try {
+      const supabase = getSupabase();
       const { error: resendError } = await supabase.auth.resend({ type: "signup", email, options: { emailRedirectTo: `${location.origin}/auth?next=${encodeURIComponent(next)}` } });
       if (resendError) { if (/rate limit/i.test(resendError.message)) setCanResend(false); return setError(authErrorMessage(resendError)); }
       setCanResend(false);

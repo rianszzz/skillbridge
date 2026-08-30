@@ -2,13 +2,14 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/auth-client";
+import { getSupabase } from "@/lib/auth-client";
 
 export default function AuthStatus() {
   const router = useRouter();
   const [authenticated, setAuthenticated] = useState<boolean>();
 
   useEffect(() => {
+    const supabase = getSupabase();
     supabase.auth.getSession().then(({ data }) => setAuthenticated(Boolean(data.session)));
     const { data } = supabase.auth.onAuthStateChange((_event, session) => setAuthenticated(Boolean(session)));
     return () => data.subscription.unsubscribe();
@@ -18,7 +19,7 @@ export default function AuthStatus() {
   if (!authenticated) return <><Link href="/auth?mode=signup">Daftar</Link><Link href="/auth">Masuk</Link></>;
 
   async function signOut() {
-    await supabase.auth.signOut();
+    await getSupabase().auth.signOut();
     router.push("/");
     router.refresh();
   }
