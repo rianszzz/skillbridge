@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
+import Groq from "groq-sdk";
 import { createAdminSupabase, AuthError } from "./supabase.ts";
 
 export class PublicError extends Error {
@@ -13,7 +14,7 @@ export function privateResponse(status = 200, retryAfter?: number) {
 }
 
 export function errorResponse(error: unknown, fallback: string) {
-  const publicError = error instanceof PublicError ? error : error instanceof AuthError ? new PublicError(error.message, 401, "unauthorized") : null;
+  const publicError = error instanceof PublicError ? error : error instanceof AuthError ? new PublicError(error.message, 401, "unauthorized") : error instanceof Groq.APIError && error.status === 429 ? new PublicError("Layanan AI sedang sibuk. Coba lagi setelah satu menit.", 429, "ai_rate_limit", 60) : null;
   const status = publicError?.status ?? 500;
   const requestId = randomUUID();
   securityLog("api.error", { requestId, status, code: publicError?.code ?? "internal_error", errorClass: error instanceof Error ? error.name : "unknown" });

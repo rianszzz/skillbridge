@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { enrichCriterionDetails, quoteMatchesEvidence, quoteMatchesReference, repairSufficiency, validateResult } from "./assessment.ts";
+import { enrichCriterionDetails, groundEvidenceQuotes, quoteMatchesEvidence, quoteMatchesReference, repairSufficiency, validateResult } from "./assessment.ts";
 import { rubrics } from "./rubrics.ts";
 import type { CriterionScore } from "./types.ts";
 
@@ -12,6 +12,7 @@ test("detail spesifik menerima kutipan exact dari reference yang tersedia", () =
 });
 
 test("kutipan PDF menerima variasi tanda baca tetapi menolak klaim berbeda", () => {
+  assert.equal(quoteMatchesEvidence("## Install", "README\n## Install\nnpm install package"), true);
   assert.equal(quoteMatchesEvidence("Search menghasilkan 153 konversi — conversion rate 7,2%", evidence), true);
   assert.equal(quoteMatchesEvidence("Search menghasilkan 999 penjualan dengan ROAS 20%", evidence), false);
 });
@@ -20,6 +21,13 @@ test("kutipan wajib berasal dari block yang direferensikan", () => {
   const blocks = "[PAGE:1:BLOCK:1]\nCTR sebesar 7,2%.\n[PAGE:1:BLOCK:2]\nRevenue sebesar Rp10 juta.";
   assert.equal(quoteMatchesReference("[PAGE:1:BLOCK:1]", "CTR sebesar 7,2%", blocks), true);
   assert.equal(quoteMatchesReference("[PAGE:1:BLOCK:1]", "Revenue sebesar Rp10 juta", blocks), false);
+});
+
+test("kutipan paraphrase di-ground ke baris exact pada block yang sama", () => {
+  const item = structuredClone(criterion);
+  item.details!.evidence_quotes[0].quote = "Search memberi 153 conversion";
+  groundEvidenceQuotes([item], evidence);
+  assert.equal(item.details!.evidence_quotes[0].quote, "Search menghasilkan 153 konversi dengan conversion rate 7,2%.");
 });
 
 test("detail spesifik menolak kutipan karangan dan tindakan kosong", () => {

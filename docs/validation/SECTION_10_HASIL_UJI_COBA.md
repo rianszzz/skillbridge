@@ -198,7 +198,11 @@ Rekaman browser memuat 32 frame dan tersimpan di `/Users/rian/.config/browser-ha
 
 Pada 31 Agustus 2026, evaluator rubrik 1.1 diuji ulang secara lokal melalui extractor dan provider yang sama dengan produksi. Informatika selesai dalam 1,7 detik dengan empat kriteria dan detail lengkap; `octocat/Hello-World` tetap berstatus `insufficient_evidence` karena tidak menyediakan source file yang didukung. DKV sedang selesai dalam 4,9 detik dengan empat kriteria dan detail lengkap. Marketing sedang selesai dalam 2,6 detik dengan empat kriteria, detail lengkap, dan skor 39/100. Angka ini merupakan smoke test teknis, bukan baseline akurasi.
 
-Gerbang rilis terakhir lulus `eslint`, TypeScript, 22 test, dan production build. Deployment `dpl_94xBkQLy4FRQzBSaXEAdACY4C3Nk` berstatus `Ready`; alias `https://skillbridge-6ndn.vercel.app` dan `/api/health` aktif. Landing page, tampilan mobile 390 px, console browser, dan auth guard diuji pada localhost dan produksi. Submit production terautentikasi rubrik 1.1 belum dijalankan ulang karena sesi akun uji tidak tersedia; hasil historis pada 10.6.1 tidak diubah menjadi klaim uji versi 1.1.
+Gerbang rilis awal lulus `eslint`, TypeScript, 22 test, dan production build. Deployment `dpl_94xBkQLy4FRQzBSaXEAdACY4C3Nk` berstatus `Ready`; alias `https://skillbridge-6ndn.vercel.app` dan `/api/health` aktif. Landing page, tampilan mobile 390 px, console browser, dan auth guard diuji pada localhost dan produksi. Hasil historis pada 10.6.1 tetap dipisahkan dari uji rubrik 1.1.
+
+Validasi production terautentikasi kemudian diselesaikan memakai akun uji sementara yang dihapus setelah pengujian. Informatika dengan repository publik `sindresorhus/is` menghasilkan 75/100, DKV dengan `fixtures/design/strong.png` menghasilkan 56/100, dan Marketing dengan `fixtures/marketing/medium.pdf` menghasilkan 31/100. Ketiganya mengembalikan HTTP 200, tepat empat kriteria, detail rubrik 1.1 lengkap, dan muncul pada endpoint riwayat. Assessment uji dihapus setelah verifikasi. Run akhir lulus 25 test dan deployment `dpl_JCFs1MBzcbTKhNh9BACFc3P6b7rj` berstatus `Ready`.
+
+Pengujian juga mengonfirmasi batas provider sebesar 8.000 token per menit. Permintaan berdekatan sebelumnya salah tampil sebagai HTTP 500 generik. Error provider 429 kini dipetakan menjadi HTTP 429, kode `ai_rate_limit`, pesan aman, dan `Retry-After: 60`; pengujian lintas bidang diberi jeda 65 detik agar tidak menabrak quota global provider.
 
 ## 10.7 Hasil Pengujian Antarmuka
 

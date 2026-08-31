@@ -35,6 +35,7 @@ export async function evaluateEvidence(role: Role, sourceUrl: string, evidence: 
     const codeQuality = result.criteria.find(({ criterion_id }) => criterion_id === "web_code_quality");
     if (codeQuality) Object.assign(codeQuality, { evidence_sufficiency: "insufficient_evidence", score: null, confidence: "low", reason: "Isi source file tidak tersedia pada bukti yang dapat dibaca.", evidence_refs: [], details: { met_indicators: [], missing_indicators: ["Isi source file belum tersedia."], evidence_quotes: [], next_action: "Gunakan repository publik dengan source file teks pada branch utama." } });
   }
+  groundEvidenceQuotes(result.criteria, evidence);
   enrichCriterionDetails(result.criteria, rubric);
   validateResult(result.criteria, rubric.map(({ id }) => id), evidence, role);
   const evidenceSufficiency = result.criteria.every((item) => item.evidence_sufficiency === "sufficient") ? "sufficient" : "insufficient_evidence";
@@ -102,8 +103,8 @@ function normalize(value: string) { return value.normalize("NFKC").replace(/\s+/
 export function quoteMatchesEvidence(quote: string, evidence: string) {
   const normalizedQuote = normalize(quote).replace(/[^\p{L}\p{N}%]+/gu, " ").trim();
   const normalizedEvidence = normalize(evidence).replace(/[^\p{L}\p{N}%]+/gu, " ").trim();
-  if (normalizedQuote.length < 8) return false;
   if (normalizedEvidence.includes(normalizedQuote)) return true;
+  if (normalizedQuote.length < 8) return false;
   const words = normalizedQuote.split(" ").filter(Boolean);
   const evidenceWords = normalizedEvidence.split(" ").filter(Boolean);
   let cursor = 0; let matches = 0;
@@ -116,9 +117,23 @@ export function quoteMatchesEvidence(quote: string, evidence: string) {
 }
 
 export function quoteMatchesReference(reference: string, quote: string, evidence: string) {
+  return quoteMatchesEvidence(quote, evidenceBlock(reference, evidence));
+}
+
+export function groundEvidenceQuotes(criteria: CriterionScore[], evidence: string) {
+  for (const item of criteria) for (const quote of item.details?.evidence_quotes ?? []) {
+    if (quoteMatchesReference(quote.reference, quote.quote, evidence)) continue;
+    const wanted = new Set(normalize(quote.quote).split(/[^\p{L}\p{N}%]+/u).filter((word) => word.length > 2));
+    const lines = evidenceBlock(quote.reference, evidence).split("\n").map((line) => line.trim()).filter((line) => line.length >= 4);
+    const ranked = lines.map((line) => ({ line, matches: normalize(line).split(/[^\p{L}\p{N}%]+/u).filter((word) => wanted.has(word)).length })).sort((a, b) => b.matches - a.matches);
+    if (ranked[0]?.matches) quote.quote = ranked[0].line.slice(0, 220);
+  }
+}
+
+function evidenceBlock(reference: string, evidence: string) {
   const start = evidence.indexOf(reference);
-  if (start < 0) return false;
+  if (start < 0) return "";
   const remainder = evidence.slice(start + reference.length);
   const nextMarker = remainder.search(/^\[(?:IMAGE|DESCRIPTION|REPOSITORY|FILES|COMMITS|README):\d+\]$|^\[PAGE:\d+:BLOCK:\d+\]$|^\[FILE:\d+:L\d+-L\d+\]$/m);
-  return quoteMatchesEvidence(quote, nextMarker < 0 ? remainder : remainder.slice(0, nextMarker));
+  return nextMarker < 0 ? remainder : remainder.slice(0, nextMarker);
 }
