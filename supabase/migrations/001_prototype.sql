@@ -59,6 +59,7 @@ create table public.criterion_scores (
   confidence text not null check (confidence in ('low', 'medium', 'high')),
   reason text not null,
   evidence_refs jsonb not null default '[]',
+  details jsonb not null default '{}'::jsonb,
   primary key (assessment_id, criterion_id),
   check ((evidence_sufficiency = 'sufficient' and score is not null) or (evidence_sufficiency = 'insufficient_evidence' and score is null))
 );

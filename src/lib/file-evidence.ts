@@ -33,12 +33,23 @@ export async function extractPdfText(bytes: Uint8Array) {
     const content = await page.getTextContent();
     if (content.items.length > 20_000) throw new Error("Halaman PDF terlalu kompleks untuk diproses.");
     const text = content.items.map((item) => "str" in item ? item.str : "").join(" ").replace(/\s+/g, " ").trim();
-    pages.push(`[PAGE:${pageNumber}]\n${text}`);
+    const blocks = splitTextBlocks(text);
+    pages.push(blocks.map((block, index) => `[PAGE:${pageNumber}:BLOCK:${index + 1}]\n${block}`).join("\n\n"));
     if (pages.join("\n\n").length >= MAX_PDF_CHARACTERS) break;
   }
   const text = pages.join("\n\n").slice(0, MAX_PDF_CHARACTERS);
-  if (text.replace(/\[PAGE:\d+\]/g, "").trim().length < 100) throw new Error("Teks laporan tidak ditemukan. Gunakan PDF dengan text layer, bukan hasil scan.");
+  if (text.replace(/\[PAGE:\d+:BLOCK:\d+\]/g, "").trim().length < 100) throw new Error("Teks laporan tidak ditemukan. Gunakan PDF dengan text layer, bukan hasil scan.");
   return { text, pages: pages.length };
+}
+
+export function splitTextBlocks(text: string) {
+  const sentences = text.match(/[^.!?]+[.!?]+|[^.!?]+$/g)?.map((item) => item.trim()).filter(Boolean).flatMap((sentence) => sentence.length <= 600 ? [sentence] : sentence.match(/.{1,600}(?:\s|$)/g)?.map((part) => part.trim()).filter(Boolean) ?? [sentence.slice(0, 600)]) ?? [];
+  const blocks: string[] = [];
+  for (const sentence of sentences) {
+    if (!blocks.length || `${blocks.at(-1)} ${sentence}`.length > 600) blocks.push(sentence);
+    else blocks[blocks.length - 1] += ` ${sentence}`;
+  }
+  return blocks.length ? blocks : [text];
 }
 
 function validateImageDimensions(bytes: Uint8Array, type: "png" | "jpeg") {

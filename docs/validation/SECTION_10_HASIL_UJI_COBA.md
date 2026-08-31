@@ -194,6 +194,12 @@ Hasil Informatika tidak diberi skor akhir karena sebagian bukti repositori tidak
 
 Rekaman browser memuat 32 frame dan tersimpan di `/Users/rian/.config/browser-harness/agent-workspace/recordings/skillbridge-live-three-fields`. Screenshot membuktikan alur form, submit, hasil, dan persistence benar-benar dijalankan. Screenshot tidak membuktikan ketepatan skor terhadap HR manusia.
 
+### 10.6.2 Validasi Rubrik 1.1 dan Optimasi Runtime
+
+Pada 31 Agustus 2026, evaluator rubrik 1.1 diuji ulang secara lokal melalui extractor dan provider yang sama dengan produksi. Informatika selesai dalam 1,7 detik dengan empat kriteria dan detail lengkap; `octocat/Hello-World` tetap berstatus `insufficient_evidence` karena tidak menyediakan source file yang didukung. DKV sedang selesai dalam 4,9 detik dengan empat kriteria dan detail lengkap. Marketing sedang selesai dalam 2,6 detik dengan empat kriteria, detail lengkap, dan skor 39/100. Angka ini merupakan smoke test teknis, bukan baseline akurasi.
+
+Gerbang rilis terakhir lulus `eslint`, TypeScript, 22 test, dan production build. Deployment `dpl_94xBkQLy4FRQzBSaXEAdACY4C3Nk` berstatus `Ready`; alias `https://skillbridge-6ndn.vercel.app` dan `/api/health` aktif. Landing page, tampilan mobile 390 px, console browser, dan auth guard diuji pada localhost dan produksi. Submit production terautentikasi rubrik 1.1 belum dijalankan ulang karena sesi akun uji tidak tersedia; hasil historis pada 10.6.1 tidak diubah menjadi klaim uji versi 1.1.
+
 ## 10.7 Hasil Pengujian Antarmuka
 
 Pengujian browser dilakukan memakai Chromium pada desktop dan mobile.

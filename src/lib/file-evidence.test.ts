@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { detectFileType, validateFile } from "./file-evidence.ts";
+import { detectFileType, splitTextBlocks, validateFile } from "./file-evidence.ts";
 
 const png = Uint8Array.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 0x49, 0x48, 0x44, 0x52, 0, 0, 0, 100, 0, 0, 0, 100]);
 const pdf = new TextEncoder().encode("%PDF-1.4");
@@ -9,6 +9,13 @@ test("magic bytes menentukan tipe, bukan nama file", () => {
   assert.equal(detectFileType(png), "png");
   assert.equal(detectFileType(pdf), "pdf");
   assert.throws(() => detectFileType(new TextEncoder().encode("<svg>")));
+});
+
+test("teks PDF dipecah menjadi block pendek yang tetap utuh", () => {
+  const blocks = splitTextBlocks(`${"Kalimat pertama cukup panjang. ".repeat(30)}Kalimat akhir.`);
+  assert.ok(blocks.length > 1);
+  assert.ok(blocks.every((block) => block.length <= 600));
+  assert.match(blocks.join(" "), /Kalimat akhir/);
 });
 
 test("bidang hanya menerima bukti yang dapat dinilai", () => {

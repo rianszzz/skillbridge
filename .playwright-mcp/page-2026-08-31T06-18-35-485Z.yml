@@ -1,0 +1,66 @@
+- generic [active] [ref=e1]:
+  - link "Lewati ke konten" [ref=e2] [cursor=pointer]:
+    - /url: "#main"
+  - banner [ref=e3]:
+    - link "SB Skillbridge AI" [ref=e4] [cursor=pointer]:
+      - /url: /
+      - generic [ref=e5]: SB
+      - text: Skillbridge AI
+    - navigation "Navigasi utama" [ref=e6]:
+      - link "Daftar" [ref=e7] [cursor=pointer]:
+        - /url: /auth?mode=signup
+      - link "Masuk" [ref=e8] [cursor=pointer]:
+        - /url: /auth
+  - main [ref=e9]:
+    - generic [ref=e10]:
+      - generic [ref=e11]:
+        - paragraph [ref=e12]: Bukti lebih kuat dari klaim
+        - heading "Ukur kesiapan. Tunjukkan buktinya." [level=1] [ref=e13]
+        - paragraph [ref=e14]: Skillbridge membaca karya nyata, menilainya dengan rubrik transparan, lalu menunjukkan gap yang layak dikerjakan berikutnya.
+        - generic [ref=e15]:
+          - link "Mulai penilaian" [ref=e16] [cursor=pointer]:
+            - /url: /assess
+          - link "Lihat cara kerja" [ref=e17] [cursor=pointer]:
+            - /url: "#cara-kerja"
+      - generic "Alur Skillbridge" [ref=e18]:
+        - article [ref=e19]:
+          - text: "1"
+          - strong [ref=e20]: Bukti
+          - paragraph [ref=e21]: Repositori GitHub publik.
+        - article [ref=e22]:
+          - text: "2"
+          - strong [ref=e23]: Rubrik
+          - paragraph [ref=e24]: Empat kriteria dengan bobot terbuka.
+        - article [ref=e25]:
+          - text: "3"
+          - strong [ref=e26]: Langkah berikutnya
+          - paragraph [ref=e27]: Gap spesifik, materi terkurasi, wawancara.
+    - generic [ref=e28]:
+      - paragraph [ref=e29]: Tiga jalur awal
+      - heading "Satu mesin evaluasi, tiga jenis karya." [level=2] [ref=e30]
+      - generic [ref=e31]:
+        - article [ref=e32]:
+          - strong [ref=e33]: Junior Web Developer
+          - paragraph [ref=e34]: Kode, struktur, dokumentasi, dan riwayat kontribusi.
+        - article [ref=e35]:
+          - strong [ref=e36]: Junior Graphic Designer
+          - paragraph [ref=e37]: Konsistensi visual, iterasi, narasi, dan problem solving.
+        - article [ref=e38]:
+          - strong [ref=e39]: Junior Digital Marketer
+          - paragraph [ref=e40]: Metodologi, data, hasil terukur, dan kualitas laporan.
+    - generic [ref=e41]:
+      - generic [ref=e42]:
+        - heading "Pahami hasil sebelum menilai." [level=2] [ref=e43]
+        - paragraph [ref=e44]: Pelajari arti bukti kurang, batas skor, pemrosesan AI, dan cara menghapus data.
+      - link "Buka FAQ" [ref=e45] [cursor=pointer]:
+        - /url: /faq
+  - contentinfo [ref=e46]:
+    - paragraph [ref=e47]: Prototipe evaluasi indikatif berbasis bukti. Bukan verifikasi kompetensi atau jaminan kerja.
+    - navigation "Navigasi footer" [ref=e48]:
+      - link "FAQ" [ref=e49] [cursor=pointer]:
+        - /url: /faq
+      - link "Privasi" [ref=e50] [cursor=pointer]:
+        - /url: /privacy
+      - link "Terima kasih" [ref=e51] [cursor=pointer]:
+        - /url: /thank-you
+  - alert [ref=e52]

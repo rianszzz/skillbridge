@@ -8,6 +8,8 @@ test("semua bobot rubrik berjumlah satu", () => {
     assert.equal(new Set(rubric.map(({ id }) => id)).size, 4);
     for (const criterion of rubric) {
       assert.ok(criterion.acceptedEvidence);
+      assert.deepEqual(Object.keys(criterion.anchorRequirements), ["0", "25", "50", "75", "100"]);
+      assert.ok(Object.values(criterion.anchorRequirements).every((value) => value.length >= 20));
       assert.deepEqual(Object.keys(criterion.anchors), ["0", "25", "50", "75", "100"]);
     }
   }

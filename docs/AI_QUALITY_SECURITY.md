@@ -13,7 +13,7 @@
 
 ```json
 {
-  "rubric_version": "1.0",
+  "rubric_version": "1.1",
   "evidence_sufficiency": "sufficient",
   "criteria": [
     {
@@ -22,7 +22,13 @@
       "score": 75,
       "confidence": "medium",
       "reason": "Struktur modul konsisten, tetapi error handling belum merata.",
-      "evidence_refs": ["src/api.ts:12-48"]
+      "evidence_refs": ["[FILE:1:L12-L48]"],
+      "details": {
+        "met_indicators": ["Struktur modul konsisten."],
+        "missing_indicators": ["Error handling belum merata."],
+        "evidence_quotes": [{ "reference": "[FILE:1:L12-L48]", "quote": "try { await fetchData() }" }],
+        "next_action": "Tambahkan penanganan error pada request jaringan."
+      }
     }
   ],
   "strengths": ["Pemisahan modul jelas"],
@@ -34,14 +40,15 @@
 Aturan server:
 
 - Tolak field wajib yang hilang.
-- Tolak skor di luar `0-100`.
+- Tolak skor selain anchor `0`, `25`, `50`, `75`, `100`, atau `null` untuk bukti tidak cukup.
 - Tolak `criterion_id` yang tidak ada di rubrik aktif.
 - Tolak duplikasi kriteria.
 - Tolak skor pada kriteria berstatus `insufficient_evidence`.
 - Jangan terima skor akhir dari model.
 - Hitung skor akhir hanya dari kriteria berstatus cukup dan aturan rubrik.
 - Simpan output gagal hanya sebagai metadata error, bukan assessment selesai.
-- Kutipan yang tidak dapat ditemukan pada ekstraksi ditandai tidak valid.
+- Kutipan yang tidak ditemukan pada block halaman atau rentang baris referensinya ditolak.
+- Batasi detail per kriteria menjadi maksimal dua indikator terpenuhi, dua indikator belum terpenuhi, satu kutipan, dan satu tindakan.
 
 ## 3. Rubrik Awal
 
