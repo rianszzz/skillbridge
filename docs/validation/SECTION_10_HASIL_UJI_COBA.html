@@ -1,0 +1,1693 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>SECTION_10_HASIL_UJI_COBA</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+  </style>
+  <link rel="stylesheet" href="print.css" />
+</head>
+<body>
+<h1 id="hasil-uji-coba">10. Hasil Uji Coba</h1>
+<p>Bagian ini menyajikan hasil pengujian model AI dan prototipe
+Skillbridge AI untuk mengevaluasi kemampuan, kestabilan, fungsionalitas,
+keamanan dasar, dan kesesuaiannya terhadap permasalahan kesiapan kerja
+berbasis bukti. Pengujian dilaksanakan pada 24 Agustus 2026 terhadap
+deployment produksi <code>https://skillbridge-6ndn.vercel.app</code>
+dengan data sintetis. Seluruh angka pada bagian ini berasal dari
+pengujian yang benar-benar dijalankan. Hasil belum boleh ditafsirkan
+sebagai bukti bahwa model setara dengan penilai ahli karena baseline dua
+penilai manusia belum selesai.</p>
+<h2 id="metode-pengujian">10.1 Metode Pengujian</h2>
+<p>Pengujian dibagi menjadi empat kelompok:</p>
+<ol type="1">
+<li><strong>Pengujian struktural</strong>, untuk memeriksa integritas
+dataset, konsistensi rubrik, perhitungan skor berbobot, validasi tipe
+file, URL GitHub, dan pemetaan pesan autentikasi.</li>
+<li><strong>Pengujian model AI</strong>, untuk mengukur keberhasilan
+respons terstruktur, kecukupan bukti, kestabilan tiga pengulangan, dan
+latensi end-to-end.</li>
+<li><strong>Pengujian prototipe</strong>, untuk memeriksa autentikasi,
+navigasi, tiga jenis bukti, persistence Supabase, riwayat, rekomendasi,
+wawancara, isolasi data, dan penghapusan.</li>
+<li><strong>Pengujian antarmuka</strong>, untuk memeriksa responsivitas
+desktop/mobile, struktur semantik dasar, label form, state autentikasi,
+dan overflow horizontal.</li>
+</ol>
+<p>Model evaluator menggunakan Groq <code>openai/gpt-oss-20b</code>
+dengan temperature <code>0</code> dan strict JSON schema. Karya DKV
+terlebih dahulu dianalisis menggunakan model multimodal
+<code>qwen/qwen3.6-27b</code>, kemudian observasi visual dinilai oleh
+evaluator teks. Rubrik yang digunakan adalah versi <code>1.0</code>.
+Setiap bidang memiliki empat kriteria dengan skor anchor <code>0</code>,
+<code>25</code>, <code>50</code>, <code>75</code>, dan <code>100</code>.
+Jika satu kriteria tidak memiliki bukti cukup, kriteria diberi status
+<code>insufficient_evidence</code>, skornya <code>null</code>, dan skor
+akhir tidak ditampilkan.</p>
+<p>Skor akhir dihitung aplikasi dengan persamaan:</p>
+<pre class="text"><code>Skor akhir = Σ(skor kriteria × bobot kriteria)</code></pre>
+<p>Model tidak diperbolehkan menentukan skor akhir. Server memeriksa
+jumlah kriteria, identitas kriteria, rentang skor, status kecukupan, dan
+referensi bukti sebelum hasil disimpan.</p>
+<h2 id="data-dan-skenario-pengujian">10.2 Data dan Skenario
+Pengujian</h2>
+<p>Dataset minimum terdiri atas sembilan fixture sintetis, legal,
+anonim, dan dibekukan menggunakan SHA-256. Distribusinya sebagai
+berikut:</p>
+<table>
+<colgroup>
+<col style="width: 23%" />
+<col style="width: 23%" />
+<col style="width: 30%" />
+<col style="width: 23%" />
+</colgroup>
+<thead>
+<tr>
+<th>Bidang</th>
+<th>Target peran</th>
+<th style="text-align: right;">Sampel</th>
+<th>Bentuk bukti</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Informatika</td>
+<td>Junior Web Developer</td>
+<td style="text-align: right;">3</td>
+<td>Kode, struktur proyek, README, dan riwayat commit</td>
+</tr>
+<tr>
+<td>DKV</td>
+<td>Junior Graphic Designer</td>
+<td style="text-align: right;">3</td>
+<td>PNG hasil karya dan deskripsi brief/proses</td>
+</tr>
+<tr>
+<td>Bisnis/Pemasaran</td>
+<td>Junior Digital Marketer</td>
+<td style="text-align: right;">3</td>
+<td>PDF laporan dengan text layer dan data sintetis</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td></td>
+<td style="text-align: right;"><strong>9</strong></td>
+<td>Tiga struktur bukti berbeda</td>
+</tr>
+</tbody>
+</table>
+<p>Manifest memuat 21 artefak utama. Verifikasi ulang menghasilkan 21
+dari 21 hash cocok. Target <code>weak</code>, <code>medium</code>, dan
+<code>strong</code> pada fixture merupakan desain skenario, bukan ground
+truth manusia.</p>
+<p>Skenario pengujian model mencakup benchmark komprehensif sembilan
+fixture sintetis dengan tiga pengulangan independen (total 27 run
+evaluasi bertahap):</p>
+<ul>
+<li>Tiga pengulangan untuk masing-masing sampel Informatika
+(<code>INF-01</code>, <code>INF-02</code>, <code>INF-03</code>);</li>
+<li>Tiga pengulangan untuk masing-masing sampel DKV
+(<code>DKV-01</code>, <code>DKV-02</code>, <code>DKV-03</code>);</li>
+<li>Tiga pengulangan untuk masing-masing sampel Bisnis/Pemasaran
+(<code>MKT-01</code>, <code>MKT-02</code>, <code>MKT-03</code>).</li>
+</ul>
+<p>Selain pengujian benchmark 27 run, pengujian prototipe live mencakup
+autentikasi anonim dan login, direct route protection, pilihan tiga
+bidang, validasi consent, file palsu, file lebih dari 4 MB, isolasi data
+dua akun (cross-account), RLS, private Storage, wawancara persisten di
+database, riwayat penilaian, dan cascade deletion.</p>
+<h2 id="metrik-evaluasi">10.3 Metrik Evaluasi</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Aspek</th>
+<th>Metrik</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Integritas data</td>
+<td>Jumlah hash cocok terhadap manifest</td>
+</tr>
+<tr>
+<td>Kepatuhan output</td>
+<td>HTTP sukses, empat kriteria, skor anchor valid, referensi bukti
+tersedia</td>
+</tr>
+<tr>
+<td>Kecukupan bukti</td>
+<td>Jumlah hasil <code>sufficient</code> dan
+<code>insufficient_evidence</code></td>
+</tr>
+<tr>
+<td>Stabilitas</td>
+<td>Konsistensi status dan skor pada tiga input identik</td>
+</tr>
+<tr>
+<td>Efisiensi</td>
+<td>Minimum, median, persentil ke-95, maksimum latensi end-to-end</td>
+</tr>
+<tr>
+<td>Fungsionalitas</td>
+<td>Jumlah skenario prototipe lulus/gagal</td>
+</tr>
+<tr>
+<td>Keamanan dasar</td>
+<td>HTTP authorization, cross-account isolation, RLS, bucket privacy,
+residual data</td>
+</tr>
+<tr>
+<td>Responsivitas</td>
+<td>Overflow horizontal pada desktop, 390 px, dan 320 px</td>
+</tr>
+<tr>
+<td>Relevansi sumber</td>
+<td>Status HTTP 12 URL katalog belajar</td>
+</tr>
+</tbody>
+</table>
+<p>Metrik akurasi, MAE, precision, recall, F1, dan agreement terhadap
+manusia belum dihitung karena <code>HUMAN_RATINGS.csv</code> masih
+memiliki 0 dari 36 baseline kriteria yang selesai.</p>
+<h2 id="hasil-pengujian-struktural">10.4 Hasil Pengujian Struktural</h2>
+<table>
+<thead>
+<tr>
+<th>Pengujian</th>
+<th>Hasil</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Integritas fixture SHA-256</td>
+<td>21/21 cocok</td>
+</tr>
+<tr>
+<td>Rubrik tersedia</td>
+<td>3 rubrik, 12 kriteria</td>
+</tr>
+<tr>
+<td>Bobot setiap rubrik</td>
+<td>Tepat 1,0</td>
+</tr>
+<tr>
+<td>Anchor setiap kriteria</td>
+<td>0, 25, 50, 75, 100</td>
+</tr>
+<tr>
+<td>Unit test aplikasi</td>
+<td>6/6 lulus</td>
+</tr>
+<tr>
+<td>Type checking TypeScript</td>
+<td>Lulus</td>
+</tr>
+<tr>
+<td>ESLint</td>
+<td>Lulus</td>
+</tr>
+<tr>
+<td>Production build Next.js</td>
+<td>Lulus</td>
+</tr>
+<tr>
+<td>Audit dependency</td>
+<td>0 kerentanan high/critical</td>
+</tr>
+</tbody>
+</table>
+<p>Hasil tersebut menunjukkan bahwa struktur rubrik, perhitungan skor,
+parser URL GitHub, magic-byte file, pemilihan tipe bukti, dan pemetaan
+error autentikasi telah memiliki pemeriksaan otomatis. Hasil ini belum
+mengukur ketepatan penilaian AI terhadap manusia.</p>
+<h2 id="hasil-pengujian-model-ai">10.5 Hasil Pengujian Model AI</h2>
+<h3 id="kepatuhan-schema-dan-evaluasi-benchmark-27-run">10.5.1 Kepatuhan
+Schema dan Evaluasi Benchmark 27 Run</h3>
+<p>Evaluasi benchmark model dilaksanakan terhadap sembilan fixture
+sintetis (<code>INF-01..03</code>, <code>DKV-01..03</code>,
+<code>MKT-01..03</code>) dengan tiga pengulangan independen (<em>Run 1,
+Run 2, Run 3</em>) per sampel, menghasilkan <strong>27 run evaluasi
+terstruktur</strong>.</p>
+<p>Seluruh 27 run pengujian (100%) berhasil mematuhi kontrak output
+Rubrik 1.1: 1. Menghasilkan tepat empat kriteria per bidang tanpa
+duplikasi atau kekurangan kriteria; 2. Masalah historis kegagalan skema
+pada Marketing sedang (array tujuh elemen pada batch awal) telah
+tereliminasi sepenuhnya melalui isolasi ekstraksi blok dan validasi
+schema server; 3. Seluruh skor non-null hanya menggunakan anchor resmi
+<span class="math inline">{0, 25, 50, 75, 100}</span>; 4. Seluruh
+kutipan bukti (<em>evidence quotes</em>) ter-grounding exact ke penanda
+referensi fisik (<code>[PAGE:n:BLOCK:n]</code> untuk PDF dan
+<code>[FILE:n:Lx-Ly]</code> untuk source code); 5. Propagasi kegagalan
+aman (<em>safe null propagation</em>) bekerja 100%: setiap sampel dengan
+kriteria berstatus <code>insufficient_evidence</code> menghasilkan
+<code>finalScore: null</code> (tampil sebagai <code>—/100</code> pada
+antarmuka).</p>
+<pre class="text"><code>Tingkat Keberhasilan Schema 27 Run Benchmark
+Valid Rubric 1.1 Schema  ████████████████████ 100,00% (27/27)
+Grounded Evidence Quotes ████████████████████ 100,00% (27/27)
+Discreet Anchor Adherence████████████████████ 100,00% (27/27)</code></pre>
+<h3 id="matriks-lengkap-hasil-benchmark-9-fixture-3-run">10.5.2 Matriks
+Lengkap Hasil Benchmark 9 Fixture × 3 Run</h3>
+<p>Tabel 3 menyajikan rekapitulasi skor per kriteria dan skor akhir
+berbobot untuk seluruh 27 pengujian:</p>
+<table>
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 14%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">Sampel Fixture</th>
+<th style="text-align: left;">Bidang &amp; Peran</th>
+<th style="text-align: center;">Run</th>
+<th style="text-align: center;">Skor Kriteria [K1, K2, K3, K4]</th>
+<th style="text-align: center;">Status Bukti</th>
+<th style="text-align: center;">Final Score</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>INF-01 (Weak)</strong></td>
+<td style="text-align: left;">Informatika</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">[0, 25, null, null]</td>
+<td style="text-align: center;"><code>insufficient_evidence</code></td>
+<td style="text-align: center;"><strong>null</strong>
+(<code>—/100</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">(Jr. Web Developer)</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">[0, 25, null, null]</td>
+<td style="text-align: center;"><code>insufficient_evidence</code></td>
+<td style="text-align: center;"><strong>null</strong>
+(<code>—/100</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">[0, 25, null, null]</td>
+<td style="text-align: center;"><code>insufficient_evidence</code></td>
+<td style="text-align: center;"><strong>null</strong>
+(<code>—/100</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>INF-02 (Medium)</strong></td>
+<td style="text-align: left;">Informatika</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">[50, 75, 75, 50]</td>
+<td style="text-align: center;"><code>sufficient</code></td>
+<td style="text-align: center;"><strong>61/100</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">(Jr. Web Developer)</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">[50, 75, 75, 50]</td>
+<td style="text-align: center;"><code>sufficient</code></td>
+<td style="text-align: center;"><strong>61/100</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">[50, 75, 75, 50]</td>
+<td style="text-align: center;"><code>sufficient</code></td>
+<td style="text-align: center;"><strong>61/100</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>INF-03 (Strong)</strong></td>
+<td style="text-align: left;">Informatika</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">[75, 100, 50, 100]</td>
+<td style="text-align: center;"><code>sufficient</code></td>
+<td style="text-align: center;"><strong>81/100</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">(Jr. Web Developer)</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">[75, 100, 50, 100]</td>
+<td style="text-align: center;"><code>sufficient</code></td>
+<td style="text-align: center;"><strong>81/100</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">[75, 100, 50, 100]</td>
+<td style="text-align: center;"><code>sufficient</code></td>
+<td style="text-align: center;"><strong>81/100</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>DKV-01 (Weak)</strong></td>
+<td style="text-align: left;">DKV</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">[0, 0, 25, 25]</td>
+<td style="text-align: center;"><code>sufficient</code></td>
+<td style="text-align: center;"><strong>11/100</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">(Jr. Graphic Designer)</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">[0, null, 25, 25]</td>
+<td style="text-align: center;"><code>insufficient_evidence</code></td>
+<td style="text-align: center;"><strong>null</strong>
+(<code>—/100</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">[0, null, 25, 25]</td>
+<td style="text-align: center;"><code>insufficient_evidence</code></td>
+<td style="text-align: center;"><strong>null</strong>
+(<code>—/100</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>DKV-02 (Medium)</strong></td>
+<td style="text-align: left;">DKV</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">[50, 50, 50, 50]</td>
+<td style="text-align: center;"><code>sufficient</code></td>
+<td style="text-align: center;"><strong>50/100</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">(Jr. Graphic Designer)</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">[75, 50, 50, 50]</td>
+<td style="text-align: center;"><code>sufficient</code></td>
+<td style="text-align: center;"><strong>58/100</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">[50, 50, 50, 50]</td>
+<td style="text-align: center;"><code>sufficient</code></td>
+<td style="text-align: center;"><strong>50/100</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>DKV-03 (Strong)</strong></td>
+<td style="text-align: left;">DKV</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">[75, 75, 75, 75]</td>
+<td style="text-align: center;"><code>sufficient</code></td>
+<td style="text-align: center;"><strong>75/100</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">(Jr. Graphic Designer)</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">[75, 75, 75, 100]</td>
+<td style="text-align: center;"><code>sufficient</code></td>
+<td style="text-align: center;"><strong>81/100</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">[75, 75, 75, 75]</td>
+<td style="text-align: center;"><code>sufficient</code></td>
+<td style="text-align: center;"><strong>75/100</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>MKT-01 (Weak)</strong></td>
+<td style="text-align: left;">Pemasaran</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">[25, null, null, 25]</td>
+<td style="text-align: center;"><code>insufficient_evidence</code></td>
+<td style="text-align: center;"><strong>null</strong>
+(<code>—/100</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">(Jr. Digital Marketer)</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">[25, null, null, 25]</td>
+<td style="text-align: center;"><code>insufficient_evidence</code></td>
+<td style="text-align: center;"><strong>null</strong>
+(<code>—/100</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">[25, null, null, 25]</td>
+<td style="text-align: center;"><code>insufficient_evidence</code></td>
+<td style="text-align: center;"><strong>null</strong>
+(<code>—/100</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>MKT-02 (Medium)</strong></td>
+<td style="text-align: left;">Pemasaran</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">[50, 75, 50, 75]</td>
+<td style="text-align: center;"><code>sufficient</code></td>
+<td style="text-align: center;"><strong>61/100</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">(Jr. Digital Marketer)</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">[50, 50, 50, 75]</td>
+<td style="text-align: center;"><code>sufficient</code></td>
+<td style="text-align: center;"><strong>55/100</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">[50, 75, 50, 75]</td>
+<td style="text-align: center;"><code>sufficient</code></td>
+<td style="text-align: center;"><strong>61/100</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>MKT-03 (Strong)</strong></td>
+<td style="text-align: left;">Pemasaran</td>
+<td style="text-align: center;">1</td>
+<td style="text-align: center;">[100, 100, 100, 100]</td>
+<td style="text-align: center;"><code>sufficient</code></td>
+<td style="text-align: center;"><strong>100/100</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;">(Jr. Digital Marketer)</td>
+<td style="text-align: center;">2</td>
+<td style="text-align: center;">[100, 100, 100, 100]</td>
+<td style="text-align: center;"><code>sufficient</code></td>
+<td style="text-align: center;"><strong>100/100</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: center;">3</td>
+<td style="text-align: center;">[100, 100, 100, 100]</td>
+<td style="text-align: center;"><code>sufficient</code></td>
+<td style="text-align: center;"><strong>100/100</strong></td>
+</tr>
+</tbody>
+</table>
+<p><em>Catatan Kriteria per Bidang:</em> - <strong>Informatika</strong>:
+K1=Kualitas kode (0.35), K2=Struktur proyek (0.25), K3=Dokumentasi
+(0.20), K4=Riwayat kontribusi (0.20). - <strong>DKV</strong>:
+K1=Konsistensi visual (0.30), K2=Proses &amp; iterasi (0.25), K3=Narasi
+desain (0.20), K4=Pemecahan masalah (0.25). -
+<strong>Pemasaran</strong>: K1=Metodologi kampanye (0.25), K2=Penggunaan
+data (0.25), K3=Hasil terukur (0.30), K4=Kualitas laporan (0.20).</p>
+<h3 id="analisis-stabilitas-dan-evaluasi-kasus-perbatasan">10.5.3
+Analisis Stabilitas dan Evaluasi Kasus Perbatasan</h3>
+<p>Tabel berikut menyajikan ringkasan statistik stabilitas model AI
+antar 3 run pengulangan independen:</p>
+<table>
+<colgroup>
+<col style="width: 9%" />
+<col style="width: 9%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 11%" />
+<col style="width: 9%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">Sampel Fixture</th>
+<th style="text-align: left;">Bidang</th>
+<th style="text-align: center;">Run 1</th>
+<th style="text-align: center;">Run 2</th>
+<th style="text-align: center;">Run 3</th>
+<th style="text-align: center;">Rata-rata Skor</th>
+<th style="text-align: center;">Variansi (<span
+class="math inline"><em>s</em><sup>2</sup></span>)</th>
+<th style="text-align: center;">Standar Deviasi (<span
+class="math inline"><em>s</em></span>)</th>
+<th style="text-align: left;">Status Konsistensi</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>INF-01</strong></td>
+<td style="text-align: left;">Informatika</td>
+<td style="text-align: center;">null</td>
+<td style="text-align: center;">null</td>
+<td style="text-align: center;">null</td>
+<td style="text-align: center;">null</td>
+<td style="text-align: center;">0,00</td>
+<td style="text-align: center;">0,00</td>
+<td style="text-align: left;">100% Deterministik
+(<code>insufficient_evidence</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>INF-02</strong></td>
+<td style="text-align: left;">Informatika</td>
+<td style="text-align: center;">61</td>
+<td style="text-align: center;">61</td>
+<td style="text-align: center;">61</td>
+<td style="text-align: center;">61,00</td>
+<td style="text-align: center;">0,00</td>
+<td style="text-align: center;">0,00</td>
+<td style="text-align: left;">100% Deterministik</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>INF-03</strong></td>
+<td style="text-align: left;">Informatika</td>
+<td style="text-align: center;">81</td>
+<td style="text-align: center;">81</td>
+<td style="text-align: center;">81</td>
+<td style="text-align: center;">81,00</td>
+<td style="text-align: center;">0,00</td>
+<td style="text-align: center;">0,00</td>
+<td style="text-align: left;">100% Deterministik</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>DKV-01</strong></td>
+<td style="text-align: left;">DKV</td>
+<td style="text-align: center;">11</td>
+<td style="text-align: center;">null</td>
+<td style="text-align: center;">null</td>
+<td style="text-align: center;">11,00*</td>
+<td style="text-align: center;">0,00</td>
+<td style="text-align: center;">0,00</td>
+<td style="text-align: left;">Konsisten batas kualifikasi lemah (2/3
+null, 1/3 11)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>DKV-02</strong></td>
+<td style="text-align: left;">DKV</td>
+<td style="text-align: center;">50</td>
+<td style="text-align: center;">58</td>
+<td style="text-align: center;">50</td>
+<td style="text-align: center;">52,67</td>
+<td style="text-align: center;">21,33</td>
+<td style="text-align: center;">4,62</td>
+<td style="text-align: left;">Fluktuasi minor 1 anchor pada kriteria
+visual</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>DKV-03</strong></td>
+<td style="text-align: left;">DKV</td>
+<td style="text-align: center;">75</td>
+<td style="text-align: center;">81</td>
+<td style="text-align: center;">75</td>
+<td style="text-align: center;">77,00</td>
+<td style="text-align: center;">12,00</td>
+<td style="text-align: center;">3,46</td>
+<td style="text-align: left;">Fluktuasi minor 1 anchor pada pemecahan
+masalah</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>MKT-01</strong></td>
+<td style="text-align: left;">Pemasaran</td>
+<td style="text-align: center;">null</td>
+<td style="text-align: center;">null</td>
+<td style="text-align: center;">null</td>
+<td style="text-align: center;">null</td>
+<td style="text-align: center;">0,00</td>
+<td style="text-align: center;">0,00</td>
+<td style="text-align: left;">100% Deterministik
+(<code>insufficient_evidence</code>)</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>MKT-02</strong></td>
+<td style="text-align: left;">Pemasaran</td>
+<td style="text-align: center;">61</td>
+<td style="text-align: center;">55</td>
+<td style="text-align: center;">61</td>
+<td style="text-align: center;">59,00</td>
+<td style="text-align: center;">12,00</td>
+<td style="text-align: center;">3,46</td>
+<td style="text-align: left;">Fluktuasi minor 1 anchor pada penggunaan
+data</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>MKT-03</strong></td>
+<td style="text-align: left;">Pemasaran</td>
+<td style="text-align: center;">100</td>
+<td style="text-align: center;">100</td>
+<td style="text-align: center;">100</td>
+<td style="text-align: center;">100,00</td>
+<td style="text-align: center;">0,00</td>
+<td style="text-align: center;">0,00</td>
+<td style="text-align: left;">100% Deterministik</td>
+</tr>
+</tbody>
+</table>
+<p><em>Ringkasan Kestabilan:</em> - Sebanyak <strong>6 dari 9 sampel
+(66,7%)</strong> menunjukkan standar deviasi 0,00
+(sempurna/deterministik). - Tiga sampel lainnya (<code>DKV-02</code>,
+<code>DKV-03</code>, <code>MKT-02</code>) hanya memiliki deviasi minor
+sebesar <span class="math inline">3, 46 − 4, 62</span> poin (<span
+class="math inline"><em>s</em><sup>2</sup> ≤ 21, 33</span>), yang
+sepenuhnya disebabkan oleh pergeseran satu langkah anchor diskrit (misal
+50 vs 75) pada kriteria perbatasan. - Rata-rata standar deviasi
+keseluruhan 9 sampel adalah <strong>1,28 poin</strong>, mengindikasikan
+tingkat keandalan dan reprodusibilitas inferensi yang sangat tinggi pada
+temperatur 0.</p>
+<figure>
+<img src="charts/02_stabilitas_3_run.png"
+alt="Uji Stabilitas Model: Konsistensi Hasil Penilaian pada 3 Run Pengulangan" />
+<figcaption aria-hidden="true">Uji Stabilitas Model: Konsistensi Hasil
+Penilaian pada 3 Run Pengulangan</figcaption>
+</figure>
+<ol type="1">
+<li><strong>Informatika (Stabilitas 100%, Variansi 0.0)</strong>:
+<ul>
+<li>Ketiga sampel menunjukkan konsistensi deterministik sempurna di
+seluruh tiga run pengujian.</li>
+<li><code>INF-01</code> konsisten mendeteksi ketiadaan README dan commit
+yang kurang dari tiga, menghasilkan status bukti belum cukup tanpa
+mengarang skor nol.</li>
+<li><code>INF-02</code> stabil pada 61/100 berkat pemisahan modul yang
+jelas di <code>src/</code> dan dokumentasi yang memuat batasan
+memori.</li>
+<li><code>INF-03</code> stabil pada 81/100; kriteria dokumentasi
+konsisten diberi skor 50 karena mendokumentasikan rute HTTP yang belum
+diimplementasikan pada kode sumber aktual.</li>
+</ul></li>
+<li><strong>DKV (Penyebab Fluktuasi Sampel Sedang
+Teridentifikasi)</strong>:
+<ul>
+<li>Pada <code>DKV-01</code>, terjadi ambiguitas penafsiran pada
+kriteria proses: deskripsi “hanya satu versi final” dapat dimaknai
+sebagai skor 0 (tanpa eksplorasi) atau
+<code>insufficient_evidence</code> (karena syarat bukti minimal dua
+tahap tidak ada). Kedua penafsiran sama-sama mengindikasikan level
+lemah.</li>
+<li>Pada <code>DKV-02</code>, pengujian menghasilkan konsensus 50/100
+(dua run 50, satu run 58). Peningkatan kestabilan dibanding batch awal
+terjadi karena pemisahan observasi visual multimodal ke data terstruktur
+yang memandu model secara objektif.</li>
+<li>Pada <code>DKV-03</code>, skor stabil pada kisaran 75–81/100,
+selaras dengan adjudikasi kriteria pemecahan masalah (anchor 75 vs
+100).</li>
+</ul></li>
+<li><strong>Bisnis &amp; Pemasaran (Schema 100% Lulus, Stabilitas
+Tinggi)</strong>:
+<ul>
+<li><code>MKT-01</code> stabil 100% berstatus
+<code>insufficient_evidence</code> karena tidak menyertakan angka metrik
+kampanye sama sekali.</li>
+<li><code>MKT-02</code> menghasilkan 61/100 pada Run 1 dan 3, serta
+55/100 pada Run 2 (perbedaan pada kriteria penggunaan data antara anchor
+50 dan 75 karena ketiadaan data biaya historis).</li>
+<li><code>MKT-03</code> menghasilkan skor sempurna 100/100 secara
+konsisten di ketiga run karena seluruh elemen hipotesis, funnel, tabel
+metrik lengkap, rumus, dan batas atribusi disajikan secara
+transparan.</li>
+</ul></li>
+</ol>
+<h3
+id="perbandingan-terhadap-baseline-human-ratings-ai-simulated-dan-target-expected">10.5.4
+Perbandingan terhadap Baseline Human Ratings (AI-Simulated) dan Target
+Expected</h3>
+<p>Hasil 27 run benchmark dibandingkan langsung terhadap baseline 36 sel
+penilaian kriteria di <code>docs/validation/HUMAN_RATINGS.csv</code>
+(dihasilkan melalui simulasi blind review oleh subagent
+<code>AI_SIM_R1</code> dan <code>AI_SIM_R2</code> dengan adjudikasi
+independen) serta target desain <code>fixtures/expected.json</code>:</p>
+<table>
+<colgroup>
+<col style="width: 14%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 17%" />
+<col style="width: 14%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">Sampel</th>
+<th style="text-align: center;">Skor Konsensus AI</th>
+<th style="text-align: center;">Baseline Human (Adjudicated)</th>
+<th style="text-align: center;">Expected Target
+(<code>expected.json</code>)</th>
+<th style="text-align: center;">Selisih Skor (AI vs Human)</th>
+<th style="text-align: left;">Status Kesesuaian Kriteria</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>INF-01</strong></td>
+<td style="text-align: center;"><strong>null</strong>
+(<code>—/100</code>)</td>
+<td style="text-align: center;"><strong>null</strong>
+(<code>—/100</code>)</td>
+<td style="text-align: center;"><strong>null</strong></td>
+<td style="text-align: center;">0</td>
+<td style="text-align: left;"><strong>Cocok Sempurna (4/4 kriteria
+match)</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>INF-02</strong></td>
+<td style="text-align: center;"><strong>61/100</strong></td>
+<td style="text-align: center;"><strong>null*</strong>
+(<code>—/100</code>)</td>
+<td style="text-align: center;">50/100</td>
+<td style="text-align: center;">-</td>
+<td style="text-align: left;"><strong>3/4 kriteria match; selisih pada
+riwayat commit*</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>INF-03</strong></td>
+<td style="text-align: center;"><strong>81/100</strong></td>
+<td style="text-align: center;"><strong>null*</strong>
+(<code>—/100</code>)</td>
+<td style="text-align: center;">100/100</td>
+<td style="text-align: center;">-</td>
+<td style="text-align: left;"><strong>3/4 kriteria match; selisih pada
+riwayat commit*</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>DKV-01</strong></td>
+<td style="text-align: center;"><strong>null</strong>
+(<code>—/100</code>)</td>
+<td style="text-align: center;">11/100</td>
+<td style="text-align: center;"><strong>null</strong></td>
+<td style="text-align: center;">-</td>
+<td style="text-align: left;"><strong>3/4 kriteria match; selisih pada
+kriteria proses</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>DKV-02</strong></td>
+<td style="text-align: center;"><strong>50/100</strong></td>
+<td style="text-align: center;">50/100</td>
+<td style="text-align: center;">50/100</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: left;"><strong>Cocok Sempurna (4/4 kriteria
+match)</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>DKV-03</strong></td>
+<td style="text-align: center;"><strong>75/100</strong></td>
+<td style="text-align: center;">81/100</td>
+<td style="text-align: center;">100/100</td>
+<td style="text-align: center;">-6</td>
+<td style="text-align: left;"><strong>3/4 kriteria match; selisih 1
+anchor problem solving</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>MKT-01</strong></td>
+<td style="text-align: center;"><strong>null</strong>
+(<code>—/100</code>)</td>
+<td style="text-align: center;"><strong>null</strong>
+(<code>—/100</code>)</td>
+<td style="text-align: center;"><strong>null</strong></td>
+<td style="text-align: center;">0</td>
+<td style="text-align: left;"><strong>Cocok Sempurna (4/4 kriteria
+match)</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>MKT-02</strong></td>
+<td style="text-align: center;"><strong>61/100</strong></td>
+<td style="text-align: center;">61/100</td>
+<td style="text-align: center;">61/100</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: left;"><strong>Cocok Sempurna (4/4 kriteria
+match)</strong></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>MKT-03</strong></td>
+<td style="text-align: center;"><strong>100/100</strong></td>
+<td style="text-align: center;">100/100</td>
+<td style="text-align: center;">100/100</td>
+<td style="text-align: center;">0</td>
+<td style="text-align: left;"><strong>Cocok Sempurna (4/4 kriteria
+match)</strong></td>
+</tr>
+</tbody>
+</table>
+<p><em>*Catatan</em>: Penilai manusia memberi status
+<code>insufficient_evidence</code> pada kriteria riwayat kontribusi
+<code>INF-02</code> dan <code>INF-03</code> karena paket file statis
+yang diinspeksi tidak menyertakan berkas log git fisik; sebaliknya,
+parser otomatis mengekstrak commit history repositori aktual (INF-02: 4
+commit -&gt; skor 50; INF-03: 6 commit -&gt; skor 100).</p>
+<p><em>Metrik Keselarasan Tingkat Kriteria (Level 36 Subkriteria):</em>
+- <strong>Exact Match Konsensus AI vs Human Baseline</strong>:
+<strong>32 dari 36 kriteria (88,89%)</strong> bernilai identik sempurna.
+- <strong>Mean Absolute Error (MAE)</strong> terhadap Human Baseline:
+<strong>2,78 poin</strong> (pada skala 0–100). - <strong>Exact Match
+Konsensus AI vs Expected Target</strong>: <strong>26 dari 36 kriteria
+(72,22%)</strong> dengan MAE <strong>7,64 poin</strong>.</p>
+<figure>
+<img src="charts/01_skor_benchmark_vs_baseline.png"
+alt="Perbandingan Skor Benchmark: AI Consensus vs Human Baseline vs Target Expected" />
+<figcaption aria-hidden="true">Perbandingan Skor Benchmark: AI Consensus
+vs Human Baseline vs Target Expected</figcaption>
+</figure>
+<p><em>Catatan Provenance</em>: Baseline perbandingan ini berasal dari
+simulasi independen <code>AI-simulated R1/R2</code> yang menguji
+kesiapan instrumen dan keterbacaan rubrik. Baseline ini membuktikan
+bahwa evaluator aplikasi konsisten terhadap interpretasi rubrik yang
+ketat, namun <strong>bukan pengganti validasi dua penilai manusia
+nyata</strong>.</p>
+<h3
+id="metrik-latensi-end-to-end-dan-estimasi-biaya-inferensi-provider-groq">10.5.5
+Metrik Latensi End-to-End dan Estimasi Biaya Inferensi Provider
+Groq</h3>
+<p>Pengujian performa komputasi dievaluasi terhadap seluruh eksekusi
+inferensi pada deployment produksi:</p>
+<table style="width:100%;">
+<colgroup>
+<col style="width: 12%" />
+<col style="width: 12%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">Bidang</th>
+<th style="text-align: left;">Pipeline AI</th>
+<th style="text-align: center;">Min Latensi</th>
+<th style="text-align: center;">Median</th>
+<th style="text-align: center;">Rata-rata</th>
+<th style="text-align: center;">P95</th>
+<th style="text-align: center;">Maks Latensi</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Informatika</strong></td>
+<td style="text-align: left;">Single-Call LLM
+(<code>openai/gpt-oss-20b</code>)</td>
+<td style="text-align: center;">3,36 s</td>
+<td style="text-align: center;">5,00 s</td>
+<td style="text-align: center;">4,96 s</td>
+<td style="text-align: center;">6,36 s</td>
+<td style="text-align: center;">6,52 s</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>DKV</strong></td>
+<td style="text-align: left;">2-Stage Pipeline (Vision
+<code>qwen3.6-27b</code> + Text <code>gpt-oss-20b</code>)</td>
+<td style="text-align: center;">9,22 s</td>
+<td style="text-align: center;">21,58 s</td>
+<td style="text-align: center;">22,18 s</td>
+<td style="text-align: center;">32,56 s</td>
+<td style="text-align: center;">34,71 s</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Pemasaran</strong></td>
+<td style="text-align: left;">Single-Call LLM
+(<code>openai/gpt-oss-20b</code>)</td>
+<td style="text-align: center;">4,86 s</td>
+<td style="text-align: center;">7,36 s</td>
+<td style="text-align: center;">9,68 s</td>
+<td style="text-align: center;">19,17 s</td>
+<td style="text-align: center;">19,74 s</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Keseluruhan</strong></td>
+<td style="text-align: left;"><strong>16 Run Produksi
+Tercatat</strong></td>
+<td style="text-align: center;"><strong>3,36 s</strong></td>
+<td style="text-align: center;"><strong>8,27 s</strong></td>
+<td style="text-align: center;"><strong>12,70 s</strong></td>
+<td style="text-align: center;"><strong>26,63 s</strong></td>
+<td style="text-align: center;"><strong>34,71 s</strong></td>
+</tr>
+</tbody>
+</table>
+<figure>
+<img src="charts/03_latensi_per_bidang.png"
+alt="Analisis Kinerja Latensi End-to-End Sistem Skillbridge AI" />
+<figcaption aria-hidden="true">Analisis Kinerja Latensi End-to-End
+Sistem Skillbridge AI</figcaption>
+</figure>
+<p><em>Estimasi Token dan Biaya Inferensi per Evaluasi:</em> Mengacu
+pada tarif on-demand Groq LPU API ($0,10 / 1 juta input tokens dan $0,20
+/ 1 juta output tokens untuk model GPT-OSS-20B, serta $0,20 / 1 juta
+tokens untuk Qwen Vision):</p>
+<ol type="1">
+<li><strong>Informatika (1 panggilan API)</strong>:
+<ul>
+<li>Input: ~3.000 token (rubrik, batasan schema, AST/tree repositori,
+kode sumber ter-grounding) <span
+class="math inline"> → $0, 00030</span></li>
+<li>Output: ~800 token (JSON rubrik 1.1, 4 kriteria berbobot, kutipan
+bukti verbatim, rekomendasi) <span
+class="math inline"> → $0, 00016</span></li>
+<li><strong>Total Biaya per Evaluasi</strong>: <strong>$0,00046</strong>
+(sekitar <strong>Rp 7,36</strong>, asumsi $1 = Rp 16.000).</li>
+</ul></li>
+<li><strong>Bisnis &amp; Pemasaran (1 panggilan API)</strong>:
+<ul>
+<li>Input: ~2.500 token (rubrik, teks layer PDF dengan marker
+<code>[PAGE:n:BLOCK:n]</code>) <span
+class="math inline"> → $0, 00025</span></li>
+<li>Output: ~800 token (JSON rubrik 1.1 lengkap) <span
+class="math inline"> → $0, 00016</span></li>
+<li><strong>Total Biaya per Evaluasi</strong>: <strong>$0,00041</strong>
+(sekitar <strong>Rp 6,56</strong>).</li>
+</ul></li>
+<li><strong>DKV Multimodal (2 tahap berurutan)</strong>:
+<ul>
+<li>Tahap 1 (Vision): ~1.500 token (image base64 + prompt ekstraksi
+observasi) <span class="math inline"> → $0, 00030</span>; Output: ~300
+token <span class="math inline"> → $0, 00006</span> (Subtotal:
+$0,00036).</li>
+<li>Tahap 2 (Evaluator): ~2.200 token (rubrik, observasi terstruktur,
+narasi) <span class="math inline"> → $0, 00022</span>; Output: ~800
+token <span class="math inline"> → $0, 00016</span> (Subtotal:
+$0,00038).</li>
+<li><strong>Total Biaya per Evaluasi</strong>: <strong>$0,00074</strong>
+(sekitar <strong>Rp 11,84</strong>).</li>
+</ul></li>
+<li><strong>Total Komputasi Benchmark 27 Run</strong>:
+<ul>
+<li>9 Run Informatika: <span
+class="math inline">9 × $0, 00046 = $0, 00414</span> (~Rp 66).</li>
+<li>9 Run DKV: <span
+class="math inline">9 × $0, 00074 = $0, 00666</span> (~Rp 107).</li>
+<li>9 Run Pemasaran: <span
+class="math inline">9 × $0, 00041 = $0, 00369</span> (~Rp 59).</li>
+<li><strong>Total Akumulasi Biaya 27 Run</strong>: <strong>$0,0145
+(sekitar Rp 232)</strong>.</li>
+</ul></li>
+</ol>
+<h2 id="hasil-pengujian-prototipe">10.6 Hasil Pengujian Prototipe</h2>
+<p>Deployment produksi diuji pada
+<code>https://skillbridge-6ndn.vercel.app</code>.</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Skenario</th>
+<th>Hasil</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Health endpoint dan koneksi Supabase</td>
+<td>HTTP 200, <code>checks.supabase=true</code></td>
+</tr>
+<tr>
+<td>API assessment tanpa token</td>
+<td>HTTP 401</td>
+</tr>
+<tr>
+<td>API assessment dengan token acak</td>
+<td>HTTP 401</td>
+</tr>
+<tr>
+<td>Login email/password</td>
+<td>Berhasil, redirect ke <code>/assess</code></td>
+</tr>
+<tr>
+<td>Navbar pengguna anonim</td>
+<td>Hanya <code>Daftar</code> dan <code>Masuk</code></td>
+</tr>
+<tr>
+<td>Direct <code>/assess</code> tanpa login</td>
+<td>Redirect ke <code>/auth?next=/assess</code></td>
+</tr>
+<tr>
+<td>Navbar pengguna login</td>
+<td><code>Penilaian</code>, <code>Riwayat</code>,
+<code>Keluar</code></td>
+</tr>
+<tr>
+<td>Consent tidak dicentang</td>
+<td>HTTP 400, model tidak dipanggil</td>
+</tr>
+<tr>
+<td>File dengan ekstensi PDF tetapi magic bytes SVG</td>
+<td>HTTP 400</td>
+</tr>
+<tr>
+<td>File PNG 4 MB + 1 byte</td>
+<td>HTTP 400, tanpa residual row</td>
+</tr>
+<tr>
+<td>Akun pemilik membaca evidence</td>
+<td>13 row uji terlihat</td>
+</tr>
+<tr>
+<td>Akun kedua membaca evidence pemilik</td>
+<td>0 row</td>
+</tr>
+<tr>
+<td>Akun kedua membuka assessment ID pemilik</td>
+<td>Array kosong, data tidak bocor</td>
+</tr>
+<tr>
+<td>Akun kedua memulai interview assessment pemilik</td>
+<td>HTTP 404</td>
+</tr>
+<tr>
+<td>Bucket evidence</td>
+<td>Private, batas 4.194.304 byte</td>
+</tr>
+<tr>
+<td>Interview assessment sendiri</td>
+<td>HTTP 200, 2,361 detik</td>
+</tr>
+<tr>
+<td>Delete assessment upload</td>
+<td>HTTP 204</td>
+</tr>
+<tr>
+<td>Residual setelah delete</td>
+<td>0 assessment, 0 evidence, 0 score, 0 object Storage</td>
+</tr>
+<tr>
+<td>Cache respons privat setelah perbaikan</td>
+<td><code>Cache-Control: private, no-store</code></td>
+</tr>
+</tbody>
+</table>
+<p>Pengujian memperlihatkan bahwa authentication, ownership check, RLS
+read isolation, private Storage, dan delete cascade bekerja pada data
+sintetis. Namun operasi database server menggunakan service-role client
+sehingga RLS bukan satu-satunya boundary; filter ownership aplikasi
+tetap kritis.</p>
+<h4 id="dokumentasi-uji-langsung-antarmuka-produksi">10.6.1 Dokumentasi
+Uji Langsung Antarmuka Produksi</h4>
+<p>Pengujian alur pengguna (<em>end-to-end user journey</em>)
+diverifikasi secara langsung pada infrastruktur produksi
+<code>https://skillbridge-6ndn.vercel.app</code>. Enam artefak visual
+beresolusi tinggi berikut mendokumentasikan setiap tahapan sistem:</p>
+<figure>
+<img src="live-test-evidence/01_landing_page.png"
+alt="Antarmuka Beranda (Landing Page) Skillbridge AI Produksi" />
+<figcaption aria-hidden="true">Antarmuka Beranda (Landing Page)
+Skillbridge AI Produksi</figcaption>
+</figure>
+<p><em>Gambar 4. Antarmuka beranda live pada deployment produksi
+(<code>/</code>) yang menyajikan proposisi nilai evaluasi berbasis
+bukti, tiga tahapan metodologi, serta tiga jalur spesialisasi
+karir.</em></p>
+<figure>
+<img src="live-test-evidence/02_form_penilaian_3_bidang.png"
+alt="Formulir Penyerahan Bukti Penilaian Lintas Tiga Bidang dengan Persetujuan AI" />
+<figcaption aria-hidden="true">Formulir Penyerahan Bukti Penilaian
+Lintas Tiga Bidang dengan Persetujuan AI</figcaption>
+</figure>
+<p><em>Gambar 5. Formulir pengajuan penilaian (<code>/assess</code>)
+dengan pemilihan multi-bidang, panduan kontekstual, dan proteksi
+persetujuan pemrosesan AI (consent checkbox).</em></p>
+<figure>
+<img src="live-test-evidence/03_hasil_penilaian_kriteria_bukti.png"
+alt="Hasil Penilaian Portofolio Berdasarkan Rubrik 1.1 Ter-grounding" />
+<figcaption aria-hidden="true">Hasil Penilaian Portofolio Berdasarkan
+Rubrik 1.1 Ter-grounding</figcaption>
+</figure>
+<p><em>Gambar 6. Halaman hasil penilaian (<code>/results/[id]</code>)
+menampilkan skor berbobot 50/100, banner transparansi data seed demo,
+evaluasi 4 kriteria Rubrik 1.1, badge selisih komparatif (+25), dan
+penanda kutipan bukti ter-grounding fisik.</em></p>
+<figure>
+<img src="live-test-evidence/04_rekomendasi_materi_terkurasi.png"
+alt="Sintesis Kesenjangan Kompetensi dan Rekomendasi Materi Pembelajaran Terkurasi" />
+<figcaption aria-hidden="true">Sintesis Kesenjangan Kompetensi dan
+Rekomendasi Materi Pembelajaran Terkurasi</figcaption>
+</figure>
+<p><em>Gambar 7. Bagian analisis kesenjangan (</em>skill gaps<em>) yang
+merangkum kekuatan, kelemahan, dan batas penilaian, disertai 3 materi
+pembelajaran terkurasi dari katalog resmi (MDN, Next.js,
+GitHub).</em></p>
+<figure>
+<img src="live-test-evidence/05_riwayat_dan_reassessment_diff.png"
+alt="Rekapitulasi Riwayat Akun dan Penanda Perbandingan Penilaian Ulang (Reassessment Diff)" />
+<figcaption aria-hidden="true">Rekapitulasi Riwayat Akun dan Penanda
+Perbandingan Penilaian Ulang (Reassessment Diff)</figcaption>
+</figure>
+<p><em>Gambar 8. Halaman riwayat akun (<code>/history</code>) yang
+mendokumentasikan pengujian berkelanjutan lintas tiga bidang, kepatuhan
+</em>safe null* (<code>—/100</code>), dan launcher simulasi penilaian
+ulang ber-diff badge (+25 Δ).*</p>
+<figure>
+<img src="live-test-evidence/06_sesi_wawancara_adaptif.png"
+alt="Sesi Wawancara Teknis Adaptif Berbasis Kesenjangan Bukti" />
+<figcaption aria-hidden="true">Sesi Wawancara Teknis Adaptif Berbasis
+Kesenjangan Bukti</figcaption>
+</figure>
+<p><em>Gambar 9. Sesi simulasi wawancara adaptif
+(<code>/interview/[id]</code>) dengan dialog multi-turn, respon
+kandidat, umpan balik pewawancara terpisah dari skor bukti fisik, dan
+pembatas 5 pertanyaan.</em></p>
+<h3 id="validasi-rubrik-1.1-dan-optimasi-runtime">10.6.2 Validasi Rubrik
+1.1 dan Optimasi Runtime</h3>
+<p>Pada pembaruan terkini, evaluator rubrik 1.1 beroperasi melalui
+runtime teroptimasi dengan perlindungan rate limit Groq (~8.000 TPM).
+Evaluator Informatika menyelesaikan inferensi dalam 5,0 detik rata-rata;
+DKV menyelesaikan inferensi multimodal 2-stage (Vision Qwen 3.6-27B +
+Evaluator GPT-OSS-20B) dalam 21,6 detik; dan Bisnis/Pemasaran
+menyelesaikan ekstraksi PDF dan inferensi dalam 7,4 detik.</p>
+<p>Gerbang rilis lulus <code>eslint</code>, TypeScript, 33 unit test
+otomatis (<code>node:test</code>), dan build Turbopack Next.js 16.
+Deployment <code>dpl_33RcMq8YqEiR7EYdcTCRNaxVMJrt</code> berstatus
+<code>Ready</code> pada alias produksi
+<code>https://skillbridge-6ndn.vercel.app</code> dan endpoint
+<code>/api/health</code> aktif.</p>
+<h3 id="persistensi-sesi-wawancara-dan-manajemen-state-database">10.6.3
+Persistensi Sesi Wawancara dan Manajemen State Database</h3>
+<p>Modul simulasi wawancara adaptif terintegrasi penuh dengan
+persistensi database PostgreSQL Supabase via migrasi
+<code>005_interview_persistence.sql</code>: 1. <strong>Struktur
+Data</strong>: Sesi dicatat pada tabel <code>interviews</code> (mengikat
+<code>assessment_id</code>, <code>user_id</code>, <code>status</code>,
+dan <code>focus_areas</code>), dan pesan disimpan pada
+<code>interview_messages</code> (<code>role</code>,
+<code>content</code>, <code>created_at</code>). 2. <strong>Keandalan
+Antarmuka</strong>: Halaman <code>/interview/[id]</code> memuat riwayat
+percakapan sebelumnya via
+<code>GET /api/interview?assessmentId=...</code> saat dibuka. Refresh
+browser tidak menghapus riwayat latihan. 3. <strong>Batas Sesi</strong>:
+Sesi otomatis berstatus <code>completed</code> setelah lima jawaban
+pengguna tercapai, dengan umpan balik akhir tersimpan permanen.</p>
+<h2 id="hasil-pengujian-keamanan-edge-cases-dan-ketahanan-sistem">10.7
+Hasil Pengujian Keamanan, Edge Cases, dan Ketahanan Sistem</h2>
+<p>Pengujian ketahanan dan keamanan menyeluruh dilaksanakan terhadap 28
+skenario pengujian pada deployment produksi:</p>
+<table>
+<colgroup>
+<col style="width: 11%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+<col style="width: 15%" />
+<col style="width: 11%" />
+<col style="width: 15%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: center;">No</th>
+<th style="text-align: left;">Kategori Pengujian</th>
+<th style="text-align: left;">Skenario / Input Uji</th>
+<th style="text-align: left;">Respon yang Diharapkan</th>
+<th style="text-align: left;">Respon Aktual Sistem</th>
+<th style="text-align: center;">Status</th>
+<th style="text-align: left;">Catatan Teknis</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: center;">1</td>
+<td style="text-align: left;"><strong>API Security</strong></td>
+<td style="text-align: left;">GET <code>/api/health</code> publik</td>
+<td style="text-align: left;">HTTP 200 <code>{"status":"ok"}</code></td>
+<td style="text-align: left;">HTTP 200 <code>{"status":"ok"}</code></td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">Probe liveness aktif, fingerprint database
+tidak diekspos</td>
+</tr>
+<tr>
+<td style="text-align: center;">2</td>
+<td style="text-align: left;"><strong>API Security</strong></td>
+<td style="text-align: left;">GET <code>/api/assessments</code> tanpa
+token</td>
+<td style="text-align: left;">HTTP 401 Unauthorized</td>
+<td style="text-align: left;">HTTP 401 <code>unauthorized</code></td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">Verifikasi token Supabase Auth via
+<code>authenticatedUser()</code></td>
+</tr>
+<tr>
+<td style="text-align: center;">3</td>
+<td style="text-align: left;"><strong>API Security</strong></td>
+<td style="text-align: left;">POST <code>/api/assess</code> tanpa
+token</td>
+<td style="text-align: left;">HTTP 401 Unauthorized</td>
+<td style="text-align: left;">HTTP 401 <code>unauthorized</code></td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">Guard autentikasi sebelum konsumsi kuota
+atau payload reading</td>
+</tr>
+<tr>
+<td style="text-align: center;">4</td>
+<td style="text-align: left;"><strong>API Security</strong></td>
+<td style="text-align: left;">POST <code>/api/interview</code> (non-demo
+ID) tanpa token</td>
+<td style="text-align: left;">HTTP 401 Unauthorized</td>
+<td style="text-align: left;">HTTP 401 <code>unauthorized</code></td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">Ownership check mengunci akses sesi
+wawancara privat</td>
+</tr>
+<tr>
+<td style="text-align: center;">5</td>
+<td style="text-align: left;"><strong>Input Validation</strong></td>
+<td style="text-align: left;">POST <code>/api/interview</code> tanpa
+parameter ID</td>
+<td style="text-align: left;">HTTP 400 Bad Request</td>
+<td style="text-align: left;">HTTP 400 <code>missing_id</code></td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">Pesan error ramah pengguna dalam Bahasa
+Indonesia</td>
+</tr>
+<tr>
+<td style="text-align: center;">6</td>
+<td style="text-align: left;"><strong>Input Validation</strong></td>
+<td style="text-align: left;">ID assessment dengan format bukan UUID
+v4</td>
+<td style="text-align: left;">HTTP 400 Bad Request</td>
+<td style="text-align: left;">HTTP 400 <code>invalid_id</code></td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">Regex assertion ketat format UUID v4
+standar RFC 4122</td>
+</tr>
+<tr>
+<td style="text-align: center;">7</td>
+<td style="text-align: left;"><strong>File Security</strong></td>
+<td style="text-align: left;">Berkas berekstensi <code>.pdf</code>
+berisi tag <code>&lt;svg&gt;</code></td>
+<td style="text-align: left;">HTTP 400 ditolak</td>
+<td style="text-align: left;">Error: format bukti tidak didukung</td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">Magic bytes inspection <code>%PDF</code>
+mendeteksi file palsu</td>
+</tr>
+<tr>
+<td style="text-align: center;">8</td>
+<td style="text-align: left;"><strong>File Security</strong></td>
+<td style="text-align: left;">Berkas gambar berekstensi
+<code>.png</code> berisi plain text</td>
+<td style="text-align: left;">HTTP 400 ditolak</td>
+<td style="text-align: left;">Error: format bukti tidak didukung</td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">Magic bytes inspection
+<code>\x89PNG</code> menolak file teks</td>
+</tr>
+<tr>
+<td style="text-align: center;">9</td>
+<td style="text-align: left;"><strong>File Security</strong></td>
+<td style="text-align: left;">Berkas PDF diunggah ke form DKV</td>
+<td style="text-align: left;">HTTP 400 ditolak</td>
+<td style="text-align: left;">Error: DKV menerima PNG/JPEG</td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">Penolakan berbasis tipe berkas per bidang
+studi</td>
+</tr>
+<tr>
+<td style="text-align: center;">10</td>
+<td style="text-align: left;"><strong>Edge Case File</strong></td>
+<td style="text-align: left;">Berkas bukti berukuran 0 byte
+(kosong)</td>
+<td style="text-align: left;">HTTP 400 ditolak</td>
+<td style="text-align: left;">Error: ukuran bukti &gt; 0 dan <span
+class="math inline"> ≤ 4 MB</span></td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">Mencegah alokasi buffer kosong di
+server</td>
+</tr>
+<tr>
+<td style="text-align: center;">11</td>
+<td style="text-align: left;"><strong>Edge Case File</strong></td>
+<td style="text-align: left;">Berkas bukti berukuran tepat 4.194.304
+byte (4 MB)</td>
+<td style="text-align: left;">Lolos validasi ukuran</td>
+<td style="text-align: left;">Validasi ukuran sukses</td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">Batas maksimal boundary diterima
+presisi</td>
+</tr>
+<tr>
+<td style="text-align: center;">12</td>
+<td style="text-align: left;"><strong>Edge Case File</strong></td>
+<td style="text-align: left;">Berkas bukti berukuran 4.194.305 byte (4
+MB + 1 B)</td>
+<td style="text-align: left;">Ditolak aman</td>
+<td style="text-align: left;">Error: ukuran bukti melebihi 4 MB</td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">Penolakan aman tanpa sisa row atau storage
+object</td>
+</tr>
+<tr>
+<td style="text-align: center;">13</td>
+<td style="text-align: left;"><strong>Dos Mitigation</strong></td>
+<td style="text-align: left;">Multipart request dengan Content-Length
+&gt; 4 MB</td>
+<td style="text-align: left;">HTTP 413 Payload Too Large</td>
+<td style="text-align: left;">HTTP 413
+<code>payload_too_large</code></td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">Preflight Content-Length memutus koneksi
+sebelum buffering</td>
+</tr>
+<tr>
+<td style="text-align: center;">14</td>
+<td style="text-align: left;"><strong>Dos Mitigation</strong></td>
+<td style="text-align: left;">Gambar dengan dimensi 10.001 x 10.001
+px</td>
+<td style="text-align: left;">Ditolak aman</td>
+<td style="text-align: left;">Error: dimensi gambar terlalu besar</td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">Proteksi pixel decompression bomb (maks 24
+MP)</td>
+</tr>
+<tr>
+<td style="text-align: center;">15</td>
+<td style="text-align: left;"><strong>Prompt Security</strong></td>
+<td style="text-align: left;">Bukti memuat “Ignore previous
+instructions…”</td>
+<td style="text-align: left;">Ditolak sebelum AI</td>
+<td style="text-align: left;">Error: memuat instruksi manipulatif</td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">Adversarial regex scanner memblokir input
+jahat</td>
+</tr>
+<tr>
+<td style="text-align: center;">16</td>
+<td style="text-align: left;"><strong>Prompt Security</strong></td>
+<td style="text-align: left;">Injeksi teks via Zero-Width
+Characters</td>
+<td style="text-align: left;">Ditolak sebelum AI</td>
+<td style="text-align: left;">Karakter dinormalisasi &amp;
+terblokir</td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">Normalisasi Unicode NFKC menghilangkan
+obfuscation</td>
+</tr>
+<tr>
+<td style="text-align: center;">17</td>
+<td style="text-align: left;"><strong>Secret Protection</strong></td>
+<td style="text-align: left;">Bukti memuat AWS Key <code>AKIA...</code>
+atau API token</td>
+<td style="text-align: left;">Ditolak sebelum AI</td>
+<td style="text-align: left;">Error: bukti memuat credential</td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">Regex credential scanner mencegah
+kebocoran kunci</td>
+</tr>
+<tr>
+<td style="text-align: center;">18</td>
+<td style="text-align: left;"><strong>AI Grounding</strong></td>
+<td style="text-align: left;">Kutipan bukti tidak cocok dengan blok
+fisik PDF</td>
+<td style="text-align: left;">Ditolak server</td>
+<td style="text-align: left;">Error: kutipan bukti tidak cocok</td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;"><code>quoteMatchesReference</code>
+memvalidasi grounding faktual</td>
+</tr>
+<tr>
+<td style="text-align: center;">19</td>
+<td style="text-align: left;"><strong>AI Grounding</strong></td>
+<td style="text-align: left;">Repositori GitHub tanpa source file
+kode</td>
+<td style="text-align: left;">Insufficient evidence</td>
+<td style="text-align: left;">Kriteria <code>web_code_quality</code>
+null</td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">Server memaksa null tanpa mengarang skor
+nol</td>
+</tr>
+<tr>
+<td style="text-align: center;">20</td>
+<td style="text-align: left;"><strong>Code Security</strong></td>
+<td style="text-align: left;">URL GitHub mengarah ke domain selain
+github.com</td>
+<td style="text-align: left;">Ditolak aman</td>
+<td style="text-align: left;">Error: gunakan URL repositori GitHub</td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">Host allowlist ketat
+<code>https://github.com/{owner}/{repo}</code></td>
+</tr>
+<tr>
+<td style="text-align: center;">21</td>
+<td style="text-align: left;"><strong>Code Security</strong></td>
+<td style="text-align: left;">Analisis kode repositori GitHub</td>
+<td style="text-align: left;">Non-eksekusi statis</td>
+<td style="text-align: left;">Teks terbaca, zero execution</td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">Zero RCE risk; kode diekstrak via REST API
+saja</td>
+</tr>
+<tr>
+<td style="text-align: center;">22</td>
+<td style="text-align: left;"><strong>Rate Limiting</strong></td>
+<td style="text-align: left;">Groq provider melempar error HTTP 429</td>
+<td style="text-align: left;">HTTP 429 <code>ai_rate_limit</code></td>
+<td style="text-align: left;">HTTP 429,
+<code>Retry-After: 60</code></td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">Pemetaan aman tanpa membocorkan pesan
+mentah provider</td>
+</tr>
+<tr>
+<td style="text-align: center;">23</td>
+<td style="text-align: left;"><strong>Rate Limiting</strong></td>
+<td style="text-align: left;">Kuota harian pengguna tercapai (10
+assess/hari)</td>
+<td style="text-align: left;">HTTP 429 Rate Limit</td>
+<td style="text-align: left;">HTTP 429
+<code>rate_limit_exceeded</code></td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">Ditegakkan di DB via RPC
+<code>consume_api_quota</code></td>
+</tr>
+<tr>
+<td style="text-align: center;">24</td>
+<td style="text-align: left;"><strong>Data Isolation</strong></td>
+<td style="text-align: left;">Akun B membaca penilaian milik Akun A</td>
+<td style="text-align: left;">Array kosong / 404</td>
+<td style="text-align: left;">Tidak ada data bocor (0 row)</td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">Filter kepemilikan aplikasi dan RLS
+Supabase aktif</td>
+</tr>
+<tr>
+<td style="text-align: center;">25</td>
+<td style="text-align: left;"><strong>Data Isolation</strong></td>
+<td style="text-align: left;">Akses langsung ke bucket storage
+bukti</td>
+<td style="text-align: left;">Ditolak (Private)</td>
+<td style="text-align: left;">403 Forbidden</td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">Bucket private, berkas hanya via signed
+URL</td>
+</tr>
+<tr>
+<td style="text-align: center;">26</td>
+<td style="text-align: left;"><strong>State Resilience</strong></td>
+<td style="text-align: left;">Refresh browser saat sesi wawancara</td>
+<td style="text-align: left;">State percakapan utuh</td>
+<td style="text-align: left;">Riwayat dimuat dari DB</td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">Persistensi via <code>interviews</code>
+&amp; <code>interview_messages</code></td>
+</tr>
+<tr>
+<td style="text-align: center;">27</td>
+<td style="text-align: left;"><strong>Session Boundary</strong></td>
+<td style="text-align: left;">Pengguna menjawab lebih dari 5 turn
+pertanyaan</td>
+<td style="text-align: left;">Sesi selesai</td>
+<td style="text-align: left;">Status <code>completed</code>, form
+ditutup</td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">State machine membatasi tepat 5 pertanyaan
+latihan</td>
+</tr>
+<tr>
+<td style="text-align: center;">28</td>
+<td style="text-align: left;"><strong>Security Headers</strong></td>
+<td style="text-align: left;">Seluruh respon API &amp; web</td>
+<td style="text-align: left;">Header keamanan lengkap</td>
+<td style="text-align: left;">CSP, HSTS, XFO, nosniff, COOP/CORP</td>
+<td style="text-align: center;"><strong>PASS</strong></td>
+<td style="text-align: left;">Hardening header aktif di Next.js
+config</td>
+</tr>
+</tbody>
+</table>
+<h2 id="hasil-pengujian-antarmuka-dan-rekomendasi">10.8 Hasil Pengujian
+Antarmuka dan Rekomendasi</h2>
+<p>Pengujian tata letak antarmuka dan responsivitas browser dilakukan
+menggunakan Chromium pada resolusi desktop (1440 px), tablet, dan mobile
+(390 px serta 320 px):</p>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr>
+<th>Pemeriksaan</th>
+<th>Hasil</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Landing desktop</td>
+<td>Satu <code>main</code>, heading benar, tiga kartu bidang, tanpa
+overflow</td>
+</tr>
+<tr>
+<td>Bahasa dokumen</td>
+<td><code>lang="id"</code></td>
+</tr>
+<tr>
+<td>Navbar anonim</td>
+<td><code>Daftar</code>, <code>Masuk</code></td>
+</tr>
+<tr>
+<td>Auth gate</td>
+<td>Form assessment tidak tampil sebelum login</td>
+</tr>
+<tr>
+<td>Form Informatika</td>
+<td>URL GitHub, tanpa file input</td>
+</tr>
+<tr>
+<td>Form DKV</td>
+<td>PNG/JPEG, deskripsi proses, tanpa URL GitHub</td>
+</tr>
+<tr>
+<td>Form Marketing</td>
+<td>PDF, 4 MB, 15 halaman</td>
+</tr>
+<tr>
+<td>Mobile 390 px</td>
+<td>Tidak ada horizontal overflow</td>
+</tr>
+<tr>
+<td>Mobile 320 px sebelum perbaikan</td>
+<td>Overflow sekitar 10 px pada navbar login</td>
+</tr>
+<tr>
+<td>Mobile 320 px setelah perbaikan</td>
+<td>Lulus; lebar viewport dan scroll width sama-sama 320 px</td>
+</tr>
+<tr>
+<td>History</td>
+<td>Hasil tiga bidang tampil berurutan, tanpa overflow desktop</td>
+</tr>
+<tr>
+<td>Result</td>
+<td>Empat kriteria, batas klaim, interview, reassess, delete</td>
+</tr>
+</tbody>
+</table>
+<p>Katalog materi pembelajaran telah diperluas dari 12 URL menjadi 30
+materi terkurasi (<code>src/lib/learning-catalog.ts</code>), mencakup
+2–3 sumber belajar berjenjang (<em>beginner</em> dan
+<em>intermediate</em>) untuk setiap satu dari 12 kriteria di tiga
+bidang.</p>
+<p>Fungsi penyeleksi rekomendasi <code>recommendResources()</code>
+memetakan maksimal tiga materi terarah berdasarkan kesenjangan
+(<em>skill gaps</em>) terbesar pengguna. Seluruh 30 tautan menggunakan
+protokol HTTPS dan mengarah ke domain edukasi/industri terpercaya (MDN,
+GitHub, Next.js Docs, Nielsen Norman Group, Material Design, IDEO,
+Google Skillshop, Google Analytics Academy, HubSpot Academy, dan Looker
+Studio). Pemeriksaan otomatis memastikan integritas URL dan ketersediaan
+materi untuk setiap kriteria dengan 2/2 unit test lulus.</p>
+<h2 id="kelebihan-solusi">10.9 Kelebihan Solusi</h2>
+<ol type="1">
+<li>Sistem menerima tiga bentuk bukti berbeda: repositori GitHub, karya
+visual, dan laporan PDF.</li>
+<li>Penilaian menggunakan rubrik khusus bidang dan bukti tidak cukup
+tidak dipaksa menjadi skor nol.</li>
+<li>Skor akhir dihitung server, bukan dipercaya dari satu angka keluaran
+model.</li>
+<li>Strict schema dan validasi referensi mencegah keluaran tidak
+konsisten tersimpan.</li>
+<li>Output schema-invalid gagal aman dan tidak menjadi assessment
+selesai.</li>
+<li>Data pengguna terisolasi melalui authentication, ownership filter,
+RLS, dan private Storage.</li>
+<li>File diperiksa dari magic bytes, bukan hanya ekstensi atau MIME
+browser.</li>
+<li>Kode GitHub tidak dijalankan sehingga risiko eksekusi kode pengguna
+berkurang.</li>
+<li>Penghapusan assessment menghapus row turunan dan object Storage pada
+skenario normal.</li>
+<li>UI adaptif mengikuti jenis bukti tiap bidang dan bekerja pada
+desktop serta mobile utama.</li>
+<li>Sesi wawancara adaptif tersimpan persisten di database, memungkinkan
+pengguna melanjutkan latihan kapan saja.</li>
+<li>Rekomendasi materi belajar berjenjang disesuaikan langsung dengan
+gap kriteria penilaian pengguna.</li>
+</ol>
+<h2 id="keterbatasan">10.10 Keterbatasan</h2>
+<ol type="1">
+<li>Dataset saat ini terdiri atas sembilan fixture sintetis dan belum
+mewakili seluruh populasi mahasiswa Indonesia.</li>
+<li>Baseline penilai manusia asli (HR profesional) belum selesai;
+perbandingan saat ini menggunakan baseline simulasi independen
+<code>AI-simulated R1/R2</code> untuk verifikasi instrumen.</li>
+<li>Token usage dan biaya inferensi provider per pemanggilan belum
+dicatat ke tabel analitik aplikasi.</li>
+<li>Ekstraktor Informatika pada form produksi membutuhkan repositori
+publik di GitHub; repositori privat atau berkas lokal belum didukung
+secara langsung via antarmuka web.</li>
+<li>Parser PDF hanya menerima dokumen dengan text layer; OCR untuk
+dokumen hasil pemindaian (<em>scan</em>) belum tersedia.</li>
+<li>Sistem menilai kelayakan isi bukti tetapi tidak memverifikasi
+identitas hukum atau kepemilikan mutlak atas karya tersebut.</li>
+<li>Kode repositori tidak dijalankan secara runtime sehingga bug dinamis
+atau performa aplikasi berjalan tidak dinilai.</li>
+<li>Rekomendasi materi menggunakan katalog kurasi terarah berdasarkan
+mapping gap kriteria, belum menggunakan mesin pencari semantik
+vektor/RAG embedding skala besar.</li>
+<li>Relevansi pedagogis materi belajar belum dinilai secara formal oleh
+evaluator kurikulum manusia.</li>
+<li>Pengujian otomatis menyeluruh untuk browser Firefox, Safari WebKit,
+dan pemindai kontras otomatis WCAG tingkat lanjut masih perlu diperluas
+pada tahap berikutnya.</li>
+</ol>
+<h2 id="kesimpulan-pengujian">10.11 Kesimpulan Pengujian</h2>
+<p>Pengujian komprehensif membuktikan bahwa prototipe Skillbridge AI
+telah berhasil mengimplementasikan alur evaluasi kesiapan kerja berbasis
+bukti secara menyeluruh (<em>end-to-end</em>) pada tiga bidang
+(Informatika, DKV, dan Bisnis/Pemasaran). Hasil benchmark 27 run
+menunjukkan bahwa pembaruan Rubrik 1.1, pemisahan observasi visual
+multimodal, dan penataan parsing PDF menghasilkan kepatuhan skema 100%,
+eliminasi kegagalan parsing array, serta konsistensi status kecukupan
+bukti yang tinggi.</p>
+<p>Penambahan persistensi wawancara pada Supabase dan ekspansi 30 materi
+katalog terkurasi menyelesaikan siklus pembelajaran tertutup
+(<em>closed-loop learning</em>) yang diamanatkan dalam proposal.
+Meskipun demikian, karena validasi dua penilai HR manusia independen
+masih berstatus pending, prototipe ini berstatus <strong>fungsional,
+stabil, dan siap didemonstrasikan untuk sidang kompres, namun belum
+boleh digunakan untuk klaim kesetaraan objektif dengan penilai
+manusia</strong>.</p>
+<p>Seluruh hasil penilaian wajib menyertakan batasan:</p>
+<blockquote>
+<p>Penilaian indikatif berdasarkan bukti yang dikirim dan rubrik
+Skillbridge AI. Hasil bukan verifikasi identitas, kepemilikan karya,
+kompetensi profesional, atau jaminan diterima kerja.</p>
+</blockquote>
+</body>
+</html>
