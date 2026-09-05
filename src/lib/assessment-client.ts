@@ -4,11 +4,17 @@ import { authHeaders } from "./auth-client";
 import type { AssessmentResult } from "./types";
 import { responseData } from "./http-client";
 
+import { DEMO_SEEDS, getDemoSeed, isDemoSeedId } from "./demo-seed";
+
 export function useAssessments(id?: string) {
-  const [items, setItems] = useState<AssessmentResult[]>([]);
-  const [loading, setLoading] = useState(true);
+  const isDemo = Boolean(id && isDemoSeedId(id));
+  const seed = isDemo ? getDemoSeed(id!) : undefined;
+  const initialItems = seed ? [seed, ...DEMO_SEEDS.filter((s) => s.id !== id)] : [];
+  const [items, setItems] = useState<AssessmentResult[]>(initialItems);
+  const [loading, setLoading] = useState(!isDemo);
   const [error, setError] = useState("");
   useEffect(() => {
+    if (isDemo) return;
     let active = true;
     authHeaders().then((headers) => fetch(`/api/assessments${id ? `?id=${encodeURIComponent(id)}` : ""}`, { headers })).then(async (response) => {
       const data = await responseData(response);

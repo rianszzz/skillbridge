@@ -1,6 +1,7 @@
 "use client";
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { roles } from "@/lib/rubrics";
 import { authHeaders } from "@/lib/auth-client";
 import type { Field } from "@/lib/types";
@@ -45,7 +46,15 @@ export default function AssessmentForm() {
     finally { setLoading(false); }
   }
 
-  return <div className="form-shell"><form className="panel" onSubmit={submit} aria-busy={loading}>{error && <div className="alert" role="alert">{error}</div>}
+  return <div className="form-shell"><form className="panel" onSubmit={submit} aria-busy={loading}>
+    {error && (
+      <div className="alert" role="alert">
+        <p>{error}</p>
+        <p className="hint" style={{ marginTop: "0.5rem" }}>
+          Simulasi offline/demo sidang: Buka <Link href="/results/00000000-0000-0000-0000-000000000002" style={{ textDecoration: "underline" }}>Data Demo Sidang (Informatika)</Link> untuk melanjutkan demonstrasi.
+        </p>
+      </div>
+    )}
     <div className="field"><label htmlFor="field">Bidang dan target peran</label><select id="field" value={field} onChange={(event) => changeField(event.target.value as Field)}><option value="informatics">Informatika — Junior Web Developer</option><option value="design">DKV — Junior Graphic Designer</option><option value="marketing">Bisnis/Pemasaran — Junior Digital Marketer</option></select><p className="hint">Rubrik versi 1.1 dipilih dari target ini.</p></div>
     {field === "informatics" ? <div className="field"><label htmlFor="url">URL repositori GitHub publik</label><input id="url" type="url" required placeholder="https://github.com/pemilik/repositori" value={url} onChange={(event) => { setUrl(event.target.value); resetOperation(); }} aria-describedby="evidence-hint"/><p className="hint" id="evidence-hint">{guidance[field].hint}</p></div> : <>
       <div className="field"><label htmlFor="file">{field === "design" ? "Gambar hasil karya" : "PDF laporan kampanye"}</label><input id="file" type="file" required accept={field === "design" ? "image/png,image/jpeg" : "application/pdf"} onChange={(event) => { setFile(event.target.files?.[0]); resetOperation(); }} aria-describedby="evidence-hint"/><p className="hint" id="evidence-hint">{guidance[field].hint} Maksimal 4 MB{field === "marketing" ? " dan 15 halaman" : ""}.</p>{file && <p className="chip">{file.name} · {(file.size / 1024).toFixed(0)} KB</p>}</div>
@@ -53,5 +62,5 @@ export default function AssessmentForm() {
     </>}
     <label className="consent"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} required/><span><strong>Persetujuan pemrosesan AI</strong><br/><span className="hint">Bukti dikirim ke Groq untuk dinilai. Nama dan email tidak dibutuhkan. Saya memahami batas penilaian dan dapat menghapus hasil melalui akun.</span></span></label>
     <div className="actions"><button className="button" disabled={loading || !consent}>{loading ? field === "informatics" ? "Mengekstrak dan menilai..." : "Mengunggah dan menilai..." : "Kirim dan nilai bukti"}</button></div>
-  </form><aside className="panel"><p className="eyebrow">Sebelum mengirim</p><h3>{guidance[field].title}</h3><p>{guidance[field].body}</p><hr/><p className="hint">Hasil dan file tersimpan privat di Supabase. File hanya diproses server dan dapat dihapus bersama hasil.</p></aside></div>;
+  </form><aside className="panel"><p className="eyebrow">Sebelum mengirim</p><h3>{guidance[field].title}</h3><p>{guidance[field].body}</p><hr/><p className="hint">Hasil dan file tersimpan privat di Supabase. File hanya diproses server dan dapat dihapus bersama hasil.</p><hr/><p className="hint"><strong>Demo Sidang:</strong> <Link href="/results/00000000-0000-0000-0000-000000000002" style={{ textDecoration: "underline" }}>Buka data seed terverifikasi</Link>.</p></aside></div>;
 }

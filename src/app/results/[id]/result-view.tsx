@@ -5,16 +5,19 @@ import { removeAssessment, useAssessments } from "@/lib/assessment-client";
 import { rubrics } from "@/lib/rubrics";
 import { catalog } from "@/lib/learning-catalog";
 import { calculateAssessmentDiff, findPreviousAssessment } from "@/lib/assessment-diff";
+import { DEMO_SEEDS, getDemoSeed, isDemoSeedId } from "@/lib/demo-seed";
 
 export default function ResultView({ id }: { id: string }) {
   const router = useRouter();
-  const { items, loading, error } = useAssessments();
-  const result = items.find((item) => item.id === id);
+  const { items, loading, error } = useAssessments(id);
+  const demoSeed = getDemoSeed(id);
+  const result = items.find((item) => item.id === id) || demoSeed;
   if (loading) return <section className="page-head"><p>Memuat hasil...</p></section>;
-  if (error) return <section className="page-head"><div className="alert" role="alert">{error}</div><Link className="button" href="/auth">Masuk</Link></section>;
+  if (!result && error) return <section className="page-head"><div className="alert" role="alert">{error}</div><Link className="button" href="/auth">Masuk</Link></section>;
   if (!result) return <section className="page-head"><p className="eyebrow">Hasil</p><h1>Hasil tidak ditemukan.</h1><p>Hasil demo tersimpan pada browser yang menjalankan penilaian.</p><Link className="button" href="/assess">Mulai penilaian</Link></section>;
 
-  const { previous, previousDiffVersion } = findPreviousAssessment(result, items);
+  const allAssessments = items.length ? items : (demoSeed ? DEMO_SEEDS : []);
+  const { previous, previousDiffVersion } = findPreviousAssessment(result, allAssessments);
   const { finalDiff, criteriaDiffs } = calculateAssessmentDiff(result, previous);
 
   const rubric = rubrics[result.role];
@@ -42,6 +45,11 @@ export default function ResultView({ id }: { id: string }) {
     {previousDiffVersion && !previous && (
       <div className="reassessment-note">
         Penilaian sebelumnya untuk peran ini menggunakan Rubrik {previousDiffVersion.rubric_version}. Perbandingan langsung dinonaktifkan karena versi rubrik berbeda.
+      </div>
+    )}
+    {isDemoSeedId(result.id) && (
+      <div className="reassessment-note">
+        <strong>Data Demo Sidang Kompres:</strong> Hasil ini adalah data seed terverifikasi untuk demonstrasi offline/cadangan sidang, bukan hasil live palsu.
       </div>
     )}
     {result.finalScore === null && <p className="assessment-progress">{sufficientCount} dari {result.criteria.length} kriteria dapat dinilai.</p>}
