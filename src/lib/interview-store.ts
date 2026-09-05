@@ -6,7 +6,10 @@ type InterviewSession = { id: string; status: "active" | "completed"; focusAreas
 export async function loadInterview(userId: string, assessmentId: string): Promise<InterviewSession | null> {
   const db = createAdminSupabase();
   const { data: interview, error } = await db.from("interviews").select("id,status,focus_areas,created_at").eq("assessment_id", assessmentId).eq("user_id", userId).maybeSingle();
-  if (error) throw error;
+  if (error) {
+    if ((error as { code?: string })?.code === "42P01") return null;
+    throw error;
+  }
   if (!interview) return null;
   const { data: messages, error: messagesError } = await db.from("interview_messages").select("role,content").eq("interview_id", interview.id).order("created_at", { ascending: true });
   if (messagesError) throw messagesError;
@@ -16,7 +19,10 @@ export async function loadInterview(userId: string, assessmentId: string): Promi
 export async function createInterview(userId: string, assessmentId: string, focusAreas: string[]): Promise<string> {
   const db = createAdminSupabase();
   const { data, error } = await db.from("interviews").insert({ assessment_id: assessmentId, user_id: userId, focus_areas: focusAreas }).select("id").single();
-  if (error) throw error;
+  if (error) {
+    if ((error as { code?: string })?.code === "42P01") throw new Error("Tabel wawancara belum dimigrasi di Supabase (migration 005).");
+    throw error;
+  }
   return data.id;
 }
 
