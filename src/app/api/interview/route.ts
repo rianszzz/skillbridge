@@ -107,7 +107,7 @@ export async function POST(request: Request) {
       if (activeAnswers.length >= 5) await completeInterview(session.id);
     }
 
-    securityLog("interview.completed", { userHash: hashLogValue(user.id), answerCount: activeAnswers.length });
+    securityLog("interview.completed", { userHash: hashLogValue(userId), answerCount: activeAnswers.length });
     return Response.json({ message, interviewId: session?.id, answerCount: activeAnswers.length }, privateResponse());
   } catch (error) {
     return errorResponse(error, "Wawancara gagal diproses.");
