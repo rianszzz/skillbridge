@@ -1,0 +1,1283 @@
+{
+  "benchmark_id": "BENCHMARK-INF-2026",
+  "field": "informatics",
+  "target_role": "Junior Web Developer",
+  "rubric_version": "1.1",
+  "evaluated_at": "2026-09-05T17:35:00Z",
+  "rubric_criteria": [
+    {
+      "id": "web_code_quality",
+      "label": "Kualitas kode",
+      "weight": 0.35,
+      "anchors": {
+        "0": "Bermasalah mendasar",
+        "25": "Sulit dibaca",
+        "50": "Cukup terbaca",
+        "75": "Konsisten dan modular",
+        "100": "Kokoh dan teruji"
+      }
+    },
+    {
+      "id": "web_project_structure",
+      "label": "Struktur proyek",
+      "weight": 0.25,
+      "anchors": {
+        "0": "Tidak terorganisasi",
+        "25": "Tanggung jawab bercampur",
+        "50": "Pemisahan dasar",
+        "75": "Struktur jelas",
+        "100": "Efektif tanpa abstraksi berlebih"
+      }
+    },
+    {
+      "id": "web_documentation",
+      "label": "Dokumentasi",
+      "weight": 0.20,
+      "anchors": {
+        "0": "Tanpa petunjuk",
+        "25": "Deskripsi umum",
+        "50": "Setup dasar",
+        "75": "Setup dan batasan jelas",
+        "100": "Lengkap, akurat, ringkas"
+      }
+    },
+    {
+      "id": "web_contribution_history",
+      "label": "Riwayat kontribusi",
+      "weight": 0.20,
+      "anchors": {
+        "0": "Satu dump",
+        "25": "Pesan tidak bermakna",
+        "50": "Progres dasar",
+        "75": "Commit bertahap",
+        "100": "Iterasi mudah diaudit"
+      }
+    }
+  ],
+  "samples": [
+    {
+      "sample_id": "INF-01",
+      "tier": "weak",
+      "fixture_path": "fixtures/informatics/weak",
+      "manifest_summary": "index.js, package.json, 1 commit, tanpa README",
+      "runs": [
+        {
+          "run": 1,
+          "criteria": [
+            {
+              "criterion_id": "web_code_quality",
+              "evidence_sufficiency": "sufficient",
+              "score": 0,
+              "confidence": "high",
+              "reason": "Input diambil mentah dari URL query string tanpa pengecekan tipe/keberadaan nilai dan langsung dimasukkan ke array; mutasi data dilakukan via request GET tanpa proteksi.",
+              "evidence_refs": ["fixtures/informatics/weak/index.js:5-7"],
+              "details": {
+                "met_indicators": [
+                  "Server HTTP dasar berhasil diinisialisasi dengan modul bawaan node:http.",
+                  "Tersedia endpoint untuk membaca array todos dalam format JSON."
+                ],
+                "missing_indicators": [
+                  "Kode menunjukkan bug/validasi mendasar yang hilang.",
+                  "Semantik HTTP keliru karena mutasi data dilakukan melalui URL request tanpa validasi method POST."
+                ],
+                "evidence_quotes": [
+                  {
+                    "reference": "fixtures/informatics/weak/index.js:6",
+                    "quote": "todos.push(req.url.split(\"=\")[1]);"
+                  }
+                ],
+                "next_action": "Gunakan method POST untuk mutasi data, terapkan parsing body/query yang aman, dan validasi input sebelum menambahkan ke array."
+              }
+            },
+            {
+              "criterion_id": "web_project_structure",
+              "evidence_sufficiency": "sufficient",
+              "score": 25,
+              "confidence": "high",
+              "reason": "Logika inisialisasi server, penanganan routing, manipulasi data in-memory, dan pengiriman response bercampur dalam satu file index.js.",
+              "evidence_refs": ["fixtures/informatics/weak/index.js:1-11", "fixtures/informatics/weak/package.json:1"],
+              "details": {
+                "met_indicators": [
+                  "Struktur repositori memiliki entry point index.js dan package.json terpisah.",
+                  "Script start terdefinisi pada package.json."
+                ],
+                "missing_indicators": [
+                  "Ada folder/file tetapi tanggung jawab masih bercampur.",
+                  "Belum ada pemisahan modular untuk routing, controller, atau penanganan data."
+                ],
+                "evidence_quotes": [
+                  {
+                    "reference": "fixtures/informatics/weak/index.js:4",
+                    "quote": "http.createServer((req, res) => {"
+                  }
+                ],
+                "next_action": "Pisahkan tanggung jawab kode ke dalam modul terpisah untuk server bootstrap, routing HTTP, dan pengelolaan data todos."
+              }
+            },
+            {
+              "criterion_id": "web_documentation",
+              "evidence_sufficiency": "insufficient_evidence",
+              "score": null,
+              "confidence": "high",
+              "reason": "Berkas README.md tidak tersedia pada repositori sehingga tujuan, langkah instalasi, dan panduan penggunaan tidak dapat dinilai.",
+              "evidence_refs": [],
+              "details": {
+                "met_indicators": [],
+                "missing_indicators": [
+                  "README tidak tersedia.",
+                  "Tidak ada petunjuk tujuan, setup, atau cara penggunaan."
+                ],
+                "evidence_quotes": [],
+                "next_action": "Tambahkan berkas README.md yang memuat tujuan proyek, prasyarat sistem, dan cara menjalankan aplikasi."
+              }
+            },
+            {
+              "criterion_id": "web_contribution_history",
+              "evidence_sufficiency": "insufficient_evidence",
+              "score": null,
+              "confidence": "high",
+              "reason": "Bukti riwayat kontribusi hanya memiliki 1 commit, tidak memenuhi batas minimum tiga commit bertanggal beserta pesan perubahan.",
+              "evidence_refs": [],
+              "details": {
+                "met_indicators": [],
+                "missing_indicators": [
+                  "Kurang dari tiga commit.",
+                  "Riwayat perubahan bertahap tidak tersedia untuk diaudit."
+                ],
+                "evidence_quotes": [],
+                "next_action": "Lakukan commit secara bertahap dan berkala (minimal 3 commit) dengan pesan deskriptif yang mencerminkan setiap penambahan fitur atau perbaikan."
+              }
+            }
+          ],
+          "final_score": null,
+          "strengths": [
+            "Server HTTP dasar berhasil diinisialisasi dengan modul bawaan node:http.",
+            "Struktur repositori memiliki entry point index.js dan package.json terpisah."
+          ],
+          "gaps": [
+            "Kode menunjukkan bug/validasi mendasar yang hilang.",
+            "README tidak tersedia.",
+            "Kurang dari tiga commit."
+          ],
+          "limitations": [
+            "Dokumentasi tidak tersedia.",
+            "Riwayat commit kurang dari 3."
+          ]
+        },
+        {
+          "run": 2,
+          "criteria": [
+            {
+              "criterion_id": "web_code_quality",
+              "evidence_sufficiency": "sufficient",
+              "score": 0,
+              "confidence": "high",
+              "reason": "Mutasi data dilakukan lewat GET tanpa sanitasi, nilai undefined tetap masuk jika parameter tidak ada, dan tidak ada mekanisme error handling.",
+              "evidence_refs": ["fixtures/informatics/weak/index.js:5-7"],
+              "details": {
+                "met_indicators": [
+                  "Server HTTP native berjalan tanpa dependensi eksternal.",
+                  "Fungsi pembacaan data sederhana berfungsi."
+                ],
+                "missing_indicators": [
+                  "Validasi input hilang dan penanganan error tidak tersedia.",
+                  "Mutasi status aplikasi dilakukan melalui metode GET."
+                ],
+                "evidence_quotes": [
+                  {
+                    "reference": "fixtures/informatics/weak/index.js:6",
+                    "quote": "todos.push(req.url.split(\"=\")[1]);"
+                  }
+                ],
+                "next_action": "Ubah alur mutasi ke POST dengan validasi nilai input sebelum masuk ke array."
+              }
+            },
+            {
+              "criterion_id": "web_project_structure",
+              "evidence_sufficiency": "sufficient",
+              "score": 25,
+              "confidence": "high",
+              "reason": "Entry point dan package.json ada, tetapi seluruh fungsionalitas HTTP, routing, dan array in-memory dipadatkan dalam satu berkas tunggal.",
+              "evidence_refs": ["fixtures/informatics/weak/index.js:1-11"],
+              "details": {
+                "met_indicators": [
+                  "File package.json menyediakan skrip start.",
+                  "Struktur proyek minimal dapat dieksekusi."
+                ],
+                "missing_indicators": [
+                  "Semua tanggung jawab menumpuk dalam satu file tanpa pemisahan komponen.",
+                  "Tidak ada struktur direktori untuk modul kode."
+                ],
+                "evidence_quotes": [
+                  {
+                    "reference": "fixtures/informatics/weak/index.js:4",
+                    "quote": "http.createServer((req, res) => {"
+                  }
+                ],
+                "next_action": "Pindahkan logika routing dan penyimpanan data ke modul terpisah."
+              }
+            },
+            {
+              "criterion_id": "web_documentation",
+              "evidence_sufficiency": "insufficient_evidence",
+              "score": null,
+              "confidence": "high",
+              "reason": "Tidak ada berkas README dalam repositori sampel; tujuan dan cara instalasi tidak dapat dinilai.",
+              "evidence_refs": [],
+              "details": {
+                "met_indicators": [],
+                "missing_indicators": [
+                  "README tidak tersedia.",
+                  "Petunjuk penggunaan tidak ada."
+                ],
+                "evidence_quotes": [],
+                "next_action": "Sediakan file README.md dengan petunjuk setup dan menjalankan."
+              }
+            },
+            {
+              "criterion_id": "web_contribution_history",
+              "evidence_sufficiency": "insufficient_evidence",
+              "score": null,
+              "confidence": "high",
+              "reason": "Riwayat repositori hanya memuat 1 commit awal; bukti tidak memenuhi ambang batas 3 commit.",
+              "evidence_refs": [],
+              "details": {
+                "met_indicators": [],
+                "missing_indicators": [
+                  "Kurang dari tiga commit.",
+                  "Tidak ada riwayat progres berulang."
+                ],
+                "evidence_quotes": [],
+                "next_action": "Buat minimal tiga commit berkala dengan pesan informatif."
+              }
+            }
+          ],
+          "final_score": null,
+          "strengths": [
+            "Server HTTP native berjalan tanpa dependensi eksternal.",
+            "File package.json menyediakan skrip start."
+          ],
+          "gaps": [
+            "Validasi input hilang dan penanganan error tidak tersedia.",
+            "README tidak tersedia.",
+            "Kurang dari tiga commit."
+          ],
+          "limitations": [
+            "README tidak tersedia.",
+            "Riwayat commit kurang dari tiga."
+          ]
+        },
+        {
+          "run": 3,
+          "criteria": [
+            {
+              "criterion_id": "web_code_quality",
+              "evidence_sufficiency": "sufficient",
+              "score": 0,
+              "confidence": "high",
+              "reason": "Masalah mendasar pada validasi URL parsing dan semantik HTTP; parameter diambil tanpa validasi dan dimasukkan ke array tanpa pengecekan error.",
+              "evidence_refs": ["fixtures/informatics/weak/index.js:5-7"],
+              "details": {
+                "met_indicators": [
+                  "Node.js HTTP server mengikat port 3000 secara tepat.",
+                  "Mengembalikan respons JSON untuk endpoint selain /add."
+                ],
+                "missing_indicators": [
+                  "Bug mendasar pada parsing query string dan mutasi via GET.",
+                  "Tidak ada error handling atau validasi kekosongan input."
+                ],
+                "evidence_quotes": [
+                  {
+                    "reference": "fixtures/informatics/weak/index.js:6",
+                    "quote": "todos.push(req.url.split(\"=\")[1]);"
+                  }
+                ],
+                "next_action": "Terapkan validasi input dan ganti metode request penambahan data menjadi POST."
+              }
+            },
+            {
+              "criterion_id": "web_project_structure",
+              "evidence_sufficiency": "sufficient",
+              "score": 25,
+              "confidence": "high",
+              "reason": "Hanya ada index.js dan package.json; arsitektur aplikasi tidak modular dan seluruh logika terkumpul dalam satu handler.",
+              "evidence_refs": ["fixtures/informatics/weak/index.js:1-11", "fixtures/informatics/weak/package.json:1"],
+              "details": {
+                "met_indicators": [
+                  "Konfigurasi package.json terpisah dari source code.",
+                  "Skrip start terkonfigurasi dengan benar."
+                ],
+                "missing_indicators": [
+                  "Struktur kode tidak modular dan bertumpuk dalam satu file.",
+                  "Tidak terdapat folder direktori src atau modul terisolasi."
+                ],
+                "evidence_quotes": [
+                  {
+                    "reference": "fixtures/informatics/weak/index.js:4",
+                    "quote": "http.createServer((req, res) => {"
+                  }
+                ],
+                "next_action": "Pisahkan kode ke dalam direktori src dengan modul terpisah untuk server dan routes."
+              }
+            },
+            {
+              "criterion_id": "web_documentation",
+              "evidence_sufficiency": "insufficient_evidence",
+              "score": null,
+              "confidence": "high",
+              "reason": "README tidak ditemukan pada tree repositori, sehingga dokumentasi tidak dapat dinilai.",
+              "evidence_refs": [],
+              "details": {
+                "met_indicators": [],
+                "missing_indicators": [
+                  "README tidak tersedia.",
+                  "Dokumentasi alur aplikasi tidak ada."
+                ],
+                "evidence_quotes": [],
+                "next_action": "Tuliskan dokumentasi README.md yang mencakup instalasi, penggunaan, dan batasan."
+              }
+            },
+            {
+              "criterion_id": "web_contribution_history",
+              "evidence_sufficiency": "insufficient_evidence",
+              "score": null,
+              "confidence": "high",
+              "reason": "Jumlah commit (1) berada di bawah syarat minimum 3 commit bertanggal.",
+              "evidence_refs": [],
+              "details": {
+                "met_indicators": [],
+                "missing_indicators": [
+                  "Kurang dari tiga commit.",
+                  "Riwayat commit bertahap tidak ada."
+                ],
+                "evidence_quotes": [],
+                "next_action": "Commit kode secara teratur dalam minimal tiga tahap perubahan yang bermakna."
+              }
+            }
+          ],
+          "final_score": null,
+          "strengths": [
+            "Node.js HTTP server mengikat port 3000 secara tepat.",
+            "Konfigurasi package.json terpisah dari source code."
+          ],
+          "gaps": [
+            "Bug mendasar pada parsing query string dan mutasi via GET.",
+            "README tidak tersedia.",
+            "Kurang dari tiga commit."
+          ],
+          "limitations": [
+            "README tidak tersedia.",
+            "Riwayat commit kurang dari tiga commit."
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "INF-02",
+      "tier": "medium",
+      "fixture_path": "fixtures/informatics/medium",
+      "manifest_summary": "src/routes.js, src/events.js, src/server.js, package.json, README.md, 4 commit",
+      "runs": [
+        {
+          "run": 1,
+          "criteria": [
+            {
+              "criterion_id": "web_code_quality",
+              "evidence_sufficiency": "sufficient",
+              "score": 50,
+              "confidence": "high",
+              "reason": "Alur penanganan request terbaca dengan baik dan ada validasi dasar serta error handling try-catch untuk format JSON, namun semua HTTP method selain GET dianggap sebagai penambahan event dan callback dipadatkan satu baris.",
+              "evidence_refs": ["fixtures/informatics/medium/src/routes.js:2-9", "fixtures/informatics/medium/src/events.js:1-3"],
+              "details": {
+                "met_indicators": [
+                  "Alur utama terbaca dan validasi dasar tersedia (title required).",
+                  "Error handling mengembalikan HTTP status 400 beserta pesan kesalahan terstruktur."
+                ],
+                "missing_indicators": [
+                  "Semua method non-GET diterima sebagai mutasi penambahan event tanpa pengecekan eksplisit POST.",
+                  "Callback pemrosesan stream body dan penambahan event dipadatkan dalam satu baris inline."
+                ],
+                "evidence_quotes": [
+                  {
+                    "reference": "fixtures/informatics/medium/src/routes.js:7",
+                    "quote": "try { const { title } = JSON.parse(body); if (!title) throw new Error(\"title required\"); events.add(title); res.end(JSON.stringify({ ok: true })); }"
+                  }
+                ],
+                "next_action": "Batasi penambahan event secara eksplisit untuk method POST dan pisahkan helper parsing request body."
+              }
+            },
+            {
+              "criterion_id": "web_project_structure",
+              "evidence_sufficiency": "sufficient",
+              "score": 75,
+              "confidence": "high",
+              "reason": "Pemisahan modul sangat jelas antara bootstrap server (server.js), HTTP route dispatcher (routes.js), dan in-memory domain storage (events.js) di dalam folder src.",
+              "evidence_refs": ["fixtures/informatics/medium/src/server.js:1-3", "fixtures/informatics/medium/src/routes.js:1-10", "fixtures/informatics/medium/src/events.js:1-3"],
+              "details": {
+                "met_indicators": [
+                  "Struktur dan tanggung jawab tiap modul jelas (server, routes, events).",
+                  "Semua modul aplikasi dikelompokkan dengan rapi di dalam direktori src."
+                ],
+                "missing_indicators": [
+                  "Belum ada pemisahan konfigurasi environment dan struktur folder untuk pengujian otomatis."
+                ],
+                "evidence_quotes": [
+                  {
+                    "reference": "fixtures/informatics/medium/src/server.js:2",
+                    "quote": "const { route } = require(\"./routes\");"
+                  }
+                ],
+                "next_action": "Tambahkan direktori test dan pisahkan middleware parsing body dari router."
+              }
+            },
+            {
+              "criterion_id": "web_documentation",
+              "evidence_sufficiency": "sufficient",
+              "score": 75,
+              "confidence": "high",
+              "reason": "README memuat tujuan proyek, instruksi menjalankan server secara ringkas, URL lokal, dan menyatakan batasan penyimpanan sementara secara transparan.",
+              "evidence_refs": ["fixtures/informatics/medium/README.md:1-9"],
+              "details": {
+                "met_indicators": [
+                  "Setup, penggunaan, dan batasan utama jelas.",
+                  "Menyebutkan bahwa data disimpan sementara dan hilang saat server di-restart."
+                ],
+                "missing_indicators": [
+                  "Belum mencantumkan contoh payload JSON request dan response untuk tiap endpoint."
+                ],
+                "evidence_quotes": [
+                  {
+                    "reference": "fixtures/informatics/medium/README.md:9",
+                    "quote": "Data disimpan sementara dan hilang saat server dimulai ulang."
+                  }
+                ],
+                "next_action": "Lengkapi dokumentasi dengan spesifikasi endpoint, contoh body request POST, dan format respon JSON."
+              }
+            },
+            {
+              "criterion_id": "web_contribution_history",
+              "evidence_sufficiency": "sufficient",
+              "score": 50,
+              "confidence": "medium",
+              "reason": "Memiliki 4 commit yang menunjukkan progres dasar pengembangan aplikasi dari inisialisasi hingga pemisahan modul.",
+              "evidence_refs": ["manifest INF-02: 4 commit"],
+              "details": {
+                "met_indicators": [
+                  "Minimal tiga commit menunjukkan progres dasar.",
+                  "Jumlah 4 commit memenuhi syarat kecukupan bukti riwayat."
+                ],
+                "missing_indicators": [
+                  "Pesan commit belum mengikuti pola standar penjelasan fitur/perbaikan secara menyeluruh."
+                ],
+                "evidence_quotes": [
+                  {
+                    "reference": "manifest INF-02",
+                    "quote": "4 commit"
+                  }
+                ],
+                "next_action": "Terapkan format Conventional Commits dengan penjelasan deskriptif pada setiap commit."
+              }
+            }
+          ],
+          "final_score": 61,
+          "strengths": [
+            "Alur utama terbaca dan validasi dasar tersedia (title required).",
+            "Struktur dan tanggung jawab tiap modul jelas (server, routes, events).",
+            "Setup, penggunaan, dan batasan utama jelas pada README.",
+            "Minimal tiga commit menunjukkan progres dasar."
+          ],
+          "gaps": [
+            "Semua method non-GET diterima sebagai penambahan event.",
+            "Belum ada pengujian otomatis.",
+            "README belum menyertakan contoh request/response payload."
+          ],
+          "limitations": [
+            "Data bersifat in-memory dan belum ada persistensi database."
+          ]
+        },
+        {
+          "run": 2,
+          "criteria": [
+            {
+              "criterion_id": "web_code_quality",
+              "evidence_sufficiency": "sufficient",
+              "score": 50,
+              "confidence": "high",
+              "reason": "Kode cukup terbaca dan menangani format JSON salah dengan try-catch serta HTTP status 400, tetapi routing menerima semua request selain GET sebagai penambahan event.",
+              "evidence_refs": ["fixtures/informatics/medium/src/routes.js:2-9"],
+              "details": {
+                "met_indicators": [
+                  "Terdapat penanganan error dasar dan validasi field title pada body JSON.",
+                  "Penggunaan content-type application/json pada header respons."
+                ],
+                "missing_indicators": [
+                  "Semua method HTTP selain GET diproses sebagai mutasi data tanpa validasi method spesifik.",
+                  "Pemisahan logika stream request body dan callback event belum modular."
+                ],
+                "evidence_quotes": [
+                  {
+                    "reference": "fixtures/informatics/medium/src/routes.js:7",
+                    "quote": "try { const { title } = JSON.parse(body); if (!title) throw new Error(\"title required\"); events.add(title); res.end(JSON.stringify({ ok: true })); }"
+                  }
+                ],
+                "next_action": "Tambahkan validasi method HTTP POST pada routes.js dan pisahkan handler parsing JSON."
+              }
+            },
+            {
+              "criterion_id": "web_project_structure",
+              "evidence_sufficiency": "sufficient",
+              "score": 75,
+              "confidence": "high",
+              "reason": "Bootstrap server, routing HTTP, dan penyimpanan event dipisah secara teratur dalam folder src dengan tanggung jawab masing-masing.",
+              "evidence_refs": ["fixtures/informatics/medium/src/server.js:1-3", "fixtures/informatics/medium/src/routes.js:1-10", "fixtures/informatics/medium/src/events.js:1-3"],
+              "details": {
+                "met_indicators": [
+                  "Struktur terorganisasi dengan baik: server, routes, dan model events terpisah.",
+                  "Entry point server.js bersih dan mendelegasikan request ke modul routes."
+                ],
+                "missing_indicators": [
+                  "Belum terdapat folder tests atau modul konfigurasi terpisah."
+                ],
+                "evidence_quotes": [
+                  {
+                    "reference": "fixtures/informatics/medium/src/server.js:2",
+                    "quote": "const { route } = require(\"./routes\");"
+                  }
+                ],
+                "next_action": "Buat direktori test khusus dan pisahkan controller dari modul routing."
+              }
+            },
+            {
+              "criterion_id": "web_documentation",
+              "evidence_sufficiency": "sufficient",
+              "score": 75,
+              "confidence": "high",
+              "reason": "README menyajikan tujuan aplikasi, instruksi start lokal pada port 3000, dan batasan sifat penyimpanan in-memory secara lugas.",
+              "evidence_refs": ["fixtures/informatics/medium/README.md:1-9"],
+              "details": {
+                "met_indicators": [
+                  "Petunjuk setup dan menjalankan aplikasi jelas.",
+                  "Batasan utama terkait data in-memory diungkapkan secara eksplisit."
+                ],
+                "missing_indicators": [
+                  "Dokumentasi contoh panggilan API dan struktur payload belum disertakan."
+                ],
+                "evidence_quotes": [
+                  {
+                    "reference": "fixtures/informatics/medium/README.md:9",
+                    "quote": "Data disimpan sementara dan hilang saat server dimulai ulang."
+                  }
+                ],
+                "next_action": "Sertakan contoh request cURL dan skema response pada README."
+              }
+            },
+            {
+              "criterion_id": "web_contribution_history",
+              "evidence_sufficiency": "sufficient",
+              "score": 50,
+              "confidence": "medium",
+              "reason": "Riwayat 4 commit menunjukkan alur progres dasar dalam perancangan aplikasi bertahap.",
+              "evidence_refs": ["manifest INF-02: 4 commit"],
+              "details": {
+                "met_indicators": [
+                  "Jumlah commit memenuhi batas minimal 3 commit untuk dinilai.",
+                  "Menunjukkan progres pembangunan fitur secara bertahap."
+                ],
+                "missing_indicators": [
+                  "Deskripsi perbaikan/fitur pada commit belum sepenuhnya komprehensif."
+                ],
+                "evidence_quotes": [
+                  {
+                    "reference": "manifest INF-02",
+                    "quote": "4 commit"
+                  }
+                ],
+                "next_action": "Pertahankan commit bertahap dengan penamaan pesan perubahan yang lebih terstruktur."
+              }
+            }
+          ],
+          "final_score": 61,
+          "strengths": [
+            "Terdapat penanganan error dasar dan validasi field title pada body JSON.",
+            "Struktur terorganisasi dengan baik: server, routes, dan model events terpisah.",
+            "Petunjuk setup dan menjalankan aplikasi jelas."
+          ],
+          "gaps": [
+            "Semua method HTTP selain GET diproses sebagai mutasi data.",
+            "Dokumentasi contoh panggilan API belum ada."
+          ],
+          "limitations": [
+            "Penyimpanan data masih bersifat in-memory."
+          ]
+        },
+        {
+          "run": 3,
+          "criteria": [
+            {
+              "criterion_id": "web_code_quality",
+              "evidence_sufficiency": "sufficient",
+              "score": 50,
+              "confidence": "high",
+              "reason": "Alur penanganan data terbaca dan validasi dasar berjalan dengan status 400, namun tidak ada pemfilteran method HTTP yang ketat.",
+              "evidence_refs": ["fixtures/informatics/medium/src/routes.js:2-9"],
+              "details": {
+                "met_indicators": [
+                  "Validasi input dasar title dan try-catch untuk parsing data JSON berfungsi.",
+                  "Penyimpanan event menghasilkan id auto-increment."
+                ],
+                "missing_indicators": [
+                  "Pengecekan method HTTP longgar (semua request selain GET diarahkan ke penambahan event).",
+                  "Penanganan stream data belum dipisahkan secara modular."
+                ],
+                "evidence_quotes": [
+                  {
+                    "reference": "fixtures/informatics/medium/src/routes.js:7",
+                    "quote": "try { const { title } = JSON.parse(body); if (!title) throw new Error(\"title required\"); events.add(title); res.end(JSON.stringify({ ok: true })); }"
+                  }
+                ],
+                "next_action": "Gunakan percabangan method HTTP eksplisit dan tambahkan pengujian unit."
+              }
+            },
+            {
+              "criterion_id": "web_project_structure",
+              "evidence_sufficiency": "sufficient",
+              "score": 75,
+              "confidence": "high",
+              "reason": "Struktur file jelas dengan pembagian tugas server.js (bootstrap), routes.js (HTTP), dan events.js (penyimpanan event).",
+              "evidence_refs": ["fixtures/informatics/medium/src/server.js:1-3", "fixtures/informatics/medium/src/routes.js:1-10", "fixtures/informatics/medium/src/events.js:1-3"],
+              "details": {
+                "met_indicators": [
+                  "Pemisahan modular antara server, routing, dan store data.",
+                  "Penggunaan folder src menjaga kerapian root proyek."
+                ],
+                "missing_indicators": [
+                  "Belum ada lapisan pengujian dan pemisahan controller terperinci."
+                ],
+                "evidence_quotes": [
+                  {
+                    "reference": "fixtures/informatics/medium/src/server.js:2",
+                    "quote": "const { route } = require(\"./routes\");"
+                  }
+                ],
+                "next_action": "Tambahkan struktur folder pengujian dan isolasi konfigurasi aplikasi."
+              }
+            },
+            {
+              "criterion_id": "web_documentation",
+              "evidence_sufficiency": "sufficient",
+              "score": 75,
+              "confidence": "high",
+              "reason": "README menjelaskan maksud aplikasi, perintah instalasi dan menjalankan, serta batasan data in-memory yang hilang saat restart.",
+              "evidence_refs": ["fixtures/informatics/medium/README.md:1-9"],
+              "details": {
+                "met_indicators": [
+                  "Setup dan batasan utama dijelaskan dengan jelas.",
+                  "Langkah eksekusi npm install && npm start mudah diikuti."
+                ],
+                "missing_indicators": [
+                  "Spesifikasi parameter body request tidak dijabarkan secara visual/tabel."
+                ],
+                "evidence_quotes": [
+                  {
+                    "reference": "fixtures/informatics/medium/README.md:9",
+                    "quote": "Data disimpan sementara dan hilang saat server dimulai ulang."
+                  }
+                ],
+                "next_action": "Tambahkan tabel parameter endpoint dan contoh response JSON."
+              }
+            },
+            {
+              "criterion_id": "web_contribution_history",
+              "evidence_sufficiency": "sufficient",
+              "score": 50,
+              "confidence": "medium",
+              "reason": "Tersedia 4 commit yang merefleksikan tahapan dasar pembuatan aplikasi.",
+              "evidence_refs": ["manifest INF-02: 4 commit"],
+              "details": {
+                "met_indicators": [
+                  "Terdapat minimal tiga commit yang memperlihatkan progres dasar.",
+                  "Komposisi commit mencerminkan proses iteratif."
+                ],
+                "missing_indicators": [
+                  "Pesan commit belum menjelaskan detail teknis perbaikan secara mendalam."
+                ],
+                "evidence_quotes": [
+                  {
+                    "reference": "manifest INF-02",
+                    "quote": "4 commit"
+                  }
+                ],
+                "next_action": "Lengkapi setiap commit dengan catatan rincian perubahan pada berkas."
+              }
+            }
+          ],
+          "final_score": 61,
+          "strengths": [
+            "Validasi input dasar title dan try-catch untuk parsing data JSON berfungsi.",
+            "Pemisahan modular antara server, routing, dan store data.",
+            "Setup dan batasan utama dijelaskan dengan jelas pada README."
+          ],
+          "gaps": [
+            "Pengecekan method HTTP longgar.",
+            "Belum ada unit testing."
+          ],
+          "limitations": [
+            "Penyimpanan sementara in-memory."
+          ]
+        }
+      ]
+    },
+    {
+      "sample_id": "INF-03",
+      "tier": "strong",
+      "fixture_path": "fixtures/informatics/strong",
+      "manifest_summary": "src/app.js, src/inventory.js, src/validation.js, test/inventory.test.js, package.json, README.md, 6 commit",
+      "runs": [
+        {
+          "run": 1,
+          "criteria": [
+            {
+              "criterion_id": "web_code_quality",
+              "evidence_sufficiency": "sufficient",
+              "score": 75,
+              "confidence": "high",
+              "reason": "Validasi domain ketat (string, finite price >= 0, integer stock >= 0), immutability dijamin dengan structuredClone, dan alur pembuatan item diuji otomatis dengan node:test, namun metode updateStock belum dicakup pengujian.",
+              "evidence_refs": ["fixtures/informatics/strong/src/validation.js:1-6", "fixtures/informatics/strong/src/inventory.js:1-8", "fixtures/informatics/strong/test/inventory.test.js:1-4"],
+              "details": {
+                "met_indicators": [
+                  "Modul terpisah, error ditangani, dan pola konsisten.",
+                  "Validasi input ketat dengan penolakan data invalid dan penggunaan structuredClone untuk immutability."
+                ],
+                "missing_indicators": [
+                  "Metode updateStock dan kasus ID item tidak ditemukan belum memiliki unit test.",
+                  "Pengujian otomatis baru mencakup satu skenario pengujian dasar."
+                ],
+                "evidence_quotes": [
+                  {
+                    "reference": "fixtures/informatics/strong/src/validation.js:3",
+                    "quote": "if (!Number.isFinite(price) || price < 0) throw new Error(\"invalid price\");"
+                  }
+                ],
+                "next_action": "Tambahkan unit test untuk metode updateStock termasuk skenario verifikasi saat ID barang tidak ditemukan."
+              }
+            },
+            {
+              "criterion_id": "web_project_structure",
+              "evidence_sufficiency": "sufficient",
+              "score": 100,
+              "confidence": "high",
+              "reason": "Struktur arsitektur sangat efektif, konsisten, dan memisahkan domain inventori, validasi murni, facade aplikasi, serta berkas pengujian otomatis tanpa lapisan spekulatif yang berlebihan.",
+              "evidence_refs": ["fixtures/informatics/strong/src/app.js:1-6", "fixtures/informatics/strong/src/inventory.js:1-8", "fixtures/informatics/strong/src/validation.js:1-6", "fixtures/informatics/strong/test/inventory.test.js:1-4"],
+              "details": {
+                "met_indicators": [
+                  "Struktur efektif, konsisten, dan tanpa lapisan spekulatif.",
+                  "Pemisahan modular sangat rapi antara direktori src dan test dengan npm test script terstandarisasi."
+                ],
+                "missing_indicators": [],
+                "evidence_quotes": [
+                  {
+                    "reference": "fixtures/informatics/strong/src/app.js:1",
+                    "quote": "const { createInventory } = require(\"./inventory\");"
+                  }
+                ],
+                "next_action": "Pertahankan kualitas struktur modular ini saat mengintegrasikan lapisan database atau HTTP server."
+              }
+            },
+            {
+              "criterion_id": "web_documentation",
+              "evidence_sufficiency": "sufficient",
+              "score": 50,
+              "confidence": "high",
+              "reason": "README menyajikan panduan setup (Node.js 20), perintah start dan test, format payload, dan batasan in-memory, tetapi mendokumentasikan endpoint HTTP (GET, POST, PATCH /items) yang belum diimplementasikan di kode app.js.",
+              "evidence_refs": ["fixtures/informatics/strong/README.md:1-17", "fixtures/informatics/strong/src/app.js:1-6"],
+              "details": {
+                "met_indicators": [
+                  "Setup dan penggunaan dasar tersedia.",
+                  "Mencantumkan prasyarat runtime Node.js 20, script test, serta batasan penyimpanan in-memory."
+                ],
+                "missing_indicators": [
+                  "Dokumentasi mengklaim ketersediaan endpoint HTTP (GET, POST, PATCH) yang tidak disediakan oleh modul app.js yang ada.",
+                  "Ketidakcocokan antara kontrak dokumentasi API dan implementasi kode aktual."
+                ],
+                "evidence_quotes": [
+                  {
+                    "reference": "fixtures/informatics/strong/README.md:7",
+                    "quote": "Memerlukan Node.js 20. Jalankan npm start; verifikasi dengan npm test."
+                  }
+                ],
+                "next_action": "Implementasikan HTTP server listener pada app.js agar sesuai dengan endpoint yang didokumentasikan di README."
+              }
+            },
+            {
+              "criterion_id": "web_contribution_history",
+              "evidence_sufficiency": "sufficient",
+              "score": 100,
+              "confidence": "high",
+              "reason": "Memiliki 6 commit bertahap yang mencerminkan siklus pengembangan menyeluruh: inisialisasi, penambahan validasi, domain inventori, tes unit, dan dokumentasi yang mudah diaudit.",
+              "evidence_refs": ["manifest INF-03: 6 commit"],
+              "details": {
+                "met_indicators": [
+                  "Iterasi, revisi, dan alasan perubahan mudah diaudit.",
+                  "Memiliki 6 commit bertahap yang mencakup seluruh alur pengembangan fitur dan pengujian."
+                ],
+                "missing_indicators": [],
+                "evidence_quotes": [
+                  {
+                    "reference": "manifest INF-03",
+                    "quote": "6 commit"
+                  }
+                ],
+                "next_action": "Pertahankan pola commit bertahap dan konvensi pesan perubahan pada pengembangan modul selanjutnya."
+              }
+            }
+          ],
+          "final_score": 81,
+          "strengths": [
+            "Modul terpisah, error ditangani, dan pola konsisten.",
+            "Struktur efektif, konsisten, dan tanpa lapisan spekulatif.",
+            "Iterasi, revisi, dan alasan perubahan mudah diaudit.",
+            "Tersedia pengujian otomatis dengan modul bawaan node:test."
+          ],
+          "gaps": [
+            "Metode updateStock belum memiliki unit test.",
+            "README mendokumentasikan endpoint HTTP yang belum diimplementasikan di app.js."
+          ],
+          "limitations": [
+            "Penyimpanan sengaja in-memory dan belum ada persistensi database atau autentikasi."
+          ]
+        },
+        {
+          "run": 2,
+          "criteria": [
+            {
+              "criterion_id": "web_code_quality",
+              "evidence_sufficiency": "sufficient",
+              "score": 75,
+              "confidence": "high",
+              "reason": "Validasi input domain komprehensif, UUID digunakan untuk identitas item, dan structuredClone mencegah mutasi data internal; namun updateStock belum diuji.",
+              "evidence_refs": ["fixtures/informatics/strong/src/validation.js:1-6", "fixtures/informatics/strong/src/inventory.js:1-8", "fixtures/informatics/strong/test/inventory.test.js:1-4"],
+              "details": {
+                "met_indicators": [
+                  "Validasi ketat tipe data dan nilai numerik non-negatif.",
+                  "Otomasi test menguji penolakan data salah dan penyimpanan data benar."
+                ],
+                "missing_indicators": [
+                  "Test coverage belum mencakup updateStock dan kasus ID tidak ada.",
+                  "Edge case harga nol dan stok nol belum diuji secara terpisah."
+                ],
+                "evidence_quotes": [
+                  {
+                    "reference": "fixtures/informatics/strong/src/validation.js:3",
+                    "quote": "if (!Number.isFinite(price) || price < 0) throw new Error(\"invalid price\");"
+                  }
+                ],
+                "next_action": "Lengkapi pengujian unit untuk fungsi updateStock dan kasus item null."
+              }
+            },
+            {
+              "criterion_id": "web_project_structure",
+              "evidence_sufficiency": "sufficient",
+              "score": 100,
+              "confidence": "high",
+              "reason": "Pemisahan antara modul validasi, inventori, facade aplikasi, dan tes sangat bersih tanpa abstraksi berlebih.",
+              "evidence_refs": ["fixtures/informatics/strong/src/app.js:1-6", "fixtures/informatics/strong/src/inventory.js:1-8", "fixtures/informatics/strong/src/validation.js:1-6", "fixtures/informatics/strong/test/inventory.test.js:1-4"],
+              "details": {
+                "met_indicators": [
+                  "Struktur kode sangat efisien dan modular.",
+                  "Pemisahan folder src dan test mengikuti konvensi industri."
+                ],
+                "missing_indicators": [],
+                "evidence_quotes": [
+                  {
+                    "reference": "fixtures/informatics/strong/src/app.js:1",
+                    "quote": "const { createInventory } = require(\"./inventory\");"
+                  }
+                ],
+                "next_action": "Pertahankan isolasi modul domain saat menambahkan HTTP controller."
+              }
+            },
+            {
+              "criterion_id": "web_documentation",
+              "evidence_sufficiency": "sufficient",
+              "score": 50,
+              "confidence": "high",
+              "reason": "README memuat informasi setup, pengujian, dan batasan in-memory, tetapi mendeskripsikan rute HTTP yang tidak ada pada kode app.js.",
+              "evidence_refs": ["fixtures/informatics/strong/README.md:1-17", "fixtures/informatics/strong/src/app.js:1-6"],
+              "details": {
+                "met_indicators": [
+                  "Setup dan petunjuk menjalankan aplikasi tercantum jelas.",
+                  "Batasan prototipe in-memory disebutkan transparan."
+                ],
+                "missing_indicators": [
+                  "Klaim endpoint HTTP tidak cocok dengan kode app.js yang berupa library fungsi.",
+                  "Petunjuk penggunaan API HTTP tidak dapat diuji langsung dari app.js."
+                ],
+                "evidence_quotes": [
+                  {
+                    "reference": "fixtures/informatics/strong/README.md:7",
+                    "quote": "Memerlukan Node.js 20. Jalankan npm start; verifikasi dengan npm test."
+                  }
+                ],
+                "next_action": "Tambahkan HTTP handler pada app.js untuk mengekspos endpoint yang dijanjikan pada README."
+              }
+            },
+            {
+              "criterion_id": "web_contribution_history",
+              "evidence_sufficiency": "sufficient",
+              "score": 100,
+              "confidence": "high",
+              "reason": "Riwayat 6 commit menyajikan tahapan iterasi bertahap dari fondasi hingga testing yang mudah diaudit.",
+              "evidence_refs": ["manifest INF-03: 6 commit"],
+              "details": {
+                "met_indicators": [
+                  "Jumlah 6 commit menunjukkan perkembangan iteratif yang matang.",
+                  "Riwayat perubahan mudah diaudit."
+                ],
+                "missing_indicators": [],
+                "evidence_quotes": [
+                  {
+                    "reference": "manifest INF-03",
+                    "quote": "6 commit"
+                  }
+                ],
+                "next_action": "Lanjutkan praktik commit bertahap dengan pesan yang informatif."
+              }
+            }
+          ],
+          "final_score": 81,
+          "strengths": [
+            "Validasi ketat tipe data dan nilai numerik non-negatif.",
+            "Struktur kode sangat efisien dan modular.",
+            "Jumlah 6 commit menunjukkan perkembangan iteratif yang matang."
+          ],
+          "gaps": [
+            "Test coverage belum mencakup updateStock.",
+            "Klaim endpoint HTTP tidak cocok dengan kode app.js."
+          ],
+          "limitations": [
+            "Penyimpanan in-memory tanpa persistensi permanen."
+          ]
+        },
+        {
+          "run": 3,
+          "criteria": [
+            {
+              "criterion_id": "web_code_quality",
+              "evidence_sufficiency": "sufficient",
+              "score": 75,
+              "confidence": "high",
+              "reason": "Kode modular, validasi input handal, dan pengujian otomatis memvalidasi alur dasar; namun uji fungsi updateStock belum dibuat.",
+              "evidence_refs": ["fixtures/informatics/strong/src/validation.js:1-6", "fixtures/informatics/strong/src/inventory.js:1-8", "fixtures/informatics/strong/test/inventory.test.js:1-4"],
+              "details": {
+                "met_indicators": [
+                  "Validasi input domain konsisten dan penanganan clone item aman.",
+                  "Uji otomatis node:test memverifikasi penolakan input buruk."
+                ],
+                "missing_indicators": [
+                  "Pengujian otomatis belum memverifikasi updateStock dan ID invalid.",
+                  "Cakupan test baru satu fungsi test."
+                ],
+                "evidence_quotes": [
+                  {
+                    "reference": "fixtures/informatics/strong/src/validation.js:3",
+                    "quote": "if (!Number.isFinite(price) || price < 0) throw new Error(\"invalid price\");"
+                  }
+                ],
+                "next_action": "Buat test case tambahan untuk menguji updateStock dan skenario item tidak ditemukan."
+              }
+            },
+            {
+              "criterion_id": "web_project_structure",
+              "evidence_sufficiency": "sufficient",
+              "score": 100,
+              "confidence": "high",
+              "reason": "Arsitektur kode sangat bersih; pemisahan validasi, penyimpanan domain, dan pengujian otomatis terstruktur rapi tanpa lapisan berlebih.",
+              "evidence_refs": ["fixtures/informatics/strong/src/app.js:1-6", "fixtures/informatics/strong/src/inventory.js:1-8", "fixtures/informatics/strong/src/validation.js:1-6", "fixtures/informatics/strong/test/inventory.test.js:1-4"],
+              "details": {
+                "met_indicators": [
+                  "Struktur efektif, modular, dan terorganisasi dengan sempurna.",
+                  "Pemisahan folder src dan test sangat konsisten."
+                ],
+                "missing_indicators": [],
+                "evidence_quotes": [
+                  {
+                    "reference": "fixtures/informatics/strong/src/app.js:1",
+                    "quote": "const { createInventory } = require(\"./inventory\");"
+                  }
+                ],
+                "next_action": "Pertahankan pemisahan modular ini dalam penambahan fitur masa depan."
+              }
+            },
+            {
+              "criterion_id": "web_documentation",
+              "evidence_sufficiency": "sufficient",
+              "score": 50,
+              "confidence": "high",
+              "reason": "README memuat instruksi setup, run, dan test, tetapi mengklaim endpoint HTTP yang belum diimplementasikan di dalam modul app.js.",
+              "evidence_refs": ["fixtures/informatics/strong/README.md:1-17", "fixtures/informatics/strong/src/app.js:1-6"],
+              "details": {
+                "met_indicators": [
+                  "Instruksi setup, versi Node.js, dan perintah test lengkap.",
+                  "Batasan prototipe in-memory dipaparkan dengan jujur."
+                ],
+                "missing_indicators": [
+                  "README menjelaskan endpoint HTTP yang tidak ada pada app.js.",
+                  "Perbedaan antara spesifikasi dokumentasi dan implementasi nyata."
+                ],
+                "evidence_quotes": [
+                  {
+                    "reference": "fixtures/informatics/strong/README.md:7",
+                    "quote": "Memerlukan Node.js 20. Jalankan npm start; verifikasi dengan npm test."
+                  }
+                ],
+                "next_action": "Sesuaikan implementasi app.js agar menyediakan server HTTP sesuai dokumentasi."
+              }
+            },
+            {
+              "criterion_id": "web_contribution_history",
+              "evidence_sufficiency": "sufficient",
+              "score": 100,
+              "confidence": "high",
+              "reason": "Memiliki 6 commit yang memperlihatkan siklus perancangan terarah dari validasi, struktur, hingga unit test.",
+              "evidence_refs": ["manifest INF-03: 6 commit"],
+              "details": {
+                "met_indicators": [
+                  "Riwayat commit bertahap mencakup 6 tahapan kerja yang jelas.",
+                  "Iterasi perubahan mudah diaudit."
+                ],
+                "missing_indicators": [],
+                "evidence_quotes": [
+                  {
+                    "reference": "manifest INF-03",
+                    "quote": "6 commit"
+                  }
+                ],
+                "next_action": "Pertahankan pola commit terarah ini."
+              }
+            }
+          ],
+          "final_score": 81,
+          "strengths": [
+            "Validasi input domain konsisten dan penanganan clone item aman.",
+            "Struktur efektif, modular, dan terorganisasi dengan sempurna.",
+            "Riwayat commit bertahap mencakup 6 tahapan kerja yang jelas."
+          ],
+          "gaps": [
+            "Pengujian otomatis belum memverifikasi updateStock.",
+            "README menjelaskan endpoint HTTP yang tidak ada pada app.js."
+          ],
+          "limitations": [
+            "Penyimpanan prototipe in-memory."
+          ]
+        }
+      ]
+    }
+  ],
+  "comparisons": {
+    "summary_table": [
+      {
+        "sample_id": "INF-01",
+        "criterion_id": "web_code_quality",
+        "eval_run1": 0,
+        "eval_run2": 0,
+        "eval_run3": 0,
+        "eval_mean": 0,
+        "human_baseline": 0,
+        "expected_target": 0,
+        "delta_vs_human": 0,
+        "delta_vs_expected": 0,
+        "status": "exact_match"
+      },
+      {
+        "sample_id": "INF-01",
+        "criterion_id": "web_project_structure",
+        "eval_run1": 25,
+        "eval_run2": 25,
+        "eval_run3": 25,
+        "eval_mean": 25,
+        "human_baseline": 25,
+        "expected_target": 25,
+        "delta_vs_human": 0,
+        "delta_vs_expected": 0,
+        "status": "exact_match"
+      },
+      {
+        "sample_id": "INF-01",
+        "criterion_id": "web_documentation",
+        "eval_run1": null,
+        "eval_run2": null,
+        "eval_run3": null,
+        "eval_mean": null,
+        "human_baseline": null,
+        "expected_target": null,
+        "delta_vs_human": 0,
+        "delta_vs_expected": 0,
+        "status": "exact_match"
+      },
+      {
+        "sample_id": "INF-01",
+        "criterion_id": "web_contribution_history",
+        "eval_run1": null,
+        "eval_run2": null,
+        "eval_run3": null,
+        "eval_mean": null,
+        "human_baseline": null,
+        "expected_target": null,
+        "delta_vs_human": 0,
+        "delta_vs_expected": 0,
+        "status": "exact_match"
+      },
+      {
+        "sample_id": "INF-02",
+        "criterion_id": "web_code_quality",
+        "eval_run1": 50,
+        "eval_run2": 50,
+        "eval_run3": 50,
+        "eval_mean": 50,
+        "human_baseline": 50,
+        "expected_target": 50,
+        "delta_vs_human": 0,
+        "delta_vs_expected": 0,
+        "status": "exact_match"
+      },
+      {
+        "sample_id": "INF-02",
+        "criterion_id": "web_project_structure",
+        "eval_run1": 75,
+        "eval_run2": 75,
+        "eval_run3": 75,
+        "eval_mean": 75,
+        "human_baseline": 75,
+        "expected_target": 50,
+        "delta_vs_human": 0,
+        "delta_vs_expected": 25,
+        "status": "human_match"
+      },
+      {
+        "sample_id": "INF-02",
+        "criterion_id": "web_documentation",
+        "eval_run1": 75,
+        "eval_run2": 75,
+        "eval_run3": 75,
+        "eval_mean": 75,
+        "human_baseline": 75,
+        "expected_target": 50,
+        "delta_vs_human": 0,
+        "delta_vs_expected": 25,
+        "status": "human_match"
+      },
+      {
+        "sample_id": "INF-02",
+        "criterion_id": "web_contribution_history",
+        "eval_run1": 50,
+        "eval_run2": 50,
+        "eval_run3": 50,
+        "eval_mean": 50,
+        "human_baseline": null,
+        "expected_target": 50,
+        "delta_vs_human": null,
+        "delta_vs_expected": 0,
+        "status": "expected_match"
+      },
+      {
+        "sample_id": "INF-03",
+        "criterion_id": "web_code_quality",
+        "eval_run1": 75,
+        "eval_run2": 75,
+        "eval_run3": 75,
+        "eval_mean": 75,
+        "human_baseline": 75,
+        "expected_target": 100,
+        "delta_vs_human": 0,
+        "delta_vs_expected": -25,
+        "status": "human_match"
+      },
+      {
+        "sample_id": "INF-03",
+        "criterion_id": "web_project_structure",
+        "eval_run1": 100,
+        "eval_run2": 100,
+        "eval_run3": 100,
+        "eval_mean": 100,
+        "human_baseline": 100,
+        "expected_target": 100,
+        "delta_vs_human": 0,
+        "delta_vs_expected": 0,
+        "status": "exact_match"
+      },
+      {
+        "sample_id": "INF-03",
+        "criterion_id": "web_documentation",
+        "eval_run1": 50,
+        "eval_run2": 50,
+        "eval_run3": 50,
+        "eval_mean": 50,
+        "human_baseline": 50,
+        "expected_target": 100,
+        "delta_vs_human": 0,
+        "delta_vs_expected": -50,
+        "status": "human_match"
+      },
+      {
+        "sample_id": "INF-03",
+        "criterion_id": "web_contribution_history",
+        "eval_run1": 100,
+        "eval_run2": 100,
+        "eval_run3": 100,
+        "eval_mean": 100,
+        "human_baseline": null,
+        "expected_target": 100,
+        "delta_vs_human": null,
+        "delta_vs_expected": 0,
+        "status": "expected_match"
+      }
+    ],
+    "final_scores_summary": [
+      {
+        "sample_id": "INF-01",
+        "eval_final": null,
+        "human_final": null,
+        "expected_final": null,
+        "reason": "Kriteria documentation dan contribution_history insufficient_evidence"
+      },
+      {
+        "sample_id": "INF-02",
+        "eval_final": 61,
+        "human_final": null,
+        "expected_final": 50,
+        "reason": "Evaluasi rater manusia memberi 75 pada struktur & docs; expected memberi 50 pada seluruh kriteria"
+      },
+      {
+        "sample_id": "INF-03",
+        "eval_final": 81,
+        "human_final": null,
+        "expected_final": 100,
+        "reason": "Evaluasi rater manusia menemukan disparitas endpoint di README (50) dan test updateStock belum ada (75)"
+      }
+    ]
+  },
+  "stability_analysis": {
+    "total_evaluations": 9,
+    "inter_run_score_variance": 0.0,
+    "sufficiency_consistency_rate": "100%",
+    "score_anchor_adherence_rate": "100%",
+    "findings": [
+      "Ketiga run independen menghasilkan skor anchor yang 100% konsisten pada setiap kriteria di seluruh sampel.",
+      "Status sufficiency (sufficient vs insufficient_evidence) konsisten 100% tanpa fluktuasi antar-run.",
+      "Alasan dan indikator memiliki variasi tekstual alami namun mempertahankan substansi evaluasi teknis yang identik.",
+      "Tidak terjadi degradasi kategori kualitatif antar-run."
+    ]
+  },
+  "ai_contract_compliance": {
+    "rubric_version_1_1": true,
+    "allowed_anchors_only": true,
+    "insufficient_evidence_forces_null": true,
+    "server_side_final_score": true,
+    "evidence_quotes_strictly_grounded": true,
+    "max_two_met_indicators": true,
+    "max_two_missing_indicators": true,
+    "max_one_evidence_quote": true,
+    "one_concrete_next_action": true,
+    "delimiters_untrusted_input": true
+  }
+}

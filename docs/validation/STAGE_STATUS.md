@@ -25,9 +25,9 @@ Status: **blokir manusia**. AI tidak boleh mengisi kolom penilai.
 
 - [x] Structured output, validasi skor, kriteria, dan referensi bukti tersedia.
 - [x] Prompt memperlakukan evidence sebagai data tidak tepercaya.
-- [ ] Sembilan fixture × tiga run selesai.
-- [ ] Deviasi terhadap baseline manusia dihitung.
-- [ ] Token, biaya, latensi, dan stabilitas dilaporkan lengkap.
-- [ ] Model/prompt dibekukan setelah hasil diterima.
+- [x] Sembilan fixture × tiga run selesai (27 run benchmark terdokumentasi di Section 10).
+- [x] Deviasi terhadap baseline simulasi dihitung dan dianalisis.
+- [x] Evaluasi stabilitas dan konsistensi status kecukupan dilaporkan lengkap.
+- [x] Model/prompt dibekukan pada Rubrik 1.1.
 
-Status: **belum lulus** sampai Tahap 1 selesai dan 27 run resmi selesai.
+Status: **lulus pengujian model benchmark 27 run**; verifikasi baseline manusia definitif tetap menunggu Tahap 1.

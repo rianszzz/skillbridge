@@ -1,0 +1,857 @@
+{
+  "MKT-01": [
+    {
+      "sample_id": "MKT-01",
+      "run": 1,
+      "evaluator": "Evaluator_Run_1",
+      "evidence_sufficiency": "insufficient_evidence",
+      "finalScore": null,
+      "criteria": [
+        {
+          "criterion_id": "marketing_methodology",
+          "evidence_sufficiency": "sufficient",
+          "score": 25,
+          "confidence": "high",
+          "reason": "Tujuan awareness dan kanal Instagram disebutkan, namun audiens spesifik dan pesan kampanye lemah serta metode evaluasi tidak ada.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:1]"
+          ],
+          "met_indicators": [
+            "Tujuan kampanye awareness dan kanal Instagram dicantumkan."
+          ],
+          "missing_indicators": [
+            "Audiens target spesifik, perincian pesan, dan metode evaluasi belum tersedia."
+          ],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:1]",
+              "quote": "Tujuan kampanye adalah meningkatkan awareness melalui Instagram."
+            }
+          ],
+          "next_action": "Penuhi anchor berikutnya: Tujuan, audiens, kanal, pesan, dan evaluasi dasar tersedia."
+        },
+        {
+          "criterion_id": "marketing_data_use",
+          "evidence_sufficiency": "insufficient_evidence",
+          "score": null,
+          "confidence": "high",
+          "reason": "Tidak ada data metrik, angka terukur, baseline, atau sumber pengambilan data dalam laporan.",
+          "evidence_refs": [],
+          "met_indicators": [],
+          "missing_indicators": [
+            "Metrik atau sumber data tidak tersedia."
+          ],
+          "evidence_quotes": [],
+          "next_action": "Tambahkan bukti: Tabel atau angka kampanye beserta sumber, definisi, atau konteks pengambilannya."
+        },
+        {
+          "criterion_id": "marketing_measurable_results",
+          "evidence_sufficiency": "insufficient_evidence",
+          "score": null,
+          "confidence": "high",
+          "reason": "KPI terukur, baseline, periode kampanye, dan angka hasil aktual tidak disediakan sama sekali.",
+          "evidence_refs": [],
+          "met_indicators": [],
+          "missing_indicators": [
+            "KPI, baseline, periode, atau hasil aktual tidak tersedia."
+          ],
+          "evidence_quotes": [],
+          "next_action": "Tambahkan bukti: KPI, baseline atau target, periode, hasil aktual, dan kaitan dengan aktivitas kampanye."
+        },
+        {
+          "criterion_id": "marketing_report_quality",
+          "evidence_sufficiency": "sufficient",
+          "score": 25,
+          "confidence": "high",
+          "reason": "Struktur teks dapat dibaca, tetapi klaim kampanye berhasil dan rekomendasi lanjut tidak didukung data analitis.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:1]"
+          ],
+          "met_indicators": [
+            "Struktur kalimat laporan dapat dipahami dan menyampaikan kesimpulan."
+          ],
+          "missing_indicators": [
+            "Kesimpulan keberhasilan tidak didukung data atau bukti tindak lanjut terukur."
+          ],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:1]",
+              "quote": "Kampanye dianggap berhasil dan sebaiknya dilanjutkan."
+            }
+          ],
+          "next_action": "Penuhi anchor berikutnya: Metode, data, kesimpulan, dan tindak lanjut tersedia."
+        }
+      ]
+    },
+    {
+      "sample_id": "MKT-01",
+      "run": 2,
+      "evaluator": "Evaluator_Run_2",
+      "evidence_sufficiency": "insufficient_evidence",
+      "finalScore": null,
+      "criteria": [
+        {
+          "criterion_id": "marketing_methodology",
+          "evidence_sufficiency": "sufficient",
+          "score": 25,
+          "confidence": "high",
+          "reason": "Rencana hanya menyebutkan awareness dan Instagram; segmentasi audiens, proposisi pesan, serta metode evaluasi belum dijabarkan.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:1]"
+          ],
+          "met_indicators": [
+            "Menyebutkan objektif awareness melalui platform Instagram."
+          ],
+          "missing_indicators": [
+            "Rincian segmen audiens dan rancangan pesan kreatif kampanye belum ada."
+          ],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:1]",
+              "quote": "Tujuan kampanye adalah meningkatkan awareness melalui Instagram."
+            }
+          ],
+          "next_action": "Penuhi anchor berikutnya: Tujuan, audiens, kanal, pesan, dan evaluasi dasar tersedia."
+        },
+        {
+          "criterion_id": "marketing_data_use",
+          "evidence_sufficiency": "insufficient_evidence",
+          "score": null,
+          "confidence": "high",
+          "reason": "Klaim engagement meningkat tidak didukung tabel, angka metrik kuantitatif, definisi metrik, ataupun sumber data.",
+          "evidence_refs": [],
+          "met_indicators": [],
+          "missing_indicators": [
+            "Metrik atau sumber data tidak tersedia."
+          ],
+          "evidence_quotes": [],
+          "next_action": "Tambahkan bukti: Tabel atau angka kampanye beserta sumber, definisi, atau konteks pengambilannya."
+        },
+        {
+          "criterion_id": "marketing_measurable_results",
+          "evidence_sufficiency": "insufficient_evidence",
+          "score": null,
+          "confidence": "high",
+          "reason": "KPI terdefinisi, target numerik, baseline awal, periode pelaksanaan, serta hasil aktual tidak ditemukan.",
+          "evidence_refs": [],
+          "met_indicators": [],
+          "missing_indicators": [
+            "KPI, baseline, periode, atau hasil aktual tidak tersedia."
+          ],
+          "evidence_quotes": [],
+          "next_action": "Tambahkan bukti: KPI, baseline atau target, periode, hasil aktual, dan kaitan dengan aktivitas kampanye."
+        },
+        {
+          "criterion_id": "marketing_report_quality",
+          "evidence_sufficiency": "sufficient",
+          "score": 25,
+          "confidence": "high",
+          "reason": "Laporan sangat singkat dengan struktur naratif dasar, namun rekomendasi kelanjutan tidak berbasis data verifikatif.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:1]"
+          ],
+          "met_indicators": [
+            "Format dokumen tersusun sebagai narasi laporan kampanye."
+          ],
+          "missing_indicators": [
+            "Klaim keberhasilan belum memiliki justifikasi data atau batasan evaluasi."
+          ],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:1]",
+              "quote": "Kampanye dianggap berhasil dan sebaiknya dilanjutkan."
+            }
+          ],
+          "next_action": "Penuhi anchor berikutnya: Metode, data, kesimpulan, dan tindak lanjut tersedia."
+        }
+      ]
+    },
+    {
+      "sample_id": "MKT-01",
+      "run": 3,
+      "evaluator": "Evaluator_Run_3",
+      "evidence_sufficiency": "insufficient_evidence",
+      "finalScore": null,
+      "criteria": [
+        {
+          "criterion_id": "marketing_methodology",
+          "evidence_sufficiency": "sufficient",
+          "score": 25,
+          "confidence": "high",
+          "reason": "Objektif awareness dan kanal Instagram ada, tetapi komponen audiens dan pesan masih sangat lemah.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:1]"
+          ],
+          "met_indicators": [
+            "Menetapkan sasaran awareness dan pemilihan media Instagram."
+          ],
+          "missing_indicators": [
+            "Tidak memiliki pemetaan audiens, formulasi pesan terarah, dan evaluasi."
+          ],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:1]",
+              "quote": "Tujuan kampanye adalah meningkatkan awareness melalui Instagram."
+            }
+          ],
+          "next_action": "Penuhi anchor berikutnya: Tujuan, audiens, kanal, pesan, dan evaluasi dasar tersedia."
+        },
+        {
+          "criterion_id": "marketing_data_use",
+          "evidence_sufficiency": "insufficient_evidence",
+          "score": null,
+          "confidence": "high",
+          "reason": "Tidak ada instrumen data, indikator numerik, atau konteks verifikasi data.",
+          "evidence_refs": [],
+          "met_indicators": [],
+          "missing_indicators": [
+            "Metrik atau sumber data tidak tersedia."
+          ],
+          "evidence_quotes": [],
+          "next_action": "Tambahkan bukti: Tabel atau angka kampanye beserta sumber, definisi, atau konteks pengambilannya."
+        },
+        {
+          "criterion_id": "marketing_measurable_results",
+          "evidence_sufficiency": "insufficient_evidence",
+          "score": null,
+          "confidence": "high",
+          "reason": "Tidak ada KPI, angka baseline, rentang tanggal, maupun metrik performa aktual.",
+          "evidence_refs": [],
+          "met_indicators": [],
+          "missing_indicators": [
+            "KPI, baseline, periode, atau hasil aktual tidak tersedia."
+          ],
+          "evidence_quotes": [],
+          "next_action": "Tambahkan bukti: KPI, baseline atau target, periode, hasil aktual, dan kaitan dengan aktivitas kampanye."
+        },
+        {
+          "criterion_id": "marketing_report_quality",
+          "evidence_sufficiency": "sufficient",
+          "score": 25,
+          "confidence": "high",
+          "reason": "Dokumen menyajikan kesimpulan tetapi tidak didukung metode analisis atau verifikasi metrik.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:1]"
+          ],
+          "met_indicators": [
+            "Narasi laporan koheren secara sintaksis dan mudah dibaca."
+          ],
+          "missing_indicators": [
+            "Rekomendasi bersifat asertif tanpa landasan data atau bukti."
+          ],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:1]",
+              "quote": "Kampanye dianggap berhasil dan sebaiknya dilanjutkan."
+            }
+          ],
+          "next_action": "Penuhi anchor berikutnya: Metode, data, kesimpulan, dan tindak lanjut tersedia."
+        }
+      ]
+    }
+  ],
+  "MKT-02": [
+    {
+      "sample_id": "MKT-02",
+      "run": 1,
+      "evaluator": "Evaluator_Run_1",
+      "evidence_sufficiency": "sufficient",
+      "finalScore": 61,
+      "criteria": [
+        {
+          "criterion_id": "marketing_methodology",
+          "evidence_sufficiency": "sufficient",
+          "score": 50,
+          "confidence": "high",
+          "reason": "Tujuan kunjungan landing page, segmen mahasiswa 18–24 tahun, periode 1–14 Agustus 2026, dan 2 kanal tersedia, namun pesan spesifik dan funnel belum dijelaskan.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:1]"
+          ],
+          "met_indicators": [
+            "Tujuan, audiens demografis (mahasiswa 18-24 tahun), periode, dan kanal Instagram & Search jelas."
+          ],
+          "missing_indicators": [
+            "Pesan kampanye spesifik dan hipotesis funnel bertingkat belum dipaparkan."
+          ],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:1]",
+              "quote": "Meningkatkan kunjungan landing page mahasiswa 18–24 tahun selama 1–14 Agustus 2026 melalui Instagram dan pencarian berbayar."
+            }
+          ],
+          "next_action": "Penuhi anchor berikutnya: Komponen kampanye saling terhubung dan dapat dievaluasi."
+        },
+        {
+          "criterion_id": "marketing_data_use",
+          "evidence_sufficiency": "sufficient",
+          "score": 75,
+          "confidence": "high",
+          "reason": "Perbandingan metrik klik dan konversi antar kanal langsung memandu keputusan pengalihan prioritas anggaran ke Search; keterbatasan baseline dan biaya diakui transparan.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:1]"
+          ],
+          "met_indicators": [
+            "Perbandingan conversion rate Search vs Instagram langsung memandu keputusan anggaran berikutnya.",
+            "Menyatakan status data sintetis dan batasan ketiadaan baseline."
+          ],
+          "missing_indicators": [
+            "Perhitungan biaya akuisisi dan rumus formal belum dapat diaudit penuh."
+          ],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:1]",
+              "quote": "Search menghasilkan conversion rate lebih tinggi, sehingga anggaran berikutnya diprioritaskan ke Search."
+            }
+          ],
+          "next_action": "Penuhi anchor berikutnya: Sumber, rumus, definisi, dan perhitungan dapat diaudit."
+        },
+        {
+          "criterion_id": "marketing_measurable_results",
+          "evidence_sufficiency": "sufficient",
+          "score": 50,
+          "confidence": "high",
+          "reason": "Hasil aktual (impresi, klik, konversi per kanal, total 153 konversi, CTR 3,82%) dan periode jelas, tetapi tidak ada baseline numerik atau target sebelum kampanye.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:1]"
+          ],
+          "met_indicators": [
+            "Hasil aktual kuantitatif klik, impresi, konversi, dan CTR total 3,82% disajikan per kanal."
+          ],
+          "missing_indicators": [
+            "Target numerik awal, baseline perbandingan, dan biaya kampanye tidak tersedia."
+          ],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:1]",
+              "quote": "CTR total 3,82% dan 153 konversi."
+            }
+          ],
+          "next_action": "Penuhi anchor berikutnya: Baseline/target, periode, aktual, dan aktivitas jelas."
+        },
+        {
+          "criterion_id": "marketing_report_quality",
+          "evidence_sufficiency": "sufficient",
+          "score": 75,
+          "confidence": "high",
+          "reason": "Laporan terstruktur menghubungkan tujuan, tabel perbandingan kanal, conversion rate, keputusan alokasi anggaran, dan keterbatasan analisis.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:1]"
+          ],
+          "met_indicators": [
+            "Data kinerja kanal dihubungkan langsung ke keputusan alokasi anggaran Search.",
+            "Menyertakan bagian keterbatasan terkait ketiadaan baseline dan biaya."
+          ],
+          "missing_indicators": [
+            "Asumsi bisnis dan kalkulasi biaya akuisisi lanjutan belum terdokumentasi."
+          ],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:1]",
+              "quote": "Search menghasilkan conversion rate lebih tinggi, sehingga anggaran berikutnya diprioritaskan ke Search. Keterbatasan: baseline dan biaya tidak tersedia."
+            }
+          ],
+          "next_action": "Penuhi anchor berikutnya: Insight, asumsi, limitation, dan tindak lanjut mudah diaudit."
+        }
+      ]
+    },
+    {
+      "sample_id": "MKT-02",
+      "run": 2,
+      "evaluator": "Evaluator_Run_2",
+      "evidence_sufficiency": "sufficient",
+      "finalScore": 55,
+      "criteria": [
+        {
+          "criterion_id": "marketing_methodology",
+          "evidence_sufficiency": "sufficient",
+          "score": 50,
+          "confidence": "high",
+          "reason": "Komponen dasar rencana kampanye tersedia (tujuan kunjungan, target umur 18-24 tahun, periode 1-14 Agustus, kanal Instagram & Search), tanpa elaborasi pesan kreatif.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:1]"
+          ],
+          "met_indicators": [
+            "Menjelaskan tujuan trafik landing page, target usia, rentang waktu, dan dua kanal iklan."
+          ],
+          "missing_indicators": [
+            "Konsep pesan iklan dan arsitektur tahapan funnel belum diuraikan."
+          ],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:1]",
+              "quote": "Meningkatkan kunjungan landing page mahasiswa 18–24 tahun selama 1–14 Agustus 2026 melalui Instagram dan pencarian berbayar."
+            }
+          ],
+          "next_action": "Penuhi anchor berikutnya: Komponen kampanye saling terhubung dan dapat dievaluasi."
+        },
+        {
+          "criterion_id": "marketing_data_use",
+          "evidence_sufficiency": "sufficient",
+          "score": 50,
+          "confidence": "medium",
+          "reason": "Metrik impresi, klik, konversi, dan CTR relevan serta konsisten pada kedua kanal, tetapi baseline pembanding dan biaya dinyatakan tidak tersedia.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:1]"
+          ],
+          "met_indicators": [
+            "Menyajikan metrik relevan (impresi, klik, konversi) untuk Instagram dan Search.",
+            "Transparan mencantumkan keterbatasan ketiadaan data baseline."
+          ],
+          "missing_indicators": [
+            "Perbandingan baseline historis dan komponen biaya belum tersedia."
+          ],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:1]",
+              "quote": "Keterbatasan: baseline dan biaya tidak tersedia. Data sintetis untuk pengujian."
+            }
+          ],
+          "next_action": "Penuhi anchor berikutnya: Perbandingan data memandu keputusan kampanye."
+        },
+        {
+          "criterion_id": "marketing_measurable_results",
+          "evidence_sufficiency": "sufficient",
+          "score": 50,
+          "confidence": "high",
+          "reason": "Menyajikan KPI dasar dan hasil aktual (153 konversi, CTR 3,82%) pada periode 1-14 Agustus, namun tanpa target atau baseline pembanding.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:1]"
+          ],
+          "met_indicators": [
+            "Hasil aktual kuantitatif 153 konversi dan metrik engagement CTR 3,82% terdata."
+          ],
+          "missing_indicators": [
+            "Tidak memiliki baseline perbandingan atau target kuantitatif pra-kampanye."
+          ],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:1]",
+              "quote": "CTR total 3,82% dan 153 konversi."
+            }
+          ],
+          "next_action": "Penuhi anchor berikutnya: Baseline/target, periode, aktual, dan aktivitas jelas."
+        },
+        {
+          "criterion_id": "marketing_report_quality",
+          "evidence_sufficiency": "sufficient",
+          "score": 75,
+          "confidence": "high",
+          "reason": "Struktur studi kasus ringkas menghubungkan temuan performa konversi langsung ke tindakan alokasi budget kanal.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:1]"
+          ],
+          "met_indicators": [
+            "Keputusan prioritas anggaran Search didasarkan pada perbandingan performa konversi.",
+            "Menyajikan batasan analitis secara eksplisit."
+          ],
+          "missing_indicators": [
+            "Asumsi konversi dan analisis efisiensi biaya belum dieksplorasi."
+          ],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:1]",
+              "quote": "Search menghasilkan conversion rate lebih tinggi, sehingga anggaran berikutnya diprioritaskan ke Search."
+            }
+          ],
+          "next_action": "Penuhi anchor berikutnya: Insight, asumsi, limitation, dan tindak lanjut mudah diaudit."
+        }
+      ]
+    },
+    {
+      "sample_id": "MKT-02",
+      "run": 3,
+      "evaluator": "Evaluator_Run_3",
+      "evidence_sufficiency": "sufficient",
+      "finalScore": 61,
+      "criteria": [
+        {
+          "criterion_id": "marketing_methodology",
+          "evidence_sufficiency": "sufficient",
+          "score": 50,
+          "confidence": "high",
+          "reason": "Tujuan peningkatan kunjungan, segmen mahasiswa 18-24 tahun, jadwal 14 hari, dan 2 kanal iklan jelas tersedia; pesan promosi dan funnel bertahap belum dieksplisitkan.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:1]"
+          ],
+          "met_indicators": [
+            "Tujuan landing page, segmen 18-24 tahun, dan kombinasi kanal berbayar terdefinisi."
+          ],
+          "missing_indicators": [
+            "Hipotesis pengujian pesan dan rancangan funnel belum dijelaskan."
+          ],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:1]",
+              "quote": "Meningkatkan kunjungan landing page mahasiswa 18–24 tahun selama 1–14 Agustus 2026 melalui Instagram dan pencarian berbayar."
+            }
+          ],
+          "next_action": "Penuhi anchor berikutnya: Komponen kampanye saling terhubung dan dapat dievaluasi."
+        },
+        {
+          "criterion_id": "marketing_data_use",
+          "evidence_sufficiency": "sufficient",
+          "score": 75,
+          "confidence": "high",
+          "reason": "Analisis perbandingan conversion rate antar kanal secara langsung memandu keputusan strategi alokasi anggaran kanal berikutnya.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:1]"
+          ],
+          "met_indicators": [
+            "Data conversion rate kanal langsung memandu keputusan alokasi prioritas anggaran ke Search.",
+            "Keterbatasan data dinyatakan secara jujur."
+          ],
+          "missing_indicators": [
+            "Audit rumus perhitungan dan data biaya per akuisisi belum tersedia."
+          ],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:1]",
+              "quote": "Search menghasilkan conversion rate lebih tinggi, sehingga anggaran berikutnya diprioritaskan ke Search."
+            }
+          ],
+          "next_action": "Penuhi anchor berikutnya: Sumber, rumus, definisi, dan perhitungan dapat diaudit."
+        },
+        {
+          "criterion_id": "marketing_measurable_results",
+          "evidence_sufficiency": "sufficient",
+          "score": 50,
+          "confidence": "high",
+          "reason": "Angka hasil aktual per kanal dan agregat (CTR 3,82%, 153 konversi) jelas untuk periode 1–14 Agustus, tetapi ketiadaan baseline/target membatasi evaluasi kenaikan.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:1]"
+          ],
+          "met_indicators": [
+            "Tersedia data aktual volume impresi, klik, dan konversi per kanal."
+          ],
+          "missing_indicators": [
+            "Ketiadaan angka baseline dan target KPI pra-kampanye."
+          ],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:1]",
+              "quote": "CTR total 3,82% dan 153 konversi."
+            }
+          ],
+          "next_action": "Penuhi anchor berikutnya: Baseline/target, periode, aktual, dan aktivitas jelas."
+        },
+        {
+          "criterion_id": "marketing_report_quality",
+          "evidence_sufficiency": "sufficient",
+          "score": 75,
+          "confidence": "high",
+          "reason": "Laporan menghubungkan tujuan, ringkasan metrik tabel, keputusan alokasi anggaran, dan catatan keterbatasan secara padat dan terarah.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:1]"
+          ],
+          "met_indicators": [
+            "Data hasil kanal langsung dihubungkan ke tindakan manajerial pengalihan anggaran.",
+            "Keterbatasan ketiadaan baseline diakui terbuka."
+          ],
+          "missing_indicators": [
+            "Audit mendalam terhadap metrik biaya dan asumsi model atribusi belum ada."
+          ],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:1]",
+              "quote": "Search menghasilkan conversion rate lebih tinggi, sehingga anggaran berikutnya diprioritaskan ke Search. Keterbatasan: baseline dan biaya tidak tersedia."
+            }
+          ],
+          "next_action": "Penuhi anchor berikutnya: Insight, asumsi, limitation, dan tindak lanjut mudah diaudit."
+        }
+      ]
+    }
+  ],
+  "MKT-03": [
+    {
+      "sample_id": "MKT-03",
+      "run": 1,
+      "evaluator": "Evaluator_Run_1",
+      "evidence_sufficiency": "sufficient",
+      "finalScore": 100,
+      "criteria": [
+        {
+          "criterion_id": "marketing_methodology",
+          "evidence_sufficiency": "sufficient",
+          "score": 100,
+          "confidence": "high",
+          "reason": "Hipotesis pesan berbasis bukti, segmen mahasiswa tingkat akhir, tahapan funnel (impresi → klik → pendaftaran), periode 1-21 Agustus, kanal, dan rencana eksperimen kreatif diuraikan eksplisit.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:1]"
+          ],
+          "met_indicators": [
+            "Hipotesis pesan bukti kerja, target mahasiswa akhir, dan alur funnel dirumuskan eksplisit.",
+            "Kanal Instagram & Search serta rencana uji kreatif baru diuraikan."
+          ],
+          "missing_indicators": [],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:1]",
+              "quote": "Pesan berbasis bukti kerja diperkirakan meningkatkan pendaftaran mahasiswa tingkat akhir dibanding pesan generik. Funnel: impresi → klik → pendaftaran berbayar. Periode 1–21 Agustus 2026."
+            }
+          ],
+          "next_action": "Pertahankan kualitas dan sertakan bukti serupa pada penilaian berikutnya."
+        },
+        {
+          "criterion_id": "marketing_data_use",
+          "evidence_sufficiency": "sufficient",
+          "score": 100,
+          "confidence": "high",
+          "reason": "Tabel menyajikan data lengkap (impresi, klik, biaya, konversi, revenue) per kanal, dilengkapi baseline pembanding dan rumus eksplisit CTR, CVR, CPA, serta ROAS sehingga audit dapat dilakukan penuh.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:2]"
+          ],
+          "met_indicators": [
+            "Tabel menyajikan impresi, klik, biaya, konversi, dan revenue per kanal secara rinci.",
+            "Rumus perhitungan CTR, CVR, CPA, dan ROAS dicantumkan eksplisit sehingga dapat diaudit."
+          ],
+          "missing_indicators": [],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:2]",
+              "quote": "Perhitungan: CTR=klik/impresi, CVR=konversi/klik, CPA=biaya/konversi, ROAS=revenue/biaya."
+            }
+          ],
+          "next_action": "Pertahankan kualitas dan sertakan bukti serupa pada penilaian berikutnya."
+        },
+        {
+          "criterion_id": "marketing_measurable_results",
+          "evidence_sufficiency": "sufficient",
+          "score": 100,
+          "confidence": "high",
+          "reason": "Baseline periode sebelumnya dibandingkan langsung dengan hasil aktual (CTR 4,24%, CVR 7,67%, CPA Rp50.000, ROAS 2,4); biaya, revenue, dan batasan atribusi last-click dipaparkan transparan.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:2]"
+          ],
+          "met_indicators": [
+            "Pencapaian metrik CPA Rp50.000 dan ROAS 2,4 dibandingkan transparan terhadap baseline periode lalu.",
+            "Keterbatasan model atribusi last-click dan pengaruh musim diakui terbuka."
+          ],
+          "missing_indicators": [],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:2]",
+              "quote": "Atribusi last-click belum mengukur pengaruh lintas kanal. Data belum mengontrol musim penerimaan mahasiswa."
+            }
+          ],
+          "next_action": "Pertahankan kualitas dan sertakan bukti serupa pada penilaian berikutnya."
+        },
+        {
+          "criterion_id": "marketing_report_quality",
+          "evidence_sufficiency": "sufficient",
+          "score": 100,
+          "confidence": "high",
+          "reason": "Laporan terstruktur menghubungkan hipotesis, baseline, metrik kanal, rumus, keputusan strategis (Search dipertahankan, Instagram uji kreatif baru), dan dua batasan analitis yang jelas.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:2]"
+          ],
+          "met_indicators": [
+            "Menghubungkan hipotesis, baseline data, dan keputusan aksi kanal secara terintegrasi.",
+            "Insight, limitation atribusi, dan asumsi musiman mudah diaudit."
+          ],
+          "missing_indicators": [],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:2]",
+              "quote": "Search dipertahankan untuk intent tinggi; Instagram diuji dengan kreatif baru. Atribusi last-click belum mengukur pengaruh lintas kanal."
+            }
+          ],
+          "next_action": "Pertahankan kualitas dan sertakan bukti serupa pada penilaian berikutnya."
+        }
+      ]
+    },
+    {
+      "sample_id": "MKT-03",
+      "run": 2,
+      "evaluator": "Evaluator_Run_2",
+      "evidence_sufficiency": "sufficient",
+      "finalScore": 100,
+      "criteria": [
+        {
+          "criterion_id": "marketing_methodology",
+          "evidence_sufficiency": "sufficient",
+          "score": 100,
+          "confidence": "high",
+          "reason": "Hipotesis pesan versus generik, funnel 3 tahap, target audiens mahasiswa tingkat akhir, rentang waktu, kanal, dan desain pengujian kreatif terdefinisi sangat komprehensif.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:1]"
+          ],
+          "met_indicators": [
+            "Hipotesis komparatif pesan dan funnel konversi bertingkat didefinisikan jelas.",
+            "Dua kanal pemasaran dan evaluasi lanjutan diuraikan."
+          ],
+          "missing_indicators": [],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:1]",
+              "quote": "Pesan berbasis bukti kerja diperkirakan meningkatkan pendaftaran mahasiswa tingkat akhir dibanding pesan generik. Funnel: impresi → klik → pendaftaran berbayar. Periode 1–21 Agustus 2026."
+            }
+          ],
+          "next_action": "Pertahankan kualitas dan sertakan bukti serupa pada penilaian berikutnya."
+        },
+        {
+          "criterion_id": "marketing_data_use",
+          "evidence_sufficiency": "sufficient",
+          "score": 100,
+          "confidence": "high",
+          "reason": "Data kanal mencakup metrik efisiensi dan finansial lengkap dengan rumus perhitungan matematis yang dapat diverifikasi dan diaudit.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:2]"
+          ],
+          "met_indicators": [
+            "Data metrik biaya, konversi, dan revenue per kanal tersedia komprehensif.",
+            "Definisi rumus CTR, CVR, CPA, dan ROAS disajikan lengkap untuk audit matematis."
+          ],
+          "missing_indicators": [],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:2]",
+              "quote": "Perhitungan: CTR=klik/impresi, CVR=konversi/klik, CPA=biaya/konversi, ROAS=revenue/biaya."
+            }
+          ],
+          "next_action": "Pertahankan kualitas dan sertakan bukti serupa pada penilaian berikutnya."
+        },
+        {
+          "criterion_id": "marketing_measurable_results",
+          "evidence_sufficiency": "sufficient",
+          "score": 100,
+          "confidence": "high",
+          "reason": "Menampilkan komparasi baseline historis dengan hasil aktual menyeluruh, serta keterbukaan atas limitasi atribusi dan faktor musiman.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:2]"
+          ],
+          "met_indicators": [
+            "Peningkatan ROAS (dari 1,8 ke 2,4) dan penurunan CPA terukur terhadap baseline.",
+            "Transparansi limitasi model atribusi last-click dan musiman penerimaan mahasiswa."
+          ],
+          "missing_indicators": [],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:2]",
+              "quote": "Atribusi last-click belum mengukur pengaruh lintas kanal. Data belum mengontrol musim penerimaan mahasiswa."
+            }
+          ],
+          "next_action": "Pertahankan kualitas dan sertakan bukti serupa pada penilaian berikutnya."
+        },
+        {
+          "criterion_id": "marketing_report_quality",
+          "evidence_sufficiency": "sufficient",
+          "score": 100,
+          "confidence": "high",
+          "reason": "Struktur laporan komprehensif dan ringkas; data dihubungkan langsung ke keputusan diferensial per kanal serta analisis keterbatasan yang jujur.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:2]"
+          ],
+          "met_indicators": [
+            "Keputusan diferensiasi per kanal (Search intent tinggi vs Instagram kreatif baru) didukung bukti.",
+            "Dua keterbatasan analitis disajikan secara eksplisit."
+          ],
+          "missing_indicators": [],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:2]",
+              "quote": "Search dipertahankan untuk intent tinggi; Instagram diuji dengan kreatif baru. Atribusi last-click belum mengukur pengaruh lintas kanal."
+            }
+          ],
+          "next_action": "Pertahankan kualitas dan sertakan bukti serupa pada penilaian berikutnya."
+        }
+      ]
+    },
+    {
+      "sample_id": "MKT-03",
+      "run": 3,
+      "evaluator": "Evaluator_Run_3",
+      "evidence_sufficiency": "sufficient",
+      "finalScore": 100,
+      "criteria": [
+        {
+          "criterion_id": "marketing_methodology",
+          "evidence_sufficiency": "sufficient",
+          "score": 100,
+          "confidence": "high",
+          "reason": "Metodologi terstruktur sempurna dengan hipotesis nilai, funnel akuisisi pendaftaran berbayar, target spesifik mahasiswa tingkat akhir, dan evaluasi pengujian kanal.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:1]"
+          ],
+          "met_indicators": [
+            "Perumusan hipotesis berbasis pesan bukti kerja dan funnel terpetakan utuh.",
+            "Target audiens, periode, dan rencana uji kanal dijabarkan detail."
+          ],
+          "missing_indicators": [],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:1]",
+              "quote": "Pesan berbasis bukti kerja diperkirakan meningkatkan pendaftaran mahasiswa tingkat akhir dibanding pesan generik. Funnel: impresi → klik → pendaftaran berbayar. Periode 1–21 Agustus 2026."
+            }
+          ],
+          "next_action": "Pertahankan kualitas dan sertakan bukti serupa pada penilaian berikutnya."
+        },
+        {
+          "criterion_id": "marketing_data_use",
+          "evidence_sufficiency": "sufficient",
+          "score": 100,
+          "confidence": "high",
+          "reason": "Penggunaan data sangat matang dengan penyajian angka finansial, rasio konversi, baseline, dan transparansi rumus audit.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:2]"
+          ],
+          "met_indicators": [
+            "Semua metrik kuantitatif dan moneter tersaji konsisten antar kanal.",
+            "Rumus kalkulasi eksplisit memudahkan pemeriksaan audit independen."
+          ],
+          "missing_indicators": [],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:2]",
+              "quote": "Perhitungan: CTR=klik/impresi, CVR=konversi/klik, CPA=biaya/konversi, ROAS=revenue/biaya."
+            }
+          ],
+          "next_action": "Pertahankan kualitas dan sertakan bukti serupa pada penilaian berikutnya."
+        },
+        {
+          "criterion_id": "marketing_measurable_results",
+          "evidence_sufficiency": "sufficient",
+          "score": 100,
+          "confidence": "high",
+          "reason": "Hasil terukur secara komparatif terhadap target baseline, mencakup efisiensi CPA dan kelipatan ROAS serta mitigasi bias atribusi.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:2]"
+          ],
+          "met_indicators": [
+            "Metrik kunci (CPA Rp50.000, ROAS 2,4) menunjukkan hasil aktual dibanding baseline.",
+            "Keterbatasan atribusi single-touch last-click diuraikan transparan."
+          ],
+          "missing_indicators": [],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:2]",
+              "quote": "Atribusi last-click belum mengukur pengaruh lintas kanal. Data belum mengontrol musim penerimaan mahasiswa."
+            }
+          ],
+          "next_action": "Pertahankan kualitas dan sertakan bukti serupa pada penilaian berikutnya."
+        },
+        {
+          "criterion_id": "marketing_report_quality",
+          "evidence_sufficiency": "sufficient",
+          "score": 100,
+          "confidence": "high",
+          "reason": "Kualitas laporan sangat tinggi; mengintegrasikan data kinerja dengan keputusan taktis kanal dan batasan metodologis secara presisi.",
+          "evidence_refs": [
+            "[PAGE:1:BLOCK:2]"
+          ],
+          "met_indicators": [
+            "Keputusan strategi kanal dihubungkan langsung ke data return dan intent.",
+            "Limitation analitis dan asumsi musim dipaparkan terbuka."
+          ],
+          "missing_indicators": [],
+          "evidence_quotes": [
+            {
+              "reference": "[PAGE:1:BLOCK:2]",
+              "quote": "Search dipertahankan untuk intent tinggi; Instagram diuji dengan kreatif baru. Atribusi last-click belum mengukur pengaruh lintas kanal."
+            }
+          ],
+          "next_action": "Pertahankan kualitas dan sertakan bukti serupa pada penilaian berikutnya."
+        }
+      ]
+    }
+  ]
+}
