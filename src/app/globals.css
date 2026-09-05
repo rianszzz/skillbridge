@@ -87,3 +87,8 @@ footer nav { font-size: .9rem; }
 @media (max-width: 760px) { .site-header { flex-wrap: wrap; padding-block: .75rem; gap: .5rem; } nav { gap: .75rem; font-size: .9rem; margin-left: auto; } .hero, .form-shell, .error-page, .support-head { grid-template-columns: 1fr; } .hero { padding-top: 3.5rem; gap: 3rem; } .error-page, .support-head { padding-top: 3rem; gap: 2rem; } .page-icon { width: 150px; grid-row: 1; } .grid-3 { grid-template-columns: 1fr; } .criterion { grid-template-columns: 1fr; gap: .5rem; } .history-item { grid-template-columns: 70px 1fr; } .history-item .actions { grid-column: 1 / -1; } .faq-teaser, footer { align-items: flex-start; flex-direction: column; } footer nav { margin-left: 0; flex-wrap: wrap; } }
 @media (max-width: 520px) { .site-header { align-items: flex-start; } nav { width: 100%; justify-content: space-between; } }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+.delta { display: inline-flex; align-items: center; font-size: .75rem; font-weight: 700; padding: .15rem .45rem; border: 1px solid var(--line); margin-left: .5rem; vertical-align: middle; }
+.delta.positive { background: #e6f4ea; color: #137333; border-color: #ceead6; }
+.delta.negative { background: #fce8e6; color: #c5221f; border-color: #fad2cf; }
+.delta.neutral { background: #f1f3f4; color: var(--muted); }
+.reassessment-note { margin: .75rem 0 1.25rem; padding: .75rem 1rem; border-left: 3px solid var(--ink); background: rgba(255,255,255,.75); font-size: .95rem; }

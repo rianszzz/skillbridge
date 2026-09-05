@@ -2,7 +2,7 @@ import Groq from "groq-sdk";
 import { authenticatedUser } from "@/lib/supabase";
 import { readAssessments } from "@/lib/assessment-store";
 import { rubrics } from "@/lib/rubrics";
-import { loadInterview, createInterview, saveMessage, completeInterview, countUserAnswers } from "@/lib/interview-store";
+import { loadInterview, createInterview, saveMessage, completeInterview } from "@/lib/interview-store";
 import { assertJsonRequest, assertUuid, consumeQuota, errorResponse, hashLogValue, privateResponse, PublicError, securityLog } from "@/lib/api-security";
 
 export const maxDuration = 60;
