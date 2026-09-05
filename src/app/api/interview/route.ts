@@ -10,11 +10,14 @@ export const maxDuration = 60;
 
 export async function GET(request: Request) {
   try {
-    const user = await authenticatedUser(request);
     const assessmentId = new URL(request.url).searchParams.get("assessmentId");
     if (!assessmentId) throw new PublicError("ID penilaian wajib diisi.", 400, "missing_id");
     assertUuid(assessmentId, "ID penilaian");
-    const session = isDemoSeedId(assessmentId) ? null : await loadInterview(user.id, assessmentId);
+    if (isDemoSeedId(assessmentId)) {
+      return Response.json({ messages: [], status: null }, privateResponse());
+    }
+    const user = await authenticatedUser(request);
+    const session = await loadInterview(user.id, assessmentId);
     return Response.json(session ?? { messages: [], status: null }, privateResponse());
   } catch (error) {
     return errorResponse(error, "Riwayat wawancara gagal dibaca.");
@@ -23,23 +26,30 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const user = await authenticatedUser(request);
     assertJsonRequest(request);
     const body = await request.json().catch(() => { throw new PublicError("JSON tidak valid.", 400, "invalid_json"); });
     const { assessmentId, answer, answers = [] } = body && typeof body === "object" && !Array.isArray(body) ? body : {};
     if (typeof assessmentId !== "string") throw new PublicError("ID penilaian wajib diisi.", 400, "missing_id");
     assertUuid(assessmentId, "ID penilaian");
-    if (!isDemoSeedId(assessmentId)) await consumeQuota(user.id, "interview");
-    const [assessment] = isDemoSeedId(assessmentId) ? [getDemoSeed(assessmentId)] : await readAssessments(user.id, assessmentId);
+
+    const isDemo = isDemoSeedId(assessmentId);
+    let userId = "demo-user";
+    if (!isDemo) {
+      const user = await authenticatedUser(request);
+      userId = user.id;
+      await consumeQuota(userId, "interview");
+    }
+
+    const [assessment] = isDemo ? [getDemoSeed(assessmentId)] : await readAssessments(userId, assessmentId);
     if (!assessment) throw new PublicError("Penilaian tidak ditemukan.", 404, "not_found");
 
     const role = assessment.role;
     const focus = assessment.criteria.filter(({ score }) => score !== null && score < 75).sort((a, b) => Number(a.score) - Number(b.score)).slice(0, 2).map(({ criterion_id }) => rubrics[role].find(({ id }) => id === criterion_id)?.label).filter(Boolean) as string[];
 
     // Attempt DB session (graceful fallback if table not yet migrated)
-    let session = isDemoSeedId(assessmentId) ? null : await loadInterview(user.id, assessmentId);
-    if (!session && !isDemoSeedId(assessmentId)) {
-      const interviewId = await createInterview(user.id, assessmentId, focus);
+    let session = isDemo ? null : await loadInterview(userId, assessmentId);
+    if (!session && !isDemo) {
+      const interviewId = await createInterview(userId, assessmentId, focus);
       if (interviewId) {
         session = { id: interviewId, status: "active", focusAreas: focus, messages: [], createdAt: new Date().toISOString() };
       }
