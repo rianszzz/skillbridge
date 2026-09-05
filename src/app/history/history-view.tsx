@@ -11,9 +11,9 @@ export default function HistoryView() {
     <div style={{ marginTop: "2rem", borderTop: "1px solid var(--border)", paddingTop: "1.5rem" }}>
       <p className="hint"><strong>Simulasi Sidang Kompres (Data Seed):</strong></p>
       <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginTop: "0.5rem" }}>
-        <Link className="button secondary" href="/results/00000000-0000-0000-0000-000000000002">Demo Informatika (50/100 · +25 Δ)</Link>
-        <Link className="button secondary" href="/results/00000000-0000-0000-0000-000000000022">Demo DKV (50/100)</Link>
-        <Link className="button secondary" href="/results/00000000-0000-0000-0000-000000000032">Demo Marketing (61/100)</Link>
+        <Link className="button secondary" href="/results/00000000-0000-4000-8000-000000000002">Demo Informatika (50/100 · +25 Δ)</Link>
+        <Link className="button secondary" href="/results/00000000-0000-4000-8000-000000000022">Demo DKV (50/100)</Link>
+        <Link className="button secondary" href="/results/00000000-0000-4000-8000-000000000032">Demo Marketing (61/100)</Link>
       </div>
     </div>
   );

@@ -25,18 +25,18 @@ test("semua demo seed mematuhi kontrak rubrik dan skor terhitung valid", () => {
 });
 
 test("isDemoSeedId dan getDemoSeed bekerja akurat", () => {
-  assert.ok(isDemoSeedId("00000000-0000-0000-0000-000000000002"));
+  assert.ok(isDemoSeedId("00000000-0000-4000-8000-000000000002"));
   assert.ok(!isDemoSeedId("non-existent-id"));
 
-  const inf02 = getDemoSeed("00000000-0000-0000-0000-000000000002");
+  const inf02 = getDemoSeed("00000000-0000-4000-8000-000000000002");
   assert.ok(inf02);
   assert.equal(inf02.role, "Junior Web Developer");
   assert.equal(inf02.finalScore, 50);
 });
 
 test("pair INF-01 dan INF-02 menghasilkan diff re-assessment yang valid", () => {
-  const inf01 = getDemoSeed("00000000-0000-0000-0000-000000000001")!;
-  const inf02 = getDemoSeed("00000000-0000-0000-0000-000000000002")!;
+  const inf01 = getDemoSeed("00000000-0000-4000-8000-000000000001")!;
+  const inf02 = getDemoSeed("00000000-0000-4000-8000-000000000002")!;
 
   const { finalDiff, criteriaDiffs } = calculateAssessmentDiff(inf02, inf01);
   assert.equal(finalDiff, null); // Previous had null (insufficient)

@@ -2,7 +2,7 @@ import type { AssessmentResult } from "./types";
 
 export const DEMO_SEEDS: AssessmentResult[] = [
   {
-    id: "00000000-0000-0000-0000-000000000001",
+    id: "00000000-0000-4000-8000-000000000001",
     createdAt: "2026-08-20T10:00:00.000Z",
     role: "Junior Web Developer",
     sourceUrl: "https://github.com/skillbridge-demo/web-events (Revisi 1 - Awal)",
@@ -49,7 +49,7 @@ export const DEMO_SEEDS: AssessmentResult[] = [
     ],
   },
   {
-    id: "00000000-0000-0000-0000-000000000002",
+    id: "00000000-0000-4000-8000-000000000002",
     createdAt: "2026-08-25T14:30:00.000Z",
     role: "Junior Web Developer",
     sourceUrl: "https://github.com/skillbridge-demo/web-events (Revisi 2 - Sedang)",
@@ -104,7 +104,7 @@ export const DEMO_SEEDS: AssessmentResult[] = [
     ],
   },
   {
-    id: "00000000-0000-0000-0000-000000000022",
+    id: "00000000-0000-4000-8000-000000000022",
     createdAt: "2026-08-25T15:00:00.000Z",
     role: "Junior Graphic Designer",
     sourceUrl: "career-day-landing.png (Data Demo DKV Sedang)",
@@ -159,7 +159,7 @@ export const DEMO_SEEDS: AssessmentResult[] = [
     ],
   },
   {
-    id: "00000000-0000-0000-0000-000000000032",
+    id: "00000000-0000-4000-8000-000000000032",
     createdAt: "2026-08-25T15:30:00.000Z",
     role: "Junior Digital Marketer",
     sourceUrl: "laporan-kampanye-2-kanal.pdf (Data Demo Marketing Sedang)",

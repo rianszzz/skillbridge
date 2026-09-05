@@ -51,7 +51,7 @@ export default function AssessmentForm() {
       <div className="alert" role="alert">
         <p>{error}</p>
         <p className="hint" style={{ marginTop: "0.5rem" }}>
-          Simulasi offline/demo sidang: Buka <Link href="/results/00000000-0000-0000-0000-000000000002" style={{ textDecoration: "underline" }}>Data Demo Sidang (Informatika)</Link> untuk melanjutkan demonstrasi.
+          Simulasi offline/demo sidang: Buka <Link href="/results/00000000-0000-4000-8000-000000000002" style={{ textDecoration: "underline" }}>Data Demo Sidang (Informatika)</Link> untuk melanjutkan demonstrasi.
         </p>
       </div>
     )}
@@ -62,5 +62,5 @@ export default function AssessmentForm() {
     </>}
     <label className="consent"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} required/><span><strong>Persetujuan pemrosesan AI</strong><br/><span className="hint">Bukti dikirim ke Groq untuk dinilai. Nama dan email tidak dibutuhkan. Saya memahami batas penilaian dan dapat menghapus hasil melalui akun.</span></span></label>
     <div className="actions"><button className="button" disabled={loading || !consent}>{loading ? field === "informatics" ? "Mengekstrak dan menilai..." : "Mengunggah dan menilai..." : "Kirim dan nilai bukti"}</button></div>
-  </form><aside className="panel"><p className="eyebrow">Sebelum mengirim</p><h3>{guidance[field].title}</h3><p>{guidance[field].body}</p><hr/><p className="hint">Hasil dan file tersimpan privat di Supabase. File hanya diproses server dan dapat dihapus bersama hasil.</p><hr/><p className="hint"><strong>Demo Sidang:</strong> <Link href="/results/00000000-0000-0000-0000-000000000002" style={{ textDecoration: "underline" }}>Buka data seed terverifikasi</Link>.</p></aside></div>;
+  </form><aside className="panel"><p className="eyebrow">Sebelum mengirim</p><h3>{guidance[field].title}</h3><p>{guidance[field].body}</p><hr/><p className="hint">Hasil dan file tersimpan privat di Supabase. File hanya diproses server dan dapat dihapus bersama hasil.</p><hr/><p className="hint"><strong>Demo Sidang:</strong> <Link href="/results/00000000-0000-4000-8000-000000000002" style={{ textDecoration: "underline" }}>Buka data seed terverifikasi</Link>.</p></aside></div>;
 }
