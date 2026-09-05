@@ -1,3 +1,0 @@
-[   94108ms] [ERROR] Failed to load resource: the server responded with a status of 400 () @ https://gqftsbfjldzqwoyrnoob.supabase.co/auth/v1/token?grant_type=password:0
-[  133829ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://skillbridge-6ndn.vercel.app/api/assess:0
-[  139760ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ https://skillbridge-6ndn.vercel.app/api/assess:0
