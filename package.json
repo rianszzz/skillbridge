@@ -3,7 +3,9 @@
   "type": "module",
   "version": "0.1.0",
   "private": true,
-  "engines": { "node": "22.x" },
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "dev": "next dev",
     "dev:3001": "next dev --port 3001",
@@ -18,7 +20,6 @@
     "deploy": "npm run check && vercel --prod"
   },
   "dependencies": {
-    "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.57.4",
     "groq-sdk": "^0.37.0",
     "next": "16.3.2",

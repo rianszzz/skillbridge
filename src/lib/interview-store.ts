@@ -65,18 +65,3 @@ export async function completeInterview(interviewId: string) {
     if (!isTableMissing(cause)) throw cause;
   }
 }
-
-export async function countUserAnswers(interviewId: string): Promise<number> {
-  try {
-    const db = createAdminSupabase();
-    const { count, error } = await db.from("interview_messages").select("id", { count: "exact", head: true }).eq("interview_id", interviewId).eq("role", "user");
-    if (error) {
-      if (isTableMissing(error)) return 0;
-      throw error;
-    }
-    return count ?? 0;
-  } catch (cause) {
-    if (isTableMissing(cause)) return 0;
-    throw cause;
-  }
-}

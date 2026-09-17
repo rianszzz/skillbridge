@@ -1,0 +1,836 @@
+{
+  "/Users/rian/Documents/Skillbridge/docs/validation/BENCHMARK_MARKETING_RUNS.json": {
+    "mtime": 1788604581.2145448,
+    "seen": 1789624490.2691011,
+    "ast_hash": "e4b8e2bcc0fc7083f89b424ebde708b2",
+    "semantic_hash": "e4b8e2bcc0fc7083f89b424ebde708b2"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/INFORMATICS_BENCHMARK_EVALUATION.json": {
+    "mtime": 1788604614.0782425,
+    "seen": 1789624490.269113,
+    "ast_hash": "28feb87e9b830e388d89385d6e3e4f53",
+    "semantic_hash": "28feb87e9b830e388d89385d6e3e4f53"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/MKT02_AFTER_RETRY.json": {
+    "mtime": 1788032759.620898,
+    "seen": 1789624490.269116,
+    "ast_hash": "3203462c8dbb3eed20c49d9dc820cfdc",
+    "semantic_hash": "3203462c8dbb3eed20c49d9dc820cfdc"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/PRODUCTION_API_TESTS.json": {
+    "mtime": 1787541777.4219613,
+    "seen": 1789624490.269118,
+    "ast_hash": "5a6f3a3159cd32f7156db572ce3d0f69",
+    "semantic_hash": "5a6f3a3159cd32f7156db572ce3d0f69"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/PRODUCTION_MODEL_RUNS.json": {
+    "mtime": 1788032759.6168563,
+    "seen": 1789624490.269121,
+    "ast_hash": "9f6abf9509cb942e82be1ef5bbd0613c",
+    "semantic_hash": "9f6abf9509cb942e82be1ef5bbd0613c"
+  },
+  "/Users/rian/Documents/Skillbridge/eslint.config.mjs": {
+    "mtime": 1787502620.7507195,
+    "seen": 1789624490.269123,
+    "ast_hash": "6b163df06847777e5e1fa22e6a347fc8",
+    "semantic_hash": "6b163df06847777e5e1fa22e6a347fc8"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/design/descriptions.json": {
+    "mtime": 1787502405.459157,
+    "seen": 1789624490.2691252,
+    "ast_hash": "1d240d959bb5e6b18e941f0ffb939ced",
+    "semantic_hash": "1d240d959bb5e6b18e941f0ffb939ced"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/expected.json": {
+    "mtime": 1787502405.4691288,
+    "seen": 1789624490.269127,
+    "ast_hash": "f8ce2e19c6b3b8486677998e0ef9d04d",
+    "semantic_hash": "f8ce2e19c6b3b8486677998e0ef9d04d"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/informatics/medium/package.json": {
+    "mtime": 1787502405.2996047,
+    "seen": 1789624490.2691278,
+    "ast_hash": "be8e6e7f80745cd4b3e7874189075a71",
+    "semantic_hash": "be8e6e7f80745cd4b3e7874189075a71"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/informatics/medium/src/events.js": {
+    "mtime": 1787502405.303269,
+    "seen": 1789624490.26913,
+    "ast_hash": "8b5bd2585514897361640a539172dcc2",
+    "semantic_hash": "8b5bd2585514897361640a539172dcc2"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/informatics/medium/src/routes.js": {
+    "mtime": 1787502405.3466632,
+    "seen": 1789624490.269131,
+    "ast_hash": "143a847801ab149a04d9407ffb9c8751",
+    "semantic_hash": "143a847801ab149a04d9407ffb9c8751"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/informatics/medium/src/server.js": {
+    "mtime": 1787502405.3017478,
+    "seen": 1789624490.269134,
+    "ast_hash": "3eaf0109f31c971c100bde4ae8dbfdfb",
+    "semantic_hash": "3eaf0109f31c971c100bde4ae8dbfdfb"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/informatics/strong/package.json": {
+    "mtime": 1787502405.3816905,
+    "seen": 1789624490.269136,
+    "ast_hash": "85d5eb59742eb6d8e965b5f6c654ada1",
+    "semantic_hash": "85d5eb59742eb6d8e965b5f6c654ada1"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/informatics/strong/src/app.js": {
+    "mtime": 1787502405.388165,
+    "seen": 1789624490.269137,
+    "ast_hash": "edca93ddb09faac95ebcce76e399da3d",
+    "semantic_hash": "edca93ddb09faac95ebcce76e399da3d"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/informatics/strong/src/inventory.js": {
+    "mtime": 1787502405.385497,
+    "seen": 1789624490.269139,
+    "ast_hash": "6be436febe659817ca92b8c7e19c6f69",
+    "semantic_hash": "6be436febe659817ca92b8c7e19c6f69"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/informatics/strong/src/validation.js": {
+    "mtime": 1787502405.3868651,
+    "seen": 1789624490.26914,
+    "ast_hash": "048cff40b5ec725423ec71293c64b271",
+    "semantic_hash": "048cff40b5ec725423ec71293c64b271"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/informatics/strong/test/inventory.test.js": {
+    "mtime": 1787502405.4580114,
+    "seen": 1789624490.269143,
+    "ast_hash": "406c4e2e3eb06e2ed77d68f48b018a69",
+    "semantic_hash": "406c4e2e3eb06e2ed77d68f48b018a69"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/informatics/weak/index.js": {
+    "mtime": 1787502405.2833965,
+    "seen": 1789624490.269144,
+    "ast_hash": "98bd0e25bbba6e220f7acc9110953be7",
+    "semantic_hash": "98bd0e25bbba6e220f7acc9110953be7"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/informatics/weak/package.json": {
+    "mtime": 1787502405.2976346,
+    "seen": 1789624490.2691462,
+    "ast_hash": "1089d80ff85bef0da23ace2bd6d21a30",
+    "semantic_hash": "1089d80ff85bef0da23ace2bd6d21a30"
+  },
+  "/Users/rian/Documents/Skillbridge/next-env.d.ts": {
+    "mtime": 1788010049.160199,
+    "seen": 1789624490.269147,
+    "ast_hash": "8195d2c60ce847a459ae9d308d6a5724",
+    "semantic_hash": "8195d2c60ce847a459ae9d308d6a5724"
+  },
+  "/Users/rian/Documents/Skillbridge/next.config.ts": {
+    "mtime": 1788009987.3139284,
+    "seen": 1789624490.2691488,
+    "ast_hash": "0989f77077e77aec3ad10e93dc2720b4",
+    "semantic_hash": "0989f77077e77aec3ad10e93dc2720b4"
+  },
+  "/Users/rian/Documents/Skillbridge/package.json": {
+    "mtime": 1788615123.1222172,
+    "seen": 1789624490.269151,
+    "ast_hash": "e59dd70121e2498d3fde1d881a0226cc",
+    "semantic_hash": "e59dd70121e2498d3fde1d881a0226cc"
+  },
+  "/Users/rian/Documents/Skillbridge/postcss.config.mjs": {
+    "mtime": 1787492594.369201,
+    "seen": 1789624490.2691572,
+    "ast_hash": "f71b80f5685810aa6afdd8c6b4ca0b31",
+    "semantic_hash": "f71b80f5685810aa6afdd8c6b4ca0b31"
+  },
+  "/Users/rian/Documents/Skillbridge/scripts/generate-benchmark-charts.py": {
+    "mtime": 1788626479.01337,
+    "seen": 1789624490.269158,
+    "ast_hash": "fa4b1c684550364a848c8e895d67dd1b",
+    "semantic_hash": "fa4b1c684550364a848c8e895d67dd1b"
+  },
+  "/Users/rian/Documents/Skillbridge/scripts/run-production-evaluation.mjs": {
+    "mtime": 1788013169.7771988,
+    "seen": 1789624490.2691588,
+    "ast_hash": "5c4669ebd9548c93aae76fab1b318126",
+    "semantic_hash": "5c4669ebd9548c93aae76fab1b318126"
+  },
+  "/Users/rian/Documents/Skillbridge/src/app/api/assess/route.ts": {
+    "mtime": 1788149663.8384588,
+    "seen": 1789624490.26916,
+    "ast_hash": "fc9f2b6655ff0cc6bb91ce12403b88f6",
+    "semantic_hash": "fc9f2b6655ff0cc6bb91ce12403b88f6"
+  },
+  "/Users/rian/Documents/Skillbridge/src/app/api/assessments/route.ts": {
+    "mtime": 1788010019.4577506,
+    "seen": 1789624490.269162,
+    "ast_hash": "4768863b00915a3665ed9fd39355ac18",
+    "semantic_hash": "4768863b00915a3665ed9fd39355ac18"
+  },
+  "/Users/rian/Documents/Skillbridge/src/app/api/health/route.ts": {
+    "mtime": 1788010019.4589117,
+    "seen": 1789624490.269164,
+    "ast_hash": "1b463b0a8f9bc101a8947c664d44eb29",
+    "semantic_hash": "1b463b0a8f9bc101a8947c664d44eb29"
+  },
+  "/Users/rian/Documents/Skillbridge/src/app/api/interview/route.ts": {
+    "mtime": 1788610313.0290313,
+    "seen": 1789624490.269165,
+    "ast_hash": "51d7d55ca1669d3cb124652cc77867e0",
+    "semantic_hash": "51d7d55ca1669d3cb124652cc77867e0"
+  },
+  "/Users/rian/Documents/Skillbridge/src/app/assess/assessment-form.tsx": {
+    "mtime": 1788610536.7193832,
+    "seen": 1789624490.2691672,
+    "ast_hash": "cff541c0b4151bd4af704ea07751cfb8",
+    "semantic_hash": "cff541c0b4151bd4af704ea07751cfb8"
+  },
+  "/Users/rian/Documents/Skillbridge/src/app/assess/page.tsx": {
+    "mtime": 1787538363.757093,
+    "seen": 1789624490.2691681,
+    "ast_hash": "1f19b9cd89cca8e21f5431ebe5da8ea4",
+    "semantic_hash": "1f19b9cd89cca8e21f5431ebe5da8ea4"
+  },
+  "/Users/rian/Documents/Skillbridge/src/app/auth/auth-form.tsx": {
+    "mtime": 1788064042.5543582,
+    "seen": 1789624490.2691689,
+    "ast_hash": "882495ab7887484a5c1f24344a069d83",
+    "semantic_hash": "882495ab7887484a5c1f24344a069d83"
+  },
+  "/Users/rian/Documents/Skillbridge/src/app/auth/page.tsx": {
+    "mtime": 1787544813.4869418,
+    "seen": 1789624490.269171,
+    "ast_hash": "7c43ea27e8b2915ed73cdb48a94de480",
+    "semantic_hash": "7c43ea27e8b2915ed73cdb48a94de480"
+  },
+  "/Users/rian/Documents/Skillbridge/src/app/faq/page.tsx": {
+    "mtime": 1788082133.3557909,
+    "seen": 1789624490.269173,
+    "ast_hash": "4e3d3be033c0d8e3ca29016cea9db44b",
+    "semantic_hash": "4e3d3be033c0d8e3ca29016cea9db44b"
+  },
+  "/Users/rian/Documents/Skillbridge/src/app/history/history-view.tsx": {
+    "mtime": 1788610528.8655899,
+    "seen": 1789624490.269174,
+    "ast_hash": "3a3c159c438017e90fc8851a126cb688",
+    "semantic_hash": "3a3c159c438017e90fc8851a126cb688"
+  },
+  "/Users/rian/Documents/Skillbridge/src/app/history/page.tsx": {
+    "mtime": 1787495620.5671313,
+    "seen": 1789624490.269175,
+    "ast_hash": "4cb47d821a416aff89d5b3abecc4e9d0",
+    "semantic_hash": "4cb47d821a416aff89d5b3abecc4e9d0"
+  },
+  "/Users/rian/Documents/Skillbridge/src/app/interview/[id]/interview-view.tsx": {
+    "mtime": 1788615219.1631176,
+    "seen": 1789624490.269176,
+    "ast_hash": "1a6408465dd1a665729ef6bf08d88c6c",
+    "semantic_hash": "1a6408465dd1a665729ef6bf08d88c6c"
+  },
+  "/Users/rian/Documents/Skillbridge/src/app/interview/[id]/page.tsx": {
+    "mtime": 1787492371.567186,
+    "seen": 1789624490.2691782,
+    "ast_hash": "27c300d0390181afc92af05ce3b6b091",
+    "semantic_hash": "27c300d0390181afc92af05ce3b6b091"
+  },
+  "/Users/rian/Documents/Skillbridge/src/app/layout.tsx": {
+    "mtime": 1788082133.3721828,
+    "seen": 1789624490.2691789,
+    "ast_hash": "d53a5bb3b504abf9617216f866dba983",
+    "semantic_hash": "d53a5bb3b504abf9617216f866dba983"
+  },
+  "/Users/rian/Documents/Skillbridge/src/app/not-found.tsx": {
+    "mtime": 1788082154.5841835,
+    "seen": 1789624490.269181,
+    "ast_hash": "a57692f59bfe9622a9d4628f56d6d395",
+    "semantic_hash": "a57692f59bfe9622a9d4628f56d6d395"
+  },
+  "/Users/rian/Documents/Skillbridge/src/app/page.tsx": {
+    "mtime": 1788082133.3733416,
+    "seen": 1789624490.269183,
+    "ast_hash": "7b91721be397784c34e7a5759b0c3898",
+    "semantic_hash": "7b91721be397784c34e7a5759b0c3898"
+  },
+  "/Users/rian/Documents/Skillbridge/src/app/privacy/page.tsx": {
+    "mtime": 1788082133.370968,
+    "seen": 1789624490.269186,
+    "ast_hash": "20e0501c8e5c80d42822eec5c086d2d7",
+    "semantic_hash": "20e0501c8e5c80d42822eec5c086d2d7"
+  },
+  "/Users/rian/Documents/Skillbridge/src/app/results/[id]/page.tsx": {
+    "mtime": 1787492371.5620298,
+    "seen": 1789624490.269187,
+    "ast_hash": "b4881fd947928d0c0bd757d330144d50",
+    "semantic_hash": "b4881fd947928d0c0bd757d330144d50"
+  },
+  "/Users/rian/Documents/Skillbridge/src/app/results/[id]/result-view.tsx": {
+    "mtime": 1788610058.58402,
+    "seen": 1789624490.2691898,
+    "ast_hash": "0289cab0a71bae06840833c455cd96be",
+    "semantic_hash": "0289cab0a71bae06840833c455cd96be"
+  },
+  "/Users/rian/Documents/Skillbridge/src/app/thank-you/page.tsx": {
+    "mtime": 1788082133.354049,
+    "seen": 1789624490.269192,
+    "ast_hash": "2b0eb6b6b05ebec69ad4c96ec24f43cc",
+    "semantic_hash": "2b0eb6b6b05ebec69ad4c96ec24f43cc"
+  },
+  "/Users/rian/Documents/Skillbridge/src/components/auth-gate.tsx": {
+    "mtime": 1788051555.5546513,
+    "seen": 1789624490.269193,
+    "ast_hash": "341bee01ac21f8d9fcdfa8cc9770e430",
+    "semantic_hash": "341bee01ac21f8d9fcdfa8cc9770e430"
+  },
+  "/Users/rian/Documents/Skillbridge/src/components/auth-status.tsx": {
+    "mtime": 1788051555.5562775,
+    "seen": 1789624490.269195,
+    "ast_hash": "b9c7528acf3038c62344a83bbfa26a57",
+    "semantic_hash": "b9c7528acf3038c62344a83bbfa26a57"
+  },
+  "/Users/rian/Documents/Skillbridge/src/components/breadcrumbs.tsx": {
+    "mtime": 1788082133.3333025,
+    "seen": 1789624490.269196,
+    "ast_hash": "59579a18d9d4126367164435d61970bb",
+    "semantic_hash": "59579a18d9d4126367164435d61970bb"
+  },
+  "/Users/rian/Documents/Skillbridge/src/components/page-icon.tsx": {
+    "mtime": 1788082133.3374643,
+    "seen": 1789624490.2691982,
+    "ast_hash": "987e303794035f7b3b19fb431b53dea5",
+    "semantic_hash": "987e303794035f7b3b19fb431b53dea5"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/api-security.test.ts": {
+    "mtime": 1788159160.5198627,
+    "seen": 1789624490.2691991,
+    "ast_hash": "d7bebf03677499aaa855957cf607fd4d",
+    "semantic_hash": "d7bebf03677499aaa855957cf607fd4d"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/api-security.ts": {
+    "mtime": 1788159113.457205,
+    "seen": 1789624490.2691998,
+    "ast_hash": "07d25d6aaca610ef8291004102f2ef2a",
+    "semantic_hash": "07d25d6aaca610ef8291004102f2ef2a"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/assessment-client.ts": {
+    "mtime": 1788610120.2190611,
+    "seen": 1789624490.2692008,
+    "ast_hash": "388b5a8a2315b8533498937f95518e59",
+    "semantic_hash": "388b5a8a2315b8533498937f95518e59"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/assessment-detail.test.ts": {
+    "mtime": 1788160576.1922581,
+    "seen": 1789624490.269202,
+    "ast_hash": "87733f3ba9aa8d2cd1941fb4587afde6",
+    "semantic_hash": "87733f3ba9aa8d2cd1941fb4587afde6"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/assessment-diff.test.ts": {
+    "mtime": 1788609143.1992285,
+    "seen": 1789624490.269204,
+    "ast_hash": "1f8e6050cc186b8afe1a14c503ee3837",
+    "semantic_hash": "1f8e6050cc186b8afe1a14c503ee3837"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/assessment-diff.ts": {
+    "mtime": 1788609084.80349,
+    "seen": 1789624490.269205,
+    "ast_hash": "9fbffe0b469f1f8f7fb4344d9f86a9d5",
+    "semantic_hash": "9fbffe0b469f1f8f7fb4344d9f86a9d5"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/assessment-store.ts": {
+    "mtime": 1788149663.8390546,
+    "seen": 1789624490.269206,
+    "ast_hash": "6a575a44fd38560488237496074a3d48",
+    "semantic_hash": "6a575a44fd38560488237496074a3d48"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/assessment.ts": {
+    "mtime": 1788160576.1916735,
+    "seen": 1789624490.269207,
+    "ast_hash": "445bd9e0fbe0c297040e75b5f60b32a0",
+    "semantic_hash": "445bd9e0fbe0c297040e75b5f60b32a0"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/auth-client.ts": {
+    "mtime": 1788051555.5531757,
+    "seen": 1789624490.2692091,
+    "ast_hash": "09d5590e83791e71d6537d3037b56504",
+    "semantic_hash": "09d5590e83791e71d6537d3037b56504"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/auth-errors.test.ts": {
+    "mtime": 1787544813.485215,
+    "seen": 1789624490.26921,
+    "ast_hash": "e847d7017041e9ae09c5e213990aed6f",
+    "semantic_hash": "e847d7017041e9ae09c5e213990aed6f"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/auth-errors.ts": {
+    "mtime": 1787544813.4681768,
+    "seen": 1789624490.269212,
+    "ast_hash": "582889bec429d279a93a50d12c4106c1",
+    "semantic_hash": "582889bec429d279a93a50d12c4106c1"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/demo-seed.test.ts": {
+    "mtime": 1788610525.1773856,
+    "seen": 1789624490.269214,
+    "ast_hash": "82d3d7e97c09bcf9ad14aa6e309370fe",
+    "semantic_hash": "82d3d7e97c09bcf9ad14aa6e309370fe"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/demo-seed.ts": {
+    "mtime": 1788610521.2964022,
+    "seen": 1789624490.2692149,
+    "ast_hash": "ca22fbc3659cb8d8685e7bd18ed7ee02",
+    "semantic_hash": "ca22fbc3659cb8d8685e7bd18ed7ee02"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/evidence-security.test.ts": {
+    "mtime": 1788009733.7373931,
+    "seen": 1789624490.269216,
+    "ast_hash": "805d86c23c11c811bbea2e8c1c6f7af3",
+    "semantic_hash": "805d86c23c11c811bbea2e8c1c6f7af3"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/evidence-security.ts": {
+    "mtime": 1788009733.7364624,
+    "seen": 1789624490.269217,
+    "ast_hash": "511c641e032cc479b96a1c28718daba2",
+    "semantic_hash": "511c641e032cc479b96a1c28718daba2"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/file-evidence.test.ts": {
+    "mtime": 1788089828.4775567,
+    "seen": 1789624490.2692192,
+    "ast_hash": "0d9a577f0f606a66de6b1c0c46397eac",
+    "semantic_hash": "0d9a577f0f606a66de6b1c0c46397eac"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/file-evidence.ts": {
+    "mtime": 1788089828.4767895,
+    "seen": 1789624490.26922,
+    "ast_hash": "317effb3f4b159f6851e77e9f1c9fd23",
+    "semantic_hash": "317effb3f4b159f6851e77e9f1c9fd23"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/github.test.ts": {
+    "mtime": 1788089783.4276166,
+    "seen": 1789624490.269228,
+    "ast_hash": "d34ca5439d00498865dfc7c2d5e6a599",
+    "semantic_hash": "d34ca5439d00498865dfc7c2d5e6a599"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/github.ts": {
+    "mtime": 1788094486.8877702,
+    "seen": 1789624490.2692301,
+    "ast_hash": "58e199153a8716f02e312558cdb122ec",
+    "semantic_hash": "58e199153a8716f02e312558cdb122ec"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/http-client.test.ts": {
+    "mtime": 1788149094.9583735,
+    "seen": 1789624490.269231,
+    "ast_hash": "9ff7b3ea84e4e5749cf52ba575ce9ae9",
+    "semantic_hash": "9ff7b3ea84e4e5749cf52ba575ce9ae9"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/http-client.ts": {
+    "mtime": 1788149094.9571276,
+    "seen": 1789624490.269232,
+    "ast_hash": "18c3000e2e7103ab37e332572409ba27",
+    "semantic_hash": "18c3000e2e7103ab37e332572409ba27"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/interview-store.ts": {
+    "mtime": 1788607875.4056568,
+    "seen": 1789624490.269233,
+    "ast_hash": "135e0cfdf6db0210d85cc982115b8483",
+    "semantic_hash": "135e0cfdf6db0210d85cc982115b8483"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/learning-catalog.test.ts": {
+    "mtime": 1788604339.975237,
+    "seen": 1789624490.269234,
+    "ast_hash": "0333196d89dcb8d8a8878145991d9e22",
+    "semantic_hash": "0333196d89dcb8d8a8878145991d9e22"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/learning-catalog.ts": {
+    "mtime": 1788604099.2969363,
+    "seen": 1789624490.269235,
+    "ast_hash": "950329674b591e75e6e3282fe2b32a5e",
+    "semantic_hash": "950329674b591e75e6e3282fe2b32a5e"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/rubrics.test.ts": {
+    "mtime": 1788089698.450311,
+    "seen": 1789624490.2692358,
+    "ast_hash": "1ab17d82927444e3136bde922d6c7a74",
+    "semantic_hash": "1ab17d82927444e3136bde922d6c7a74"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/rubrics.ts": {
+    "mtime": 1788089698.437951,
+    "seen": 1789624490.269237,
+    "ast_hash": "ecda8d9c8c54e0d06edf825b7826ca79",
+    "semantic_hash": "ecda8d9c8c54e0d06edf825b7826ca79"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/supabase.ts": {
+    "mtime": 1787495139.971753,
+    "seen": 1789624490.269238,
+    "ast_hash": "19bc3bce453d3bd81e6e3b77ab11b9d5",
+    "semantic_hash": "19bc3bce453d3bd81e6e3b77ab11b9d5"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/types.ts": {
+    "mtime": 1788089698.418925,
+    "seen": 1789624490.2692401,
+    "ast_hash": "ea2467c52764b7d3510bbaee23a33d41",
+    "semantic_hash": "ea2467c52764b7d3510bbaee23a33d41"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/vision.test.ts": {
+    "mtime": 1788159991.9735951,
+    "seen": 1789624490.269241,
+    "ast_hash": "4bea5583b775568f62465bdfbe6715ba",
+    "semantic_hash": "4bea5583b775568f62465bdfbe6715ba"
+  },
+  "/Users/rian/Documents/Skillbridge/src/lib/vision.ts": {
+    "mtime": 1788159991.964337,
+    "seen": 1789624490.269242,
+    "ast_hash": "44a436e3fd6a5b0f261dd482efc479ab",
+    "semantic_hash": "44a436e3fd6a5b0f261dd482efc479ab"
+  },
+  "/Users/rian/Documents/Skillbridge/supabase/migrations/001_prototype.sql": {
+    "mtime": 1788089698.447125,
+    "seen": 1789624490.2692428,
+    "ast_hash": "205464806e536b1bd2f203e6380aeaa3",
+    "semantic_hash": "205464806e536b1bd2f203e6380aeaa3"
+  },
+  "/Users/rian/Documents/Skillbridge/supabase/migrations/002_evidence_storage.sql": {
+    "mtime": 1788009465.8547668,
+    "seen": 1789624490.269245,
+    "ast_hash": "a6dcf8e78f38a72775cbb74d100d5e21",
+    "semantic_hash": "a6dcf8e78f38a72775cbb74d100d5e21"
+  },
+  "/Users/rian/Documents/Skillbridge/supabase/migrations/003_security_hardening.sql": {
+    "mtime": 1788009516.359407,
+    "seen": 1789624490.2692459,
+    "ast_hash": "35f67f25fb1c4ae4c735bc8bfc16589d",
+    "semantic_hash": "35f67f25fb1c4ae4c735bc8bfc16589d"
+  },
+  "/Users/rian/Documents/Skillbridge/supabase/migrations/004_specific_assessment_details.sql": {
+    "mtime": 1788089698.4493847,
+    "seen": 1789624490.269248,
+    "ast_hash": "a0a259349c89717850ed6d3bde9863b3",
+    "semantic_hash": "a0a259349c89717850ed6d3bde9863b3"
+  },
+  "/Users/rian/Documents/Skillbridge/supabase/migrations/005_interview_persistence.sql": {
+    "mtime": 1788604009.7358036,
+    "seen": 1789624490.269249,
+    "ast_hash": "f24c558ab1c37dd77c81e5dd2b3af09f",
+    "semantic_hash": "f24c558ab1c37dd77c81e5dd2b3af09f"
+  },
+  "/Users/rian/Documents/Skillbridge/tsconfig.json": {
+    "mtime": 1787492594.3489993,
+    "seen": 1789624490.2692502,
+    "ast_hash": "fb30283234a5f7938364997d117687f8",
+    "semantic_hash": "fb30283234a5f7938364997d117687f8"
+  },
+  "/Users/rian/Documents/Skillbridge/.github/dependabot.yml": {
+    "mtime": 1788049567.3180947,
+    "seen": 1789624490.269251,
+    "ast_hash": "9ae2a4d0a6a13b0e77e3f1608ecc515a",
+    "semantic_hash": "9ae2a4d0a6a13b0e77e3f1608ecc515a"
+  },
+  "/Users/rian/Documents/Skillbridge/.github/workflows/security.yml": {
+    "mtime": 1788049567.3151813,
+    "seen": 1789624490.269254,
+    "ast_hash": "802dd09a186311622f83feba510e2168",
+    "semantic_hash": "802dd09a186311622f83feba510e2168"
+  },
+  "/Users/rian/Documents/Skillbridge/AGENTS.md": {
+    "mtime": 1788182296.3276432,
+    "seen": 1789624490.269255,
+    "ast_hash": "5ec18c96423e64ee598a978b2e9e8c1d",
+    "semantic_hash": "5ec18c96423e64ee598a978b2e9e8c1d"
+  },
+  "/Users/rian/Documents/Skillbridge/README.md": {
+    "mtime": 1787505304.5668237,
+    "seen": 1789624490.2692559,
+    "ast_hash": "fe7fa952fe94e374786716e6e4a9ef09",
+    "semantic_hash": "fe7fa952fe94e374786716e6e4a9ef09"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/AI_QUALITY_SECURITY.md": {
+    "mtime": 1788157697.256712,
+    "seen": 1789624490.269257,
+    "ast_hash": "b776695985da9b40b25e38d191222f43",
+    "semantic_hash": "b776695985da9b40b25e38d191222f43"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/BUILD_ORDER.md": {
+    "mtime": 1787487090.1186938,
+    "seen": 1789624490.269258,
+    "ast_hash": "29ed5cdb9405c285a196ae923e1dd0e6",
+    "semantic_hash": "29ed5cdb9405c285a196ae923e1dd0e6"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/DEPLOYMENT.md": {
+    "mtime": 1788013234.671019,
+    "seen": 1789624490.26926,
+    "ast_hash": "5a6d3f23424004c7534ce196171b2766",
+    "semantic_hash": "5a6d3f23424004c7534ce196171b2766"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/PRODUCT.md": {
+    "mtime": 1787487119.1425583,
+    "seen": 1789624490.2692611,
+    "ast_hash": "b71f89f098852ea492b230182d8b66ca",
+    "semantic_hash": "b71f89f098852ea492b230182d8b66ca"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/AI_SIMULATED_HR_REVIEW.md": {
+    "mtime": 1787884031.3882408,
+    "seen": 1789624490.269262,
+    "ast_hash": "93275251b9683baa1a072dd0bdcc98d5",
+    "semantic_hash": "93275251b9683baa1a072dd0bdcc98d5"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/DEMO_SCRIPT.md": {
+    "mtime": 1787502405.47294,
+    "seen": 1789624490.269263,
+    "ast_hash": "546081e8757030c066acb42b39b54324",
+    "semantic_hash": "546081e8757030c066acb42b39b54324"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/INFORMATICS_BENCHMARK_REPORT.md": {
+    "mtime": 1788604645.2355878,
+    "seen": 1789624490.269264,
+    "ast_hash": "a9d5e9ea8a60dc38108e65af1c008e3d",
+    "semantic_hash": "a9d5e9ea8a60dc38108e65af1c008e3d"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/RATER_INSTRUCTIONS.md": {
+    "mtime": 1787502405.4719236,
+    "seen": 1789624490.269265,
+    "ast_hash": "25de986255c59dacf0da1c6ba354b921",
+    "semantic_hash": "25de986255c59dacf0da1c6ba354b921"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/SECTION_10_HASIL_UJI_COBA.html": {
+    "mtime": 1788626797.496809,
+    "seen": 1789624490.269266,
+    "ast_hash": "41882a3746a886570da37be914cbdb48",
+    "semantic_hash": "41882a3746a886570da37be914cbdb48"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/SECTION_10_HASIL_UJI_COBA.md": {
+    "mtime": 1788626757.2395763,
+    "seen": 1789624490.2692668,
+    "ast_hash": "11811f1814143975e31cbae459f916ad",
+    "semantic_hash": "11811f1814143975e31cbae459f916ad"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/SECURITY_AUDIT_REPORT.md": {
+    "mtime": 1788045302.4258425,
+    "seen": 1789624490.269268,
+    "ast_hash": "5599a2b6f0686e13a73fb907b5810439",
+    "semantic_hash": "5599a2b6f0686e13a73fb907b5810439"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/STAGE_STATUS.md": {
+    "mtime": 1788604718.795972,
+    "seen": 1789624490.269269,
+    "ast_hash": "ad70c275ce34f28701bd4698742e8943",
+    "semantic_hash": "ad70c275ce34f28701bd4698742e8943"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/live-test-evidence/README.md": {
+    "mtime": 1788626684.8575413,
+    "seen": 1789624490.2692711,
+    "ast_hash": "8463a46844a75124452814d975a65ac5",
+    "semantic_hash": "8463a46844a75124452814d975a65ac5"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/README.md": {
+    "mtime": 1787502405.2742226,
+    "seen": 1789624490.269272,
+    "ast_hash": "e4ca1447bdc6c504377b6b95053c1efb",
+    "semantic_hash": "e4ca1447bdc6c504377b6b95053c1efb"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/informatics/medium/README.md": {
+    "mtime": 1787502405.2986753,
+    "seen": 1789624490.269273,
+    "ast_hash": "f977786dfcdc3e7b8740be62b74c3550",
+    "semantic_hash": "f977786dfcdc3e7b8740be62b74c3550"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/informatics/strong/README.md": {
+    "mtime": 1787502405.3797169,
+    "seen": 1789624490.269274,
+    "ast_hash": "953979d1f6f8a6d20b73f87db70c9346",
+    "semantic_hash": "953979d1f6f8a6d20b73f87db70c9346"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/marketing/medium.html": {
+    "mtime": 1787502405.4670575,
+    "seen": 1789624490.269275,
+    "ast_hash": "15197aee413dcdd8a883dcb12ebdc23e",
+    "semantic_hash": "15197aee413dcdd8a883dcb12ebdc23e"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/marketing/strong.html": {
+    "mtime": 1787502405.468078,
+    "seen": 1789624490.269276,
+    "ast_hash": "9ff9fe0e07f3df8c24dc04edd5dc0335",
+    "semantic_hash": "9ff9fe0e07f3df8c24dc04edd5dc0335"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/marketing/weak.html": {
+    "mtime": 1787502405.4659092,
+    "seen": 1789624490.2692769,
+    "ast_hash": "c3f6f59f5310d11f42c6acb6f09b0bfc",
+    "semantic_hash": "c3f6f59f5310d11f42c6acb6f09b0bfc"
+  },
+  "/Users/rian/Documents/Skillbridge/10. Hasil Uji Coba - Skillbridge AI.pdf": {
+    "mtime": 1788649066.7269619,
+    "seen": 1789624490.269278,
+    "ast_hash": "731d970888e7d46daa17a9b378f31d9c",
+    "semantic_hash": "731d970888e7d46daa17a9b378f31d9c"
+  },
+  "/Users/rian/Documents/Skillbridge/10_HASIL_UJI_COBA.pdf": {
+    "mtime": 1788649073.2749808,
+    "seen": 1789624490.269279,
+    "ast_hash": "731d970888e7d46daa17a9b378f31d9c",
+    "semantic_hash": "731d970888e7d46daa17a9b378f31d9c"
+  },
+  "/Users/rian/Documents/Skillbridge/Proposal Kompres 16.pdf": {
+    "mtime": 1787486384.7747808,
+    "seen": 1789624490.26928,
+    "ast_hash": "3d93b4c256063fc0f15e5503a5c9a63c",
+    "semantic_hash": "3d93b4c256063fc0f15e5503a5c9a63c"
+  },
+  "/Users/rian/Documents/Skillbridge/Proposal_Kompres_16_Lengkap.pdf": {
+    "mtime": 1788649074.2039282,
+    "seen": 1789624490.269281,
+    "ast_hash": "f80b2aa5c48fde7d95548eefba4deeac",
+    "semantic_hash": "f80b2aa5c48fde7d95548eefba4deeac"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/SECTION_10_HASIL_UJI_COBA.pdf": {
+    "mtime": 1788626816.5846562,
+    "seen": 1789624490.269282,
+    "ast_hash": "eb9487d1711794a0f5eecb31e3e077fe",
+    "semantic_hash": "eb9487d1711794a0f5eecb31e3e077fe"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/marketing/medium.pdf": {
+    "mtime": 1787502445.2203162,
+    "seen": 1789624490.269283,
+    "ast_hash": "7fcc58704a571cd4208cedfeb9fc4490",
+    "semantic_hash": "7fcc58704a571cd4208cedfeb9fc4490"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/marketing/strong.pdf": {
+    "mtime": 1787502450.9068375,
+    "seen": 1789624490.2692852,
+    "ast_hash": "88019427c60994e045a6b682e783517e",
+    "semantic_hash": "88019427c60994e045a6b682e783517e"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/marketing/weak.pdf": {
+    "mtime": 1787502438.7340972,
+    "seen": 1789624490.269286,
+    "ast_hash": "4a6f7de592e17d42c5acc53f61d93336",
+    "semantic_hash": "4a6f7de592e17d42c5acc53f61d93336"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/BUKTI_VISUAL_PENGUJIAN_3_BIDANG.png": {
+    "mtime": 1787885643.175836,
+    "seen": 1789624490.2692869,
+    "ast_hash": "6e2ed14ecaa0eee0b9ffd9430d0dc4c1",
+    "semantic_hash": "6e2ed14ecaa0eee0b9ffd9430d0dc4c1"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/charts/01_skor_benchmark_vs_baseline.png": {
+    "mtime": 1788626480.8423712,
+    "seen": 1789624490.2692878,
+    "ast_hash": "58fbf0863c36d17201e6aed184b93f54",
+    "semantic_hash": "58fbf0863c36d17201e6aed184b93f54"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/charts/02_stabilitas_3_run.png": {
+    "mtime": 1788626481.5732286,
+    "seen": 1789624490.26929,
+    "ast_hash": "3e88fb3b9f89745782e6e7e04785a1e7",
+    "semantic_hash": "3e88fb3b9f89745782e6e7e04785a1e7"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/charts/03_latensi_per_bidang.png": {
+    "mtime": 1788626482.7250476,
+    "seen": 1789624490.269291,
+    "ast_hash": "2c8d594d7e056abb1cb6a1d5530c59ad",
+    "semantic_hash": "2c8d594d7e056abb1cb6a1d5530c59ad"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/live-test-evidence/01-informatika-sebelum-submit.png": {
+    "mtime": 1787886253.158462,
+    "seen": 1789624490.269292,
+    "ast_hash": "0e74da7f02b2d54651f26c76d46c6e56",
+    "semantic_hash": "0e74da7f02b2d54651f26c76d46c6e56"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/live-test-evidence/01_landing_page.png": {
+    "mtime": 1788626299.9326026,
+    "seen": 1789624490.269293,
+    "ast_hash": "66571d302bcd913c168fcfc360f64978",
+    "semantic_hash": "66571d302bcd913c168fcfc360f64978"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/live-test-evidence/02-informatika-hasil.png": {
+    "mtime": 1787886307.4328883,
+    "seen": 1789624490.269294,
+    "ast_hash": "56e8a429959a02a320cb5e8ba36fbd6a",
+    "semantic_hash": "56e8a429959a02a320cb5e8ba36fbd6a"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/live-test-evidence/02_form_penilaian_3_bidang.png": {
+    "mtime": 1788626342.6407938,
+    "seen": 1789624490.2692952,
+    "ast_hash": "7e4cf747d5762b6481e14821a0e9b770",
+    "semantic_hash": "7e4cf747d5762b6481e14821a0e9b770"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/live-test-evidence/03-dkv-sebelum-submit.png": {
+    "mtime": 1787886353.5137854,
+    "seen": 1789624490.2692962,
+    "ast_hash": "500f3d1211157efdf6793c50b335dc49",
+    "semantic_hash": "500f3d1211157efdf6793c50b335dc49"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/live-test-evidence/03_hasil_penilaian_kriteria_bukti.png": {
+    "mtime": 1788626443.008582,
+    "seen": 1789624490.269297,
+    "ast_hash": "7691a637d20bd01f6c2c49a77f93b6c2",
+    "semantic_hash": "7691a637d20bd01f6c2c49a77f93b6c2"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/live-test-evidence/04-dkv-hasil.png": {
+    "mtime": 1787886420.7966852,
+    "seen": 1789624490.2692978,
+    "ast_hash": "d78fc239a00ad9c3fa538558d940b52a",
+    "semantic_hash": "d78fc239a00ad9c3fa538558d940b52a"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/live-test-evidence/04_rekomendasi_materi_terkurasi.png": {
+    "mtime": 1788626532.8583324,
+    "seen": 1789624490.269299,
+    "ast_hash": "ce946fed2d35c5d797737a1b80f13c23",
+    "semantic_hash": "ce946fed2d35c5d797737a1b80f13c23"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/live-test-evidence/05-pemasaran-sebelum-submit.png": {
+    "mtime": 1787886441.701341,
+    "seen": 1789624490.2693,
+    "ast_hash": "6a9e923144900c3909d3dbae5ede01b2",
+    "semantic_hash": "6a9e923144900c3909d3dbae5ede01b2"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/live-test-evidence/05_riwayat_dan_reassessment_diff.png": {
+    "mtime": 1788626552.5093608,
+    "seen": 1789624490.269301,
+    "ast_hash": "8c1e9fe0f0f81ac6597c1a76319219fd",
+    "semantic_hash": "8c1e9fe0f0f81ac6597c1a76319219fd"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/live-test-evidence/06-pemasaran-hasil.png": {
+    "mtime": 1787886497.0913374,
+    "seen": 1789624490.2693021,
+    "ast_hash": "25f4e245ddeea658b5c2983dafe6408f",
+    "semantic_hash": "25f4e245ddeea658b5c2983dafe6408f"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/live-test-evidence/06_sesi_wawancara_adaptif.png": {
+    "mtime": 1788626629.3114274,
+    "seen": 1789624490.269303,
+    "ast_hash": "fb929f2cd621311e930c95106177d96b",
+    "semantic_hash": "fb929f2cd621311e930c95106177d96b"
+  },
+  "/Users/rian/Documents/Skillbridge/docs/validation/live-test-evidence/07-riwayat-tiga-pengujian.png": {
+    "mtime": 1787886507.4836524,
+    "seen": 1789624490.269305,
+    "ast_hash": "3787bd4584e3e5f7ecd43596b9f4376b",
+    "semantic_hash": "3787bd4584e3e5f7ecd43596b9f4376b"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/design/medium.png": {
+    "mtime": 1787502421.210197,
+    "seen": 1789624490.2693062,
+    "ast_hash": "82c3aa38c2de67d208f2d24eb6a90a12",
+    "semantic_hash": "82c3aa38c2de67d208f2d24eb6a90a12"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/design/medium.svg": {
+    "mtime": 1787502405.461516,
+    "seen": 1789624490.269307,
+    "ast_hash": "7ea1099b26d2b8af369407ed3dce1df0",
+    "semantic_hash": "7ea1099b26d2b8af369407ed3dce1df0"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/design/strong.png": {
+    "mtime": 1787502421.416355,
+    "seen": 1789624490.2693079,
+    "ast_hash": "058797118393bd24c959fbb36c1534e3",
+    "semantic_hash": "058797118393bd24c959fbb36c1534e3"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/design/strong.svg": {
+    "mtime": 1787502405.4640908,
+    "seen": 1789624490.269309,
+    "ast_hash": "4622cabe19158a2ab66ee3ddec5ec338",
+    "semantic_hash": "4622cabe19158a2ab66ee3ddec5ec338"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/design/weak.png": {
+    "mtime": 1787502421.0730264,
+    "seen": 1789624490.26931,
+    "ast_hash": "22968a23cf5b207d4906f36c9648fa42",
+    "semantic_hash": "22968a23cf5b207d4906f36c9648fa42"
+  },
+  "/Users/rian/Documents/Skillbridge/fixtures/design/weak.svg": {
+    "mtime": 1787502405.4602697,
+    "seen": 1789624490.269311,
+    "ast_hash": "a74748e789b0283926ca05d1b09bb9a7",
+    "semantic_hash": "a74748e789b0283926ca05d1b09bb9a7"
+  }
+}

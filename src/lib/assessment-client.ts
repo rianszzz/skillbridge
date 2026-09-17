@@ -22,7 +22,7 @@ export function useAssessments(id?: string) {
       if (active) setItems(data as unknown as AssessmentResult[]);
     }).catch((cause) => { if (active) setError(cause instanceof Error ? cause.message : "Riwayat gagal dibaca."); }).finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
-  }, [id]);
+  }, [id, isDemo]);
   return { items, loading, error };
 }
 

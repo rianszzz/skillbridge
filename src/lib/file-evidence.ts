@@ -1,6 +1,6 @@
 import { getDocument } from "unpdf/pdfjs";
 
-export const MAX_FILE_BYTES = 4 * 1024 * 1024;
+const MAX_FILE_BYTES = 4 * 1024 * 1024;
 export const MAX_MULTIPART_BYTES = MAX_FILE_BYTES + 64 * 1024;
 const MAX_IMAGE_PIXELS = 24_000_000;
 const MAX_PDF_CHARACTERS = 30_000;

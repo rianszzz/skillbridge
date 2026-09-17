@@ -1,0 +1,1 @@
+{"nodes": [], "edges": [], "hyperedges": [{"id": "dkv_design_benchmark_tiers", "label": "DKV Visual Rubric Calibration Tier Set", "nodes": ["weak_png_asset", "medium_png_asset", "strong_png_asset"], "relation": "form", "confidence": "EXTRACTED", "confidence_score": 1.0, "source_file": "fixtures/design/descriptions.json"}]}
