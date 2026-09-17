@@ -1,6 +1,6 @@
 import type { AssessmentResult } from "./types";
 
-export type CriterionDiff = {
+type CriterionDiff = {
   criterionId: string;
   previousScore: number | null | undefined;
   currentScore: number | null;

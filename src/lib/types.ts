@@ -14,8 +14,8 @@ export type Criterion = {
   acceptedEvidence: string;
 };
 
-export type EvidenceQuote = { reference: string; quote: string };
-export type CriterionDetails = {
+type EvidenceQuote = { reference: string; quote: string };
+type CriterionDetails = {
   met_indicators: string[];
   missing_indicators: string[];
   evidence_quotes: EvidenceQuote[];

@@ -2,7 +2,7 @@
 // URL berasal dari sumber terkurasi yang sudah diperiksa keaktifannya.
 // ponytail: static catalog, add DB + search when catalog exceeds ~50 items
 
-export type LearningResource = { title: string; url: string; level: "beginner" | "intermediate"; language: "id" | "en" };
+type LearningResource = { title: string; url: string; level: "beginner" | "intermediate"; language: "id" | "en" };
 
 export const catalog: Record<string, LearningResource[]> = {
   // Informatika
@@ -64,15 +64,3 @@ export const catalog: Record<string, LearningResource[]> = {
     { title: "HubSpot: Marketing Report Templates", url: "https://blog.hubspot.com/marketing/marketing-report-examples", level: "intermediate", language: "en" },
   ],
 };
-
-/** Pick top resources for a set of gap criterion IDs, up to `limit` total */
-export function recommendResources(gapCriterionIds: string[], limit = 3): { criterionId: string; resource: LearningResource }[] {
-  const results: { criterionId: string; resource: LearningResource }[] = [];
-  for (const criterionId of gapCriterionIds) {
-    const items = catalog[criterionId];
-    if (!items?.length) continue;
-    results.push({ criterionId, resource: items[0] });
-    if (results.length >= limit) break;
-  }
-  return results;
-}
