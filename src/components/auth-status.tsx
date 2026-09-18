@@ -47,7 +47,6 @@ export default function AuthStatus() {
     return (
       <>
         <Link href="/recruiter">Talent Pool</Link>
-        <Link href="/assess">Nilai Pelamar</Link>
         <button className="nav-button" onClick={signOut}>Keluar</button>
       </>
     );

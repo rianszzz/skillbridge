@@ -273,33 +273,6 @@ export default function RecruiterView() {
 
   return (
     <section className="section" style={{ paddingTop: "1rem" }}>
-      {/* Banner Pintasan Rekruter */}
-      <aside
-        className="panel"
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: "1.25rem",
-          marginBottom: "2.5rem",
-          borderLeft: "4px solid var(--ink)",
-          background: "var(--paper)",
-        }}
-      >
-        <div style={{ maxWidth: "680px" }}>
-          <strong style={{ fontSize: "1.1rem", display: "block", marginBottom: "0.25rem" }}>
-            Punya pelamar baru yang ingin divalidasi?
-          </strong>
-          <p className="hint" style={{ margin: 0 }}>
-            Uji kelayakan kerja berkas pelamar masuk dengan standar rubrik industri objektif berbasis bukti nyata.
-          </p>
-        </div>
-        <Link className="button" href="/assess">
-          Nilai Portofolio Pelamar Masuk
-        </Link>
-      </aside>
-
       {error && (
         <div className="alert" role="alert" style={{ marginBottom: "2rem" }}>
           {error}
