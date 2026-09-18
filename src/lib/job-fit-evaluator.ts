@@ -3,8 +3,7 @@ import type { AssessmentResult, JobPosting, JobFitEvaluation } from "./types.ts"
 
 export type { JobFitEvaluation };
 
-export const ALLOWED_ANCHORS = [0, 25, 50, 75, 100] as const;
-export type AnchorScore = (typeof ALLOWED_ANCHORS)[number];
+export type AnchorScore = 0 | 25 | 50 | 75 | 100;
 
 export function snapToAnchor(score: number): AnchorScore {
   if (score <= 12.5) return 0;

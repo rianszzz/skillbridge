@@ -524,35 +524,6 @@ async function saveCustomJobToRecruiterMetadata(
   }
 }
 
-async function updateCustomJobInRecruiterMetadata(
-  recruiterId: string,
-  posting: JobPosting,
-): Promise<void> {
-  if (!recruiterId) return;
-  try {
-    const admin = createAdminSupabase();
-    const { data: userData, error: userError } = await admin.auth.admin.getUserById(recruiterId);
-    if (!userError && userData?.user) {
-      const metadata = (userData.user.user_metadata || {}) as Record<string, unknown>;
-      const currentCustom: JobPosting[] = Array.isArray(metadata.custom_jobs)
-        ? (metadata.custom_jobs as JobPosting[])
-        : [];
-      const idx = currentCustom.findIndex((j) => j && j.id === posting.id);
-      if (idx !== -1) {
-        currentCustom[idx] = posting;
-        await admin.auth.admin.updateUserById(recruiterId, {
-          user_metadata: {
-            ...metadata,
-            custom_jobs: [...currentCustom],
-          },
-        });
-      }
-    }
-  } catch {
-    // Fail-safe
-  }
-}
-
 export async function getJobPostings(
   filters?: JobFilters & { deletedIds?: string[]; recruiterId?: string },
 ): Promise<JobPosting[]> {
