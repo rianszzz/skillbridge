@@ -48,7 +48,6 @@ export default function AuthStatus() {
     return (
       <>
         <Link href="/jobs">Lowongan</Link>
-        <Link href="/recruiter">Portal HR</Link>
         <button className="nav-button" onClick={signOut}>Keluar</button>
       </>
     );
