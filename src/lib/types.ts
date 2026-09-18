@@ -67,3 +67,74 @@ export type TalentPoolFilters = {
   field?: string;
   minScore?: number;
 };
+
+export type EmploymentType = "fulltime" | "internship" | "contract" | "parttime";
+export type WorkplaceType = "onsite" | "hybrid" | "remote";
+export type MinEducation = "smk" | "diploma" | "bachelor" | "any";
+export type ExperienceLevel = "fresh_graduate" | "under_1_year" | "1_to_2_years";
+export type CompensationType = "paid" | "unpaid";
+export type JobStatus = "active" | "closed";
+export type ApplicationStatus = "pending" | "reviewed" | "shortlisted" | "rejected" | "accepted";
+export type JobEvidenceType = "github" | "image" | "pdf";
+
+export type JobPosting = {
+  id: string;
+  recruiterId?: string;
+  companyName: string;
+  companyLogo?: string;
+  title: string;
+  field: Field;
+  targetRole: Role | string;
+  employmentType: EmploymentType;
+  workplaceType: WorkplaceType;
+  location: string;
+  minEducation: MinEducation;
+  experienceLevel: ExperienceLevel;
+  compensationType: CompensationType;
+  salaryMin: number | null;
+  salaryMax: number | null;
+  showSalary: boolean;
+  benefits: string[];
+  highlights: string[];
+  description?: string;
+  responsibilities: string[];
+  requiredSkills: string[];
+  acceptedEvidenceTypes: JobEvidenceType[];
+  minSkillbridgeScore: number;
+  status: JobStatus;
+  createdAt: string;
+  updatedAt?: string;
+  isDemo: boolean;
+};
+
+export type JobApplication = {
+  id: string;
+  jobId: string;
+  candidateId: string;
+  candidateName: string;
+  candidateEmail: string;
+  assessmentId?: string | null;
+  skillbridgeScore?: number | null;
+  portfolioUrl?: string;
+  coverLetter?: string;
+  status: ApplicationStatus;
+  appliedAt: string;
+  isDemo?: boolean;
+  jobTitle?: string;
+  companyName?: string;
+};
+
+export type JobFilters = {
+  field?: Field | "all";
+  targetRole?: Role | string;
+  employmentType?: EmploymentType | "all";
+  workplaceType?: WorkplaceType | "all";
+  minEducation?: MinEducation | "all";
+  experienceLevel?: ExperienceLevel | "all";
+  compensationType?: CompensationType | "all";
+  minScore?: number;
+  candidateScore?: number;
+  searchQuery?: string;
+  status?: JobStatus | "all";
+};
+
