@@ -37,6 +37,7 @@ export default function AuthStatus() {
   if (!authState.authenticated) {
     return (
       <>
+        <Link href="/jobs">Lowongan</Link>
         <Link href="/auth?mode=signup">Daftar</Link>
         <Link href="/auth">Masuk</Link>
       </>
@@ -46,7 +47,8 @@ export default function AuthStatus() {
   if (authState.role === "recruiter") {
     return (
       <>
-        <Link href="/recruiter">Talent Pool</Link>
+        <Link href="/jobs">Lowongan</Link>
+        <Link href="/recruiter">Portal HR</Link>
         <button className="nav-button" onClick={signOut}>Keluar</button>
       </>
     );
@@ -54,6 +56,7 @@ export default function AuthStatus() {
 
   return (
     <>
+      <Link href="/jobs">Lowongan</Link>
       <Link href="/assess">Penilaian</Link>
       <Link href="/history">Riwayat</Link>
       <button className="nav-button" onClick={signOut}>Keluar</button>
