@@ -2,7 +2,7 @@ const GITHUB_REPOSITORY = /^https:\/\/github\.com\/([A-Za-z0-9_.-]+)\/([A-Za-z0-
 const MAX_GITHUB_RESPONSE_BYTES = 2 * 1024 * 1024;
 const MAX_SOURCE_FILES = 5;
 const MAX_SOURCE_FILE_BYTES = 4 * 1024;
-const MAX_SOURCE_BYTES = 16 * 1024;
+const MAX_SOURCE_BYTES = 12 * 1024;
 const SOURCE_EXTENSION = /\.(?:js|jsx|ts|tsx|py|java|go|rb|php|cs)$/i;
 const SKIP_SOURCE = /(?:^|\/)(?:node_modules|vendor|dist|build|coverage|\.next|generated)(?:\/|$)|(?:\.min\.|lock$)/i;
 
@@ -40,7 +40,7 @@ export async function fetchGitHubEvidence(value: string) {
     request(`/git/trees/${repository.default_branch}?recursive=1`).catch(() => ({ tree: [] })),
     request("/commits?per_page=10").catch(() => []),
   ]);
-  const readmeText = readme?.content ? Buffer.from(readme.content, "base64").toString("utf8").slice(0, 12_000) : "README tidak tersedia";
+  const readmeText = readme?.content ? Buffer.from(readme.content, "base64").toString("utf8").slice(0, 5_000) : "README tidak tersedia";
   const files = (tree.tree ?? []).filter((item: { type: string }) => item.type === "blob").slice(0, 150).map((item: { path: string; size?: number }) => `${item.path} (${item.size ?? 0} bytes)`);
   const history = commits.slice(0, 10).map((item: { sha: string; commit: { message: string; author: { date: string } } }) => `${item.sha.slice(0, 7)} | ${item.commit.author.date} | ${item.commit.message.split("\n")[0]}`);
   const sourceCandidates = (tree.tree ?? []).filter((item: { type: string; path: string; size?: number }) => item.type === "blob" && SOURCE_EXTENSION.test(item.path) && !SKIP_SOURCE.test(item.path) && (item.size ?? MAX_SOURCE_FILE_BYTES + 1) <= MAX_SOURCE_FILE_BYTES).slice(0, MAX_SOURCE_FILES);

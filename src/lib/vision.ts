@@ -1,10 +1,11 @@
 import Groq from "groq-sdk";
+import { cleanJsonContent } from "./assessment.ts";
 
 export async function describeDesignImage(bytes: Uint8Array, mime: "image/png" | "image/jpeg") {
   if (!process.env.GROQ_API_KEY) throw new Error("GROQ_API_KEY belum dikonfigurasi.");
   const client = new Groq({ apiKey: process.env.GROQ_API_KEY, timeout: 14_000, maxRetries: 0 });
   const response = await client.chat.completions.create({
-    model: "qwen/qwen3.6-27b",
+    model: "qwen/qwen3.8-27b",
     temperature: 0,
     max_completion_tokens: 900,
     messages: [{ role: "user", content: [
@@ -14,7 +15,7 @@ export async function describeDesignImage(bytes: Uint8Array, mime: "image/png" |
   });
   const description = response.choices[0]?.message?.content?.trim();
   if (!description) throw new Error("Groq vision tidak mengembalikan observasi visual.");
-  return formatDesignObservation(JSON.parse(description));
+  return formatDesignObservation(JSON.parse(cleanJsonContent(description)));
 }
 
 export function formatDesignObservation(value: unknown) {

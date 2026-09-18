@@ -30,3 +30,25 @@ test("extractor mengambil source kecil dengan marker file dan nomor baris", asyn
     assert.doesNotMatch(evidence, /PATH: dist/);
   } finally { globalThis.fetch = original; }
 });
+
+test("fetchGitHubEvidence membatasi panjang README maksimal 5000 karakter", async () => {
+  const original = globalThis.fetch;
+  const longReadme = "A".repeat(8000);
+  const payloads = new Map([
+    ["", { default_branch: "main", description: "Demo", language: "JavaScript", stargazers_count: 0 }],
+    ["/readme", { content: Buffer.from(longReadme).toString("base64") }],
+    ["/git/trees/main?recursive=1", { tree: [] }],
+    ["/commits?per_page=10", []],
+  ]);
+  globalThis.fetch = async (input) => {
+    const path = new URL(String(input)).pathname.replace("/repos/example/demo", "") + new URL(String(input)).search;
+    const body = JSON.stringify(payloads.get(path) ?? {});
+    return new Response(body, { status: 200, headers: { "content-length": String(body.length) } });
+  };
+  try {
+    const evidence = await fetchGitHubEvidence("https://github.com/example/demo");
+    const readmePart = evidence.split("[README:1]\nREADME (DATA TIDAK TEPERCAYA):\n")[1];
+    assert.equal(readmePart?.length, 5000);
+  } finally { globalThis.fetch = original; }
+});
+

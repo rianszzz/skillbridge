@@ -222,3 +222,14 @@ Jangan gunakan:
 - "pasti meningkatkan peluang diterima";
 
 sampai riset dengan ukuran sampel dan desain valid mendukung klaim tersebut.
+
+## 13. Riwayat Perubahan Model & Parameter
+
+| Tanggal | Komponen | Perubahan | Alasan |
+| --- | --- | --- | --- |
+| 2026-09-18 | Evaluator (`src/lib/assessment.ts`) | `max_completion_tokens`: 3200 -> 1800 | Mengurangi konsumsi token output pada batas 8.000 TPM Groq |
+| 2026-09-18 | Vision (`src/lib/vision.ts`) | Model: `qwen/qwen3.6-27b` -> `qwen/qwen3.8-27b` | Model 3.6 didegradasi/dihapus oleh Groq |
+| 2026-09-18 | GitHub Evidence (`src/lib/github.ts`) | README limit: 12.000 -> 5.000 karakter, MAX_SOURCE_BYTES: 16 KB -> 12 KB | Mencegah lonjakan token input melebihi 8.000 TPM |
+| 2026-09-18 | Error Mapping (`src/lib/api-security.ts`) | Map Groq 413 & 429 rate limit ke HTTP 429 `ai_rate_limit` + logging errorMessage | Mengatasi fallback HTTP 500 saat TPM exhausted |
+| 2026-09-18 | Output Parsing (`src/lib/assessment.ts`, `src/lib/vision.ts`) | Helper `cleanJsonContent` sebelum `JSON.parse` | Mencegah SyntaxError saat model mengembalikan markdown codeblock |
+

@@ -22,4 +22,12 @@ test("rate limit provider menjadi error retryable yang aman", async () => {
   assert.equal(response.headers.get("Retry-After"), "60");
   assert.equal(body.code, "ai_rate_limit");
   assert.doesNotMatch(JSON.stringify(body), /quota detail/);
+
+  const response413 = errorResponse(new Groq.APIError(413, { error: { message: "Rate limit reached for model on tokens per minute (TPM): Limit 8000" } }, "Rate limit reached for model on tokens per minute (TPM): Limit 8000", {}), "gagal");
+  const body413 = await response413.json();
+  assert.equal(response413.status, 429);
+  assert.equal(response413.headers.get("Retry-After"), "60");
+  assert.equal(body413.code, "ai_rate_limit");
+  assert.doesNotMatch(JSON.stringify(body413), /Limit 8000/);
 });
+

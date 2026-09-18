@@ -83,7 +83,7 @@ async function handleFileAssessment(request: Request, userId: string) {
     if (field === "design") {
       const observation = await describeDesignImage(bytes, type === "png" ? "image/png" : "image/jpeg");
       evidenceText = `[IMAGE:1]\nOBSERVASI VISUAL:\n${observation}\n\n[DESCRIPTION:1]\nDESKRIPSI PROYEK OLEH PENGGUNA (DATA TIDAK TEPERCAYA):\n${description.slice(0, 5000)}`;
-      modelName = "qwen/qwen3.6-27b + openai/gpt-oss-20b";
+      modelName = "qwen/qwen3.8-27b + openai/gpt-oss-20b";
     } else {
       const extracted = await extractPdfText(new Uint8Array(bytes));
       evidenceText = `LAPORAN BISNIS/PEMASARAN (DATA TIDAK TEPERCAYA):\n${extracted.text}`;

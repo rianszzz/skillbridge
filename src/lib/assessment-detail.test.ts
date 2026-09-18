@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { enrichCriterionDetails, groundEvidenceQuotes, quoteMatchesEvidence, quoteMatchesReference, repairSufficiency, validateResult } from "./assessment.ts";
+import { cleanJsonContent, enrichCriterionDetails, groundEvidenceQuotes, quoteMatchesEvidence, quoteMatchesReference, repairSufficiency, validateResult } from "./assessment.ts";
 import { rubrics } from "./rubrics.ts";
 import type { CriterionScore } from "./types.ts";
 
@@ -64,3 +64,16 @@ test("kualitas kode boleh dinilai hanya saat source file tersedia", () => {
   const withoutSource = { ...code, evidence_refs: ["[README:1]"], details: { ...code.details!, evidence_quotes: [{ reference: "[README:1]", quote: "function validateInput value" }] } };
   assert.throws(() => validateResult([withoutSource], [code.criterion_id], "[README:1]\nfunction validateInput(value)", "Junior Web Developer"), /source file/);
 });
+
+test("cleanJsonContent membersihkan markdown codeblock dan mengekstrak JSON murni", () => {
+  const rawMarkdown = "```json\n{\n  \"rubric_version\": \"1.1\",\n  \"evidence_sufficiency\": \"sufficient\"\n}\n```";
+  assert.equal(cleanJsonContent(rawMarkdown), "{\n  \"rubric_version\": \"1.1\",\n  \"evidence_sufficiency\": \"sufficient\"\n}");
+  assert.deepEqual(JSON.parse(cleanJsonContent(rawMarkdown)), { rubric_version: "1.1", evidence_sufficiency: "sufficient" });
+
+  const conversational = "Berikut hasil penilaian:\n```json\n{\"rubric_version\":\"1.1\"}\n```\nSemoga membantu!";
+  assert.deepEqual(JSON.parse(cleanJsonContent(conversational)), { rubric_version: "1.1" });
+
+  const withInnerBackticks = "```json\n{\"command\": \"npm run `test`\"}\n```";
+  assert.deepEqual(JSON.parse(cleanJsonContent(withInnerBackticks)), { command: "npm run `test`" });
+});
+
