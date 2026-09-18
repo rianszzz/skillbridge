@@ -18,7 +18,7 @@ import {
   isTableMissing,
   parseDeletedJobsCookie,
 } from "./jobs.ts";
-import type { JobPosting } from "./types.ts";
+import type { JobPosting, JobApplication } from "./types.ts";
 
 test("DEMO_JOBS mematuhi skema data dan kriteria Proposal Kompres 16", () => {
   assert.ok(DEMO_JOBS.length >= 3, "Harus menyediakan minimal 3 lowongan demo");
@@ -765,5 +765,110 @@ test("getJobPostings bekerja fail-safe dengan recruiterId dan deletedIds", async
   assert.ok(jobs.length >= 1);
   assert.ok(!jobs.some((j) => j.id === "dummy-deleted-uuid-999"));
 });
+
+test("pelamar dari lowongan yang dihapus tidak muncul di getJobApplicationsForRecruiter", async () => {
+  const recruiterId = "recruiter-test-deleted-apps";
+  const dummyJobId = "job-deleted-test-uuid-001";
+  const dummyAppId = "app-deleted-test-uuid-001";
+
+  const testApp: JobApplication = {
+    id: dummyAppId,
+    jobId: dummyJobId,
+    candidateId: "cand-test-uuid-001",
+    candidateName: "Kandidat Lowongan Dihapus",
+    candidateEmail: "deleted.job.applicant@test.com",
+    status: "pending",
+    appliedAt: "2026-09-01T10:00:00Z",
+    jobTitle: "Role Yang Dihapus",
+    companyName: "PT Hapus Lowongan",
+    isDemo: true,
+  };
+
+  DEMO_APPLICATIONS.push(testApp);
+
+  try {
+    // Sebelum lowongan dihapus, lamaran harus muncul di daftar lamaran recruiter
+    const appsBefore = await getJobApplicationsForRecruiter(recruiterId);
+    assert.ok(
+      appsBefore.some((a) => a.id === dummyAppId),
+      "Lamaran harus muncul sebelum lowongan dihapus",
+    );
+
+    // Hapus lowongan via deleteJobPosting
+    await deleteJobPosting(recruiterId, dummyJobId);
+
+    // Setelah lowongan dihapus, lamaran tidak boleh muncul di daftar umum maupun spesifik
+    const appsAfter = await getJobApplicationsForRecruiter(recruiterId);
+    assert.ok(
+      !appsAfter.some((a) => a.id === dummyAppId),
+      "Lamaran dari lowongan yang dihapus tidak boleh muncul di getJobApplicationsForRecruiter",
+    );
+    assert.ok(
+      !appsAfter.some((a) => a.jobId === dummyJobId),
+      "Tidak boleh ada lamaran dari jobId yang telah dihapus",
+    );
+
+    const appsSpecific = await getJobApplicationsForRecruiter(recruiterId, dummyJobId);
+    assert.equal(
+      appsSpecific.length,
+      0,
+      "Pencarian lamaran dengan jobId yang dihapus harus menghasilkan array kosong",
+    );
+  } finally {
+    const idx = DEMO_APPLICATIONS.findIndex((a) => a.id === dummyAppId);
+    if (idx !== -1) {
+      DEMO_APPLICATIONS.splice(idx, 1);
+    }
+  }
+});
+
+test("getJobApplicationsForRecruiter menyaring deleted_job_ids dan deleted_application_ids dari user_metadata recruiter", async () => {
+  const testRecruiterId = "00000000-0000-4000-8000-000000000088";
+  const deletedJobId = "10000000-0000-4000-8000-000000000002";
+  const deletedAppId = "20000000-0000-4000-8000-000000000003";
+
+  const origFetch = globalThis.fetch;
+  const origUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const origKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  process.env.NEXT_PUBLIC_SUPABASE_URL = "http://localhost:54321";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
+
+  globalThis.fetch = async (url) => {
+    if (url.toString().includes("/auth/v1/admin/users/")) {
+      return new Response(
+        JSON.stringify({
+          id: testRecruiterId,
+          user_metadata: {
+            deleted_job_ids: [deletedJobId],
+            deleted_application_ids: [deletedAppId],
+          },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    }
+    return new Response(JSON.stringify([]), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    const apps = await getJobApplicationsForRecruiter(testRecruiterId);
+    assert.ok(
+      !apps.some((a) => a.jobId === deletedJobId),
+      "Lamaran dari lowongan dalam deleted_job_ids tidak boleh muncul",
+    );
+    assert.ok(
+      !apps.some((a) => a.id === deletedAppId),
+      "Lamaran dalam deleted_application_ids tidak boleh muncul",
+    );
+  } finally {
+    globalThis.fetch = origFetch;
+    process.env.NEXT_PUBLIC_SUPABASE_URL = origUrl;
+    process.env.SUPABASE_SERVICE_ROLE_KEY = origKey;
+  }
+});
+
 
 

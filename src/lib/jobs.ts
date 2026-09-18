@@ -1447,6 +1447,36 @@ export async function getJobApplicationsForRecruiter(
   jobId?: string,
 ): Promise<JobApplication[]> {
   let dbApps: JobApplication[] = [];
+  let metadataDeletedJobIds: string[] = [];
+  let metadataDeletedAppIds: string[] = [];
+
+  if (recruiterId) {
+    try {
+      const admin = createAdminSupabase();
+      const { data: userData, error: userError } = await admin.auth.admin.getUserById(recruiterId);
+      if (!userError && userData?.user) {
+        const metadata = (userData.user.user_metadata || {}) as Record<string, unknown>;
+        if (Array.isArray(metadata.deleted_job_ids)) {
+          metadataDeletedJobIds = metadata.deleted_job_ids.filter(
+            (id): id is string => typeof id === "string" && id.trim().length > 0,
+          );
+        }
+        if (Array.isArray(metadata.deleted_application_ids)) {
+          metadataDeletedAppIds = metadata.deleted_application_ids.filter(
+            (id): id is string => typeof id === "string" && id.trim().length > 0,
+          );
+        }
+      }
+    } catch {
+      // Graceful fallback
+    }
+  }
+
+  const allDeletedJobIds = new Set<string>([
+    ...deletedJobIds,
+    ...metadataDeletedJobIds,
+  ]);
+  const deletedAppIds = new Set<string>(metadataDeletedAppIds);
 
   try {
     const db = createAdminSupabase();
@@ -1476,11 +1506,21 @@ export async function getJobApplicationsForRecruiter(
     // Graceful fallback
   }
 
+  // Saring dbApps agar mengabaikan lamaran yang allDeletedJobIds.has(a.jobId) atau deletedAppIds.has(a.id)
+  dbApps = dbApps.filter(
+    (a) => !allDeletedJobIds.has(a.jobId) && !deletedAppIds.has(a.id),
+  );
+
   // Filter demo applications
   let demoApps = DEMO_APPLICATIONS;
   if (jobId) {
     demoApps = demoApps.filter((a) => a.jobId === jobId);
   }
+
+  // Saring demoApps agar mengabaikan lamaran yang allDeletedJobIds.has(a.jobId) atau deletedAppIds.has(a.id)
+  demoApps = demoApps.filter(
+    (a) => !allDeletedJobIds.has(a.jobId) && !deletedAppIds.has(a.id),
+  );
 
   const existingIds = new Set(dbApps.map((a) => a.id));
   const combined = [...dbApps, ...demoApps.filter((a) => !existingIds.has(a.id))];

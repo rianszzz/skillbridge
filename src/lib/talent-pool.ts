@@ -96,33 +96,36 @@ export async function getTalentPool(
     effectiveFilters?.jobId === "all" ? undefined : effectiveFilters?.jobId,
   );
 
-  const candidates: TalentCandidate[] = await Promise.all(
-    applications.map(async (app) => {
-      const job = await getJobPostingById(app.jobId);
-      const finalScore = app.fitEvaluation?.score ?? app.skillbridgeScore ?? 50;
-      return {
-        id: app.id,
-        assessmentId: app.assessmentId ?? app.id,
-        candidateName: app.candidateName,
-        email: app.candidateEmail,
-        role: app.jobTitle ?? job?.targetRole ?? "Pelamar",
-        field: job?.field ?? "informatics",
-        finalScore,
-        fitEvaluation: app.fitEvaluation ?? null,
-        jobId: app.jobId,
-        jobTitle: app.jobTitle ?? job?.title,
-        companyName: app.companyName ?? job?.companyName,
-        status: app.status,
-        coverLetter: app.coverLetter,
-        sourceUrl: app.portfolioUrl,
-        evidenceType: (job?.acceptedEvidenceTypes?.[0] ?? "github") as "github" | "image" | "pdf",
-        strengths: app.fitEvaluation?.matchingCriteria ?? [],
-        gaps: app.fitEvaluation?.missingCriteria ?? [],
-        createdAt: app.appliedAt,
-        isDemo: Boolean(app.isDemo),
-      };
-    }),
-  );
+  const candidates: TalentCandidate[] = (
+    await Promise.all(
+      applications.map(async (app): Promise<TalentCandidate | null> => {
+        const job = await getJobPostingById(app.jobId, { recruiterId });
+        if (!job) return null;
+        const finalScore = app.fitEvaluation?.score ?? app.skillbridgeScore ?? 50;
+        return {
+          id: app.id,
+          assessmentId: app.assessmentId ?? app.id,
+          candidateName: app.candidateName,
+          email: app.candidateEmail,
+          role: app.jobTitle ?? job.targetRole ?? "Pelamar",
+          field: job.field ?? "informatics",
+          finalScore,
+          fitEvaluation: app.fitEvaluation ?? null,
+          jobId: app.jobId,
+          jobTitle: app.jobTitle ?? job.title,
+          companyName: app.companyName ?? job.companyName,
+          status: app.status,
+          coverLetter: app.coverLetter,
+          sourceUrl: app.portfolioUrl,
+          evidenceType: (job.acceptedEvidenceTypes?.[0] ?? "github") as "github" | "image" | "pdf",
+          strengths: app.fitEvaluation?.matchingCriteria ?? [],
+          gaps: app.fitEvaluation?.missingCriteria ?? [],
+          createdAt: app.appliedAt,
+          isDemo: Boolean(app.isDemo),
+        };
+      }),
+    )
+  ).filter((c): c is TalentCandidate => c !== null && Boolean(c.jobTitle));
 
   let result = candidates;
 

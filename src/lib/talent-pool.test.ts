@@ -7,6 +7,8 @@ import {
   isTableMissing,
   type TalentCandidate,
 } from "./talent-pool.ts";
+import { createJobPosting, deleteJobPosting, DEMO_APPLICATIONS } from "./jobs.ts";
+import type { JobApplication } from "./types.ts";
 
 test("getDemoTalentCandidates menggabungkan demo seeds valid dan membuang yang insufficient", () => {
   const demoCandidates = getDemoTalentCandidates();
@@ -275,4 +277,121 @@ test("getTalentPool menyaring berdasarkan jobId HR dan memetakan objek TalentCan
   const allCandidates = await getTalentPool("recruiter-test-id", { jobId: "all" });
   assert.ok(allCandidates.length >= 3, "jobId 'all' harus memuat minimal 3 pelamar demo");
 });
+
+test("kandidat pelamar dari lowongan yang dihapus tidak muncul di getTalentPool", async () => {
+  const recruiterId = "recruiter-test-talent-pool-delete";
+  const dummyAppId = "app-tp-delete-test-uuid-001";
+
+  // Buat lowongan aktif
+  const createdJob = await createJobPosting(recruiterId, "PT Lowongan Dihapus", {
+    title: "Role Khusus Terhapus",
+    field: "informatics",
+    targetRole: "Junior Web Developer",
+    employmentType: "fulltime",
+    workplaceType: "remote",
+    location: "Jakarta",
+    minEducation: "smk",
+    experienceLevel: "fresh_graduate",
+    compensationType: "paid",
+    salaryMin: 5000000,
+    salaryMax: 7000000,
+    showSalary: true,
+    benefits: ["Tunjangan"],
+    highlights: ["H1", "H2", "H3"],
+    description: "Deskripsi pekerjaan uji",
+    responsibilities: ["Tanggung jawab 1", "Tanggung jawab 2"],
+    requiredSkills: ["Skill 1", "Skill 2"],
+    acceptedEvidenceTypes: ["github"],
+    minSkillbridgeScore: 50,
+  });
+
+  const testApp: JobApplication = {
+    id: dummyAppId,
+    jobId: createdJob.id,
+    candidateId: "cand-tp-uuid-001",
+    candidateName: "Pelamar Lowongan Dihapus",
+    candidateEmail: "deleted.candidate@test.com",
+    status: "pending",
+    appliedAt: "2026-09-02T12:00:00Z",
+    jobTitle: createdJob.title,
+    companyName: createdJob.companyName,
+    isDemo: true,
+  };
+
+  DEMO_APPLICATIONS.push(testApp);
+
+  try {
+    const poolBefore = await getTalentPool(recruiterId, { jobId: createdJob.id });
+    assert.ok(
+      poolBefore.some((c) => c.id === dummyAppId),
+      "Kandidat harus muncul di talent pool sebelum lowongan dihapus",
+    );
+
+    // Hapus lowongan
+    await deleteJobPosting(recruiterId, createdJob.id);
+
+    // Setelah lowongan dihapus, kandidat tidak boleh muncul di filter jobId spesifik
+    const poolAfterJobFilter = await getTalentPool(recruiterId, { jobId: createdJob.id });
+    assert.equal(
+      poolAfterJobFilter.length,
+      0,
+      "Tidak boleh ada kandidat untuk lowongan yang telah dihapus",
+    );
+
+    // Maupun di talent pool umum
+    const poolAfterAll = await getTalentPool(recruiterId);
+    assert.ok(
+      !poolAfterAll.some((c) => c.id === dummyAppId || c.jobId === createdJob.id),
+      "Kandidat dari lowongan yang dihapus tidak boleh muncul di daftar talent pool umum",
+    );
+  } finally {
+    const idx = DEMO_APPLICATIONS.findIndex((a) => a.id === dummyAppId);
+    if (idx !== -1) {
+      DEMO_APPLICATIONS.splice(idx, 1);
+    }
+  }
+});
+
+test("getTalentPool menyaring kandidat dari lowongan yang dihapus via user_metadata recruiter", async () => {
+  const testRecruiterId = "00000000-0000-4000-8000-000000000077";
+  const deletedJobId = "10000000-0000-4000-8000-000000000001";
+
+  const origFetch = globalThis.fetch;
+  const origUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const origKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  process.env.NEXT_PUBLIC_SUPABASE_URL = "http://localhost:54321";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
+
+  globalThis.fetch = async (url) => {
+    if (url.toString().includes("/auth/v1/admin/users/")) {
+      return new Response(
+        JSON.stringify({
+          id: testRecruiterId,
+          user_metadata: {
+            deleted_job_ids: [deletedJobId],
+          },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    }
+    return new Response(JSON.stringify([]), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  };
+
+  try {
+    const pool = await getTalentPool(testRecruiterId);
+    assert.ok(
+      !pool.some((c) => c.jobId === deletedJobId),
+      "Kandidat dari lowongan yang ada di metadata.deleted_job_ids tidak boleh muncul di getTalentPool",
+    );
+  } finally {
+    globalThis.fetch = origFetch;
+    process.env.NEXT_PUBLIC_SUPABASE_URL = origUrl;
+    process.env.SUPABASE_SERVICE_ROLE_KEY = origKey;
+  }
+});
+
 
