@@ -6,17 +6,27 @@ import { getSupabase } from "@/lib/auth-client";
 
 export default function AuthStatus() {
   const router = useRouter();
-  const [authenticated, setAuthenticated] = useState<boolean>();
+  const [authState, setAuthState] = useState<{
+    authenticated: boolean;
+    role: string | null;
+  }>();
 
   useEffect(() => {
     const supabase = getSupabase();
-    supabase.auth.getSession().then(({ data }) => setAuthenticated(Boolean(data.session)));
-    const { data } = supabase.auth.onAuthStateChange((_event, session) => setAuthenticated(Boolean(session)));
+    supabase.auth.getSession().then(({ data }) => {
+      const user = data.session?.user;
+      const role = (user?.user_metadata?.role || user?.user_metadata?.account_role || null) as string | null;
+      setAuthState({ authenticated: Boolean(data.session), role });
+    });
+    const { data } = supabase.auth.onAuthStateChange((_event, session) => {
+      const user = session?.user;
+      const role = (user?.user_metadata?.role || user?.user_metadata?.account_role || null) as string | null;
+      setAuthState({ authenticated: Boolean(session), role });
+    });
     return () => data.subscription.unsubscribe();
   }, []);
 
-  if (authenticated === undefined) return null;
-  if (!authenticated) return <><Link href="/auth?mode=signup">Daftar</Link><Link href="/auth">Masuk</Link></>;
+  if (authState === undefined) return null;
 
   async function signOut() {
     await getSupabase().auth.signOut();
@@ -24,5 +34,30 @@ export default function AuthStatus() {
     router.refresh();
   }
 
-  return <><Link href="/assess">Penilaian</Link><Link href="/history">Riwayat</Link><button className="nav-button" onClick={signOut}>Keluar</button></>;
+  if (!authState.authenticated) {
+    return (
+      <>
+        <Link href="/auth?mode=signup">Daftar</Link>
+        <Link href="/auth">Masuk</Link>
+      </>
+    );
+  }
+
+  if (authState.role === "recruiter") {
+    return (
+      <>
+        <Link href="/recruiter">Talent Pool</Link>
+        <Link href="/assess">Nilai Pelamar</Link>
+        <button className="nav-button" onClick={signOut}>Keluar</button>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Link href="/assess">Penilaian</Link>
+      <Link href="/history">Riwayat</Link>
+      <button className="nav-button" onClick={signOut}>Keluar</button>
+    </>
+  );
 }
