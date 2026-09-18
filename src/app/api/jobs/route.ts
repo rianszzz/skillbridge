@@ -3,6 +3,7 @@ import {
   getJobPostings,
   createJobPosting,
   validateJobPostingInput,
+  parseDeletedJobsCookie,
   type CreateJobInput,
 } from "@/lib/jobs";
 import type {
@@ -47,6 +48,16 @@ export async function GET(request: Request) {
       }
     }
 
+    const cookieHeader = request.headers.get("cookie");
+    const deletedIds = parseDeletedJobsCookie(cookieHeader);
+
+    let user: { id: string } | null = null;
+    try {
+      user = await authenticatedUser(request);
+    } catch {
+      // Autentikasi opsional: abaikan jika tidak ada token atau token tidak valid
+    }
+
     const jobs = await getJobPostings({
       field: fieldParam ? (fieldParam as Field | "all") : undefined,
       minEducation: minEducationParam ? (minEducationParam as MinEducation | "all") : undefined,
@@ -56,6 +67,8 @@ export async function GET(request: Request) {
       searchQuery: searchParam ? searchParam.trim() : undefined,
       minScore,
       candidateScore,
+      deletedIds,
+      recruiterId: user?.id,
     });
 
     return Response.json(jobs, privateResponse());

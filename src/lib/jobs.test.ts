@@ -16,6 +16,7 @@ import {
   updateJobPosting,
   deleteJobPosting,
   isTableMissing,
+  parseDeletedJobsCookie,
 } from "./jobs.ts";
 
 test("DEMO_JOBS mematuhi skema data dan kriteria Proposal Kompres 16", () => {
@@ -672,4 +673,80 @@ test("deleteJobPosting memvalidasi input dan bekerja fail-safe saat table missin
   );
   assert.equal(nonExistentResult, true);
 });
+
+test("parseDeletedJobsCookie mem-parse cookie skillbridge_deleted_jobs secara akurat", () => {
+  // Null / undefined / empty
+  assert.deepEqual(parseDeletedJobsCookie(null), []);
+  assert.deepEqual(parseDeletedJobsCookie(undefined), []);
+  assert.deepEqual(parseDeletedJobsCookie(""), []);
+  assert.deepEqual(parseDeletedJobsCookie("unrelated_cookie=test_value"), []);
+
+  // Valid cookie tunggal
+  const single = `skillbridge_deleted_jobs=${encodeURIComponent(JSON.stringify(["job-123"]))}`;
+  assert.deepEqual(parseDeletedJobsCookie(single), ["job-123"]);
+
+  // Valid cookie banyak id di antara cookie lain
+  const multipleIds = ["job-1", "job-2", "job-3"];
+  const multiCookie = `session=abc; skillbridge_deleted_jobs=${encodeURIComponent(
+    JSON.stringify(multipleIds),
+  )}; token=xyz`;
+  assert.deepEqual(parseDeletedJobsCookie(multiCookie), multipleIds);
+
+  // Cookie dengan JSON tidak valid tidak melempar exception
+  assert.deepEqual(
+    parseDeletedJobsCookie("skillbridge_deleted_jobs=not-a-valid-json"),
+    [],
+  );
+});
+
+test("getJobPostings dan getJobPostingById menghormati filter deletedIds", async () => {
+  const jobsBefore = await getJobPostings();
+  assert.ok(jobsBefore.length >= 2, "Harus ada lowongan awal");
+
+  const targetJobId = jobsBefore[0].id;
+  const otherJobId = jobsBefore[1].id;
+
+  // getJobPostings dengan deletedIds menyaring targetJobId
+  const jobsFiltered = await getJobPostings({ deletedIds: [targetJobId] });
+  assert.ok(
+    !jobsFiltered.some((j) => j.id === targetJobId),
+    "Lowongan pada deletedIds tidak boleh muncul di daftar getJobPostings",
+  );
+  assert.ok(
+    jobsFiltered.some((j) => j.id === otherJobId),
+    "Lowongan lain yang tidak dihapus harus tetap muncul",
+  );
+
+  // getJobPostingById dengan deletedIds mengembalikan null jika id ada di deletedIds
+  const jobFoundWithoutFilter = await getJobPostingById(targetJobId);
+  // targetJobId mungkin ada di list jika belum dihapus global
+  if (jobFoundWithoutFilter) {
+    const jobFoundWithFilter = await getJobPostingById(targetJobId, {
+      deletedIds: [targetJobId],
+    });
+    assert.equal(
+      jobFoundWithFilter,
+      null,
+      "getJobPostingById harus mengembalikan null bila id ada di options.deletedIds",
+    );
+  }
+
+  // getJobPostingById dengan id lain tetap mengembalikan posting
+  const otherFound = await getJobPostingById(otherJobId, {
+    deletedIds: [targetJobId],
+  });
+  assert.ok(otherFound !== null);
+  assert.equal(otherFound?.id, otherJobId);
+});
+
+test("getJobPostings bekerja fail-safe dengan recruiterId dan deletedIds", async () => {
+  const jobs = await getJobPostings({
+    recruiterId: "unregistered-recruiter-id-001",
+    deletedIds: ["dummy-deleted-uuid-999"],
+  });
+  assert.ok(Array.isArray(jobs));
+  assert.ok(jobs.length >= 1);
+  assert.ok(!jobs.some((j) => j.id === "dummy-deleted-uuid-999"));
+});
+
 

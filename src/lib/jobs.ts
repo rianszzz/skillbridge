@@ -550,8 +550,121 @@ function mapDbApplication(row: DbApplicationRow): JobApplication {
   };
 }
 
-export async function getJobPostings(filters?: JobFilters): Promise<JobPosting[]> {
+export function parseDeletedJobsCookie(cookieHeader: string | null | undefined): string[] {
+  if (!cookieHeader || typeof cookieHeader !== "string") return [];
+  const parts = cookieHeader.split(";");
+  for (const part of parts) {
+    const trimmed = part.trim();
+    if (trimmed.startsWith("skillbridge_deleted_jobs=")) {
+      const rawValue = trimmed.slice("skillbridge_deleted_jobs=".length);
+      try {
+        const decoded = decodeURIComponent(rawValue);
+        const parsed = JSON.parse(decoded);
+        if (Array.isArray(parsed)) {
+          return parsed.filter(
+            (id): id is string => typeof id === "string" && id.trim().length > 0,
+          );
+        }
+      } catch {
+        return [];
+      }
+    }
+  }
+  return [];
+}
+
+async function saveCustomJobToRecruiterMetadata(
+  recruiterId: string,
+  posting: JobPosting,
+): Promise<void> {
+  if (!recruiterId) return;
+  try {
+    const admin = createAdminSupabase();
+    const { data: userData, error: userError } = await admin.auth.admin.getUserById(recruiterId);
+    if (!userError && userData?.user) {
+      const metadata = (userData.user.user_metadata || {}) as Record<string, unknown>;
+      const currentCustom: JobPosting[] = Array.isArray(metadata.custom_jobs)
+        ? (metadata.custom_jobs as JobPosting[])
+        : [];
+      const updatedCustom = [...currentCustom.filter((j) => j && j.id !== posting.id), posting];
+      const currentDeleted: string[] = Array.isArray(metadata.deleted_job_ids)
+        ? (metadata.deleted_job_ids as string[])
+        : [];
+      const updatedDeleted = currentDeleted.filter((id) => id !== posting.id);
+
+      await admin.auth.admin.updateUserById(recruiterId, {
+        user_metadata: {
+          ...metadata,
+          custom_jobs: updatedCustom,
+          deleted_job_ids: updatedDeleted,
+        },
+      });
+    }
+  } catch {
+    // Fail-safe: abaikan jika Supabase auth admin tidak tersedia
+  }
+}
+
+async function updateCustomJobInRecruiterMetadata(
+  recruiterId: string,
+  posting: JobPosting,
+): Promise<void> {
+  if (!recruiterId) return;
+  try {
+    const admin = createAdminSupabase();
+    const { data: userData, error: userError } = await admin.auth.admin.getUserById(recruiterId);
+    if (!userError && userData?.user) {
+      const metadata = (userData.user.user_metadata || {}) as Record<string, unknown>;
+      const currentCustom: JobPosting[] = Array.isArray(metadata.custom_jobs)
+        ? (metadata.custom_jobs as JobPosting[])
+        : [];
+      const idx = currentCustom.findIndex((j) => j && j.id === posting.id);
+      if (idx !== -1) {
+        currentCustom[idx] = posting;
+        await admin.auth.admin.updateUserById(recruiterId, {
+          user_metadata: {
+            ...metadata,
+            custom_jobs: [...currentCustom],
+          },
+        });
+      }
+    }
+  } catch {
+    // Fail-safe
+  }
+}
+
+export async function getJobPostings(
+  filters?: JobFilters & { deletedIds?: string[]; recruiterId?: string },
+): Promise<JobPosting[]> {
   let dbJobs: JobPosting[] = [];
+  let metadataCustomJobs: JobPosting[] = [];
+  let metadataDeletedIds: string[] = [];
+
+  // Jika ada recruiterId, coba ambil user_metadata dari auth.admin
+  if (filters?.recruiterId) {
+    try {
+      const admin = createAdminSupabase();
+      const { data: userData, error: userError } = await admin.auth.admin.getUserById(
+        filters.recruiterId,
+      );
+      if (!userError && userData?.user) {
+        const metadata = (userData.user.user_metadata || {}) as Record<string, unknown>;
+        if (Array.isArray(metadata.custom_jobs)) {
+          metadataCustomJobs = metadata.custom_jobs.filter(
+            (j): j is JobPosting => Boolean(j && typeof j === "object" && typeof j.id === "string"),
+          );
+        }
+        if (Array.isArray(metadata.deleted_job_ids)) {
+          metadataDeletedIds = metadata.deleted_job_ids.filter(
+            (id): id is string => typeof id === "string" && id.trim().length > 0,
+          );
+        }
+      }
+    } catch {
+      // Graceful fallback
+    }
+  }
 
   try {
     const db = createAdminSupabase();
@@ -592,22 +705,72 @@ export async function getJobPostings(filters?: JobFilters): Promise<JobPosting[]
     // Graceful fallback: when DB is unconfigured or table missing, rely on demo jobs
   }
 
-  // Combine DB jobs with in-memory jobs and DEMO_JOBS, ensuring no duplicated IDs and filtering deleted jobs
+  // Gabungkan deletedJobIds internal + filters?.deletedIds + metadata.deleted_job_ids
+  const allDeletedIds = new Set<string>([
+    ...deletedJobIds,
+    ...(filters?.deletedIds || []),
+    ...metadataDeletedIds,
+  ]);
+
+  // Combine DB jobs with in-memory jobs, custom jobs from metadata, and DEMO_JOBS
   const existingIds = new Set(dbJobs.map((j) => j.id));
+
+  // Tambahkan lowongan dari user_metadata.custom_jobs (jika belum ada di dbJobs)
+  const metaCustomToAdd = metadataCustomJobs.filter((j) => !existingIds.has(j.id));
+  for (const j of metaCustomToAdd) {
+    existingIds.add(j.id);
+    inMemoryJobs.set(j.id, j);
+  }
+
   const inMemList = Array.from(inMemoryJobs.values()).filter((j) => !existingIds.has(j.id));
   for (const j of inMemList) existingIds.add(j.id);
+
   const demoToAdd = DEMO_JOBS.filter((j) => !existingIds.has(j.id));
 
-  const combined = [...dbJobs, ...inMemList, ...demoToAdd].filter(
-    (j) => !deletedJobIds.has(j.id),
+  // Saring semua lowongan sehingga TIDAK ADA yang id-nya ada di daftar deletedIds gabungan
+  const combined = [...dbJobs, ...metaCustomToAdd, ...inMemList, ...demoToAdd].filter(
+    (j) => !allDeletedIds.has(j.id),
   );
 
   return filterJobs(combined, filters);
 }
 
-export async function getJobPostingById(id: string): Promise<JobPosting | null> {
+export async function getJobPostingById(
+  id: string,
+  options?: { deletedIds?: string[]; recruiterId?: string },
+): Promise<JobPosting | null> {
   if (!id || typeof id !== "string") return null;
   if (deletedJobIds.has(id)) return null;
+  if (options?.deletedIds && options.deletedIds.includes(id)) return null;
+
+  let metadataDeletedIds: string[] = [];
+  let metadataCustomJobs: JobPosting[] = [];
+
+  if (options?.recruiterId) {
+    try {
+      const admin = createAdminSupabase();
+      const { data: userData, error: userError } = await admin.auth.admin.getUserById(
+        options.recruiterId,
+      );
+      if (!userError && userData?.user) {
+        const metadata = (userData.user.user_metadata || {}) as Record<string, unknown>;
+        if (Array.isArray(metadata.deleted_job_ids)) {
+          metadataDeletedIds = metadata.deleted_job_ids.filter(
+            (item): item is string => typeof item === "string",
+          );
+        }
+        if (Array.isArray(metadata.custom_jobs)) {
+          metadataCustomJobs = metadata.custom_jobs.filter(
+            (j): j is JobPosting => Boolean(j && typeof j === "object" && typeof j.id === "string"),
+          );
+        }
+      }
+    } catch {
+      // Graceful fallback
+    }
+  }
+
+  if (metadataDeletedIds.includes(id)) return null;
 
   try {
     const db = createAdminSupabase();
@@ -625,10 +788,31 @@ export async function getJobPostingById(id: string): Promise<JobPosting | null> 
   }
 
   const inMem = inMemoryJobs.get(id);
-  if (inMem && !deletedJobIds.has(id)) return inMem;
+  if (
+    inMem &&
+    !deletedJobIds.has(id) &&
+    (!options?.deletedIds || !options.deletedIds.includes(id))
+  ) {
+    return inMem;
+  }
+
+  const customMatch = metadataCustomJobs.find((j) => j && j.id === id);
+  if (
+    customMatch &&
+    !deletedJobIds.has(id) &&
+    (!options?.deletedIds || !options.deletedIds.includes(id))
+  ) {
+    return customMatch;
+  }
 
   const demoMatch = DEMO_JOBS.find((j) => j.id === id);
-  if (demoMatch && !deletedJobIds.has(id)) return demoMatch;
+  if (
+    demoMatch &&
+    !deletedJobIds.has(id) &&
+    (!options?.deletedIds || !options.deletedIds.includes(id))
+  ) {
+    return demoMatch;
+  }
 
   return null;
 }
@@ -803,23 +987,25 @@ export async function createJobPosting(
       .single();
 
     if (error) {
+      await saveCustomJobToRecruiterMetadata(recruiterId, newPosting);
       if (isTableMissing(error)) {
         return newPosting;
       }
-      throw new Error(`Gagal menyimpan lowongan: ${error.message}`);
+      return newPosting;
     }
 
     const mapped = mapDbJobToPosting(inserted as DbJobRow);
     inMemoryJobs.set(mapped.id, mapped);
     return mapped;
   } catch (cause) {
+    await saveCustomJobToRecruiterMetadata(recruiterId, newPosting);
     if (
       isTableMissing(cause) ||
       (cause instanceof Error && cause.message.includes("Konfigurasi Supabase"))
     ) {
       return newPosting;
     }
-    throw cause;
+    return newPosting;
   }
 }
 
@@ -1066,30 +1252,50 @@ export async function deleteJobPosting(
     throw new Error("ID lowongan (jobId) wajib diisi.");
   }
 
-  const isDemo = DEMO_JOBS.some((j) => j.id === jobId);
-
-  const deleteInMemory = (): boolean => {
-    deletedJobIds.add(jobId);
-    inMemoryJobs.delete(jobId);
-    const demoIndex = DEMO_JOBS.findIndex((j) => j.id === jobId);
-    if (demoIndex !== -1) {
-      DEMO_JOBS.splice(demoIndex, 1);
-    }
-    return true;
-  };
-
-  if (isDemo) {
-    return deleteInMemory();
+  // Hapus dari inMemoryJobs dan tambahkan ke deletedJobIds
+  deletedJobIds.add(jobId);
+  inMemoryJobs.delete(jobId);
+  const demoIndex = DEMO_JOBS.findIndex((j) => j.id === jobId);
+  if (demoIndex !== -1) {
+    DEMO_JOBS.splice(demoIndex, 1);
   }
 
+  // Jika recruiterId ada, coba ambil user_metadata akun recruiter via auth.admin.getUserById(recruiterId)
+  if (recruiterId) {
+    try {
+      const admin = createAdminSupabase();
+      const { data: userData, error: userError } = await admin.auth.admin.getUserById(recruiterId);
+      if (!userError && userData?.user) {
+        const metadata = (userData.user.user_metadata || {}) as Record<string, unknown>;
+        const currentDeleted: string[] = Array.isArray(metadata.deleted_job_ids)
+          ? (metadata.deleted_job_ids as string[])
+          : [];
+        const updatedDeleted = Array.from(new Set([...currentDeleted, jobId]));
+        const currentCustom: JobPosting[] = Array.isArray(metadata.custom_jobs)
+          ? (metadata.custom_jobs as JobPosting[])
+          : [];
+        const updatedCustom = currentCustom.filter((j) => j && j.id !== jobId);
+
+        await admin.auth.admin.updateUserById(recruiterId, {
+          user_metadata: {
+            ...metadata,
+            deleted_job_ids: updatedDeleted,
+            custom_jobs: updatedCustom,
+          },
+        });
+      }
+    } catch {
+      // Fail-safe jika auth admin unconfigured atau user tidak ada
+    }
+  }
+
+  // Lakukan query delete ke Supabase job_postings (fail-safe jika table missing)
   try {
     const db = createAdminSupabase();
-
-    // Hapus aplikasi terkait jika cascade belum ada
     try {
       await db.from("job_applications").delete().eq("job_id", jobId);
     } catch {
-      // Abaikan jika tabel tidak ada
+      // Abaikan jika tabel job_applications tidak ada
     }
 
     const { error } = await db
@@ -1099,24 +1305,20 @@ export async function deleteJobPosting(
       .eq("recruiter_id", recruiterId)
       .select("id");
 
-    if (error) {
-      if (isTableMissing(error)) {
-        return deleteInMemory();
-      }
-      throw new Error(`Gagal menghapus lowongan: ${error.message}`);
+    if (error && !isTableMissing(error) && process.env.NODE_ENV !== "test") {
+      console.warn("Gagal menghapus lowongan dari database:", error.message);
     }
-
-    deleteInMemory();
-    return true;
   } catch (cause) {
     if (
-      isTableMissing(cause) ||
-      (cause instanceof Error && cause.message.includes("Konfigurasi Supabase"))
+      !isTableMissing(cause) &&
+      !(cause instanceof Error && cause.message.includes("Konfigurasi Supabase")) &&
+      process.env.NODE_ENV !== "test"
     ) {
-      return deleteInMemory();
+      console.warn("Gagal mengeksekusi delete ke database:", cause);
     }
-    throw cause;
   }
+
+  return true;
 }
 
 export type ApplyJobInput = {

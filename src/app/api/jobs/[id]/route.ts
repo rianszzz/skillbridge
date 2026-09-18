@@ -13,8 +13,26 @@ import {
   assertJsonRequest,
 } from "@/lib/api-security";
 
+function parseDeletedJobsCookie(cookieHeader: string | null): string[] {
+  if (!cookieHeader) return [];
+  const cookies = cookieHeader.split(";").map((c) => c.trim());
+  const targetCookie = cookies.find((c) => c.startsWith("skillbridge_deleted_jobs="));
+  if (!targetCookie) return [];
+  const rawValue = targetCookie.substring("skillbridge_deleted_jobs=".length);
+  try {
+    const decoded = decodeURIComponent(rawValue);
+    const parsed = JSON.parse(decoded);
+    if (Array.isArray(parsed)) {
+      return parsed.filter((item): item is string => typeof item === "string" && item.length > 0);
+    }
+  } catch {
+    // Abaikan jika cookie rusak
+  }
+  return [];
+}
+
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: Promise<{ id: string }> },
 ) {
   try {
@@ -23,7 +41,10 @@ export async function GET(
       throw new PublicError("ID lowongan wajib diisi.", 400, "missing_id");
     }
 
-    const job = await getJobPostingById(id);
+    const cookieHeader = request.headers.get("cookie");
+    const deletedIds = parseDeletedJobsCookie(cookieHeader);
+
+    const job = await getJobPostingById(id, { deletedIds });
     if (!job) {
       throw new PublicError("Lowongan tidak ditemukan.", 404, "not_found");
     }
@@ -100,8 +121,20 @@ export async function DELETE(
       throw new PublicError("ID lowongan wajib diisi.", 400, "missing_id");
     }
 
+    const cookieHeader = request.headers.get("cookie");
+    const existingCookieIds = parseDeletedJobsCookie(cookieHeader);
+    const updatedCookieIds = Array.from(new Set([...existingCookieIds, id]));
+
     await deleteJobPosting(user.id, id);
-    return Response.json({ success: true }, privateResponse());
+
+    const baseInit = privateResponse();
+    const headers = new Headers(baseInit.headers);
+    headers.append(
+      "Set-Cookie",
+      `skillbridge_deleted_jobs=${encodeURIComponent(JSON.stringify(updatedCookieIds))}; Path=/; SameSite=Lax; Max-Age=31536000`,
+    );
+
+    return Response.json({ success: true }, { status: baseInit.status, headers });
   } catch (error) {
     return errorResponse(error, "Gagal menghapus lowongan.");
   }

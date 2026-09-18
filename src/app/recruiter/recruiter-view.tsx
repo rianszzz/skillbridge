@@ -4,6 +4,11 @@ import Link from "next/link";
 import { useEffect, useState, useId } from "react";
 import { authHeaders, getSupabase } from "@/lib/auth-client";
 import { setupJobRealtimeSync, broadcastJobSync } from "@/lib/realtime-jobs";
+import {
+  getDeletedJobIds,
+  markJobAsDeleted,
+  filterOutDeletedJobs,
+} from "@/lib/job-tombstone";
 import type {
   TalentCandidate,
   JobPosting,
@@ -324,15 +329,16 @@ export default function RecruiterView() {
     if (authState.status !== "recruiter") return;
     let active = true;
 
-    Promise.all([
-      fetch("/api/jobs").then((r) => (r.ok ? r.json() : [])),
-      authHeaders().then((headers) =>
-        fetch("/api/jobs/applications", { headers }).then((r) => (r.ok ? r.json() : [])),
-      ),
-    ])
+    authHeaders()
+      .then((headers) =>
+        Promise.all([
+          fetch("/api/jobs", { headers }).then((r) => (r.ok ? r.json() : [])),
+          fetch("/api/jobs/applications", { headers }).then((r) => (r.ok ? r.json() : [])),
+        ]),
+      )
       .then(([jobsData, appsData]: [JobPosting[], JobApplication[]]) => {
         if (active) {
-          setJobs(jobsData);
+          setJobs(filterOutDeletedJobs(jobsData));
           setApplications(appsData);
           setJobsError("");
         }
@@ -359,6 +365,7 @@ export default function RecruiterView() {
 
     const unsubscribe = setupJobRealtimeSync({
       onJobCreated: (newJob) => {
+        if (getDeletedJobIds().has(newJob.id)) return;
         setJobs((prev) => (prev.some((j) => j.id === newJob.id) ? prev : [newJob, ...prev]));
         setRefreshTrigger((p) => p + 1);
       },
@@ -367,10 +374,12 @@ export default function RecruiterView() {
         setSelectedJobForApplicants((prev) => (prev?.id === updatedJob.id ? updatedJob : prev));
       },
       onJobDeleted: (deletedJobId) => {
+        markJobAsDeleted(deletedJobId);
         setJobs((prev) => prev.filter((j) => j.id !== deletedJobId));
         setSelectedJobForApplicants((prev) => (prev?.id === deletedJobId ? null : prev));
       },
       onRefresh: () => {
+        setJobs((prev) => filterOutDeletedJobs(prev));
         setRefreshTrigger((p) => p + 1);
       },
     });
@@ -517,7 +526,8 @@ export default function RecruiterView() {
     setIsDeletingJob(true);
     setDeleteError("");
 
-    // Optimistic delete di memori (0ms)
+    // Optimistic delete di memori (0ms) & tombstone client
+    markJobAsDeleted(targetId);
     setJobs((prev) => prev.filter((j) => j.id !== targetId));
     if (selectedJobForApplicants?.id === targetId) {
       setSelectedJobForApplicants(null);

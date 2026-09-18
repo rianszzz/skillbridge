@@ -4,6 +4,11 @@ import Link from "next/link";
 import { useEffect, useState, useId, useCallback } from "react";
 import { authHeaders, getSupabase } from "@/lib/auth-client";
 import { setupJobRealtimeSync } from "@/lib/realtime-jobs";
+import {
+  getDeletedJobIds,
+  markJobAsDeleted,
+  filterOutDeletedJobs,
+} from "@/lib/job-tombstone";
 import type {
   JobPosting,
   JobApplication,
@@ -201,7 +206,7 @@ export default function JobsView() {
       })
       .then((data: JobPosting[]) => {
         if (active) {
-          setJobs(data);
+          setJobs(filterOutDeletedJobs(data));
           setError("");
         }
       })
@@ -231,22 +236,24 @@ export default function JobsView() {
         fetchJobs();
       },
       onJobUpdated: (updatedJob) => {
-        // Jika status lowongan ditutup oleh HR, buang dari portal pelamar
+        const isDeleted = getDeletedJobIds().has(updatedJob.id);
+        // Jika status lowongan ditutup oleh HR atau telah dihapus, buang dari portal pelamar
         setJobs((prev) =>
-          updatedJob.status === "closed"
+          isDeleted || updatedJob.status === "closed"
             ? prev.filter((j) => j.id !== updatedJob.id)
             : prev.map((j) => (j.id === updatedJob.id ? updatedJob : j)),
         );
 
         setDetailJob((prev) => {
           if (!prev || prev.id !== updatedJob.id) return prev;
-          return updatedJob.status === "closed" ? null : updatedJob;
+          return isDeleted || updatedJob.status === "closed" ? null : updatedJob;
         });
 
         // Sinkronisasi data filter dengan server
         fetchJobs();
       },
       onJobDeleted: (deletedJobId) => {
+        markJobAsDeleted(deletedJobId);
         setJobs((prev) => prev.filter((j) => j.id !== deletedJobId));
         setDetailJob((prev) => (prev?.id === deletedJobId ? null : prev));
         setApplyJob((prev) => (prev?.id === deletedJobId ? null : prev));
