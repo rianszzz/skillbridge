@@ -12,6 +12,9 @@ import {
   getJobApplicationsForCandidate,
   validateJobPostingInput,
   validateApplicationInput,
+  validateJobPostingUpdateInput,
+  updateJobPosting,
+  deleteJobPosting,
   isTableMissing,
 } from "./jobs.ts";
 
@@ -359,3 +362,291 @@ test("getJobApplicationsForRecruiter dan getJobApplicationsForCandidate bekerja 
   assert.ok(candidateApps.length >= 1);
   assert.equal(candidateApps[0].candidateId, "00000000-0000-4000-8000-000000000002");
 });
+
+test("Validasi input updateJobPosting menolak data yang tidak valid", () => {
+  // recruiterId kosong
+  assert.throws(
+    () => validateJobPostingUpdateInput("", "job-123", { title: "New Title" }),
+    /recruiterId.*wajib diisi/i,
+  );
+
+  // jobId kosong
+  assert.throws(
+    () => validateJobPostingUpdateInput("recruiter-1", "", { title: "New Title" }),
+    /jobId.*wajib diisi/i,
+  );
+
+  // title kosong
+  assert.throws(
+    () => validateJobPostingUpdateInput("recruiter-1", "job-123", { title: "   " }),
+    /judul lowongan.*tidak boleh kosong/i,
+  );
+
+  // field tidak valid
+  assert.throws(
+    () =>
+      validateJobPostingUpdateInput("recruiter-1", "job-123", {
+        field: "invalid_field" as unknown as "informatics",
+      }),
+    /bidang lowongan tidak valid/i,
+  );
+
+  // employmentType tidak valid
+  assert.throws(
+    () =>
+      validateJobPostingUpdateInput("recruiter-1", "job-123", {
+        employmentType: "invalid_type" as unknown as "fulltime",
+      }),
+    /tipe kerja tidak valid/i,
+  );
+
+  // workplaceType tidak valid
+  assert.throws(
+    () =>
+      validateJobPostingUpdateInput("recruiter-1", "job-123", {
+        workplaceType: "invalid_type" as unknown as "onsite",
+      }),
+    /tempat kerja tidak valid/i,
+  );
+
+  // minEducation tidak valid
+  assert.throws(
+    () =>
+      validateJobPostingUpdateInput("recruiter-1", "job-123", {
+        minEducation: "invalid_edu" as unknown as "smk",
+      }),
+    /pendidikan minimal tidak valid/i,
+  );
+
+  // experienceLevel tidak valid
+  assert.throws(
+    () =>
+      validateJobPostingUpdateInput("recruiter-1", "job-123", {
+        experienceLevel: "invalid_level" as unknown as "fresh_graduate",
+      }),
+    /tingkat pengalaman tidak valid/i,
+  );
+
+  // compensationType tidak valid
+  assert.throws(
+    () =>
+      validateJobPostingUpdateInput("recruiter-1", "job-123", {
+        compensationType: "crypto" as unknown as "paid",
+      }),
+    /tipe kompensasi tidak valid/i,
+  );
+
+  // salaryMin negatif
+  assert.throws(
+    () =>
+      validateJobPostingUpdateInput("recruiter-1", "job-123", {
+        salaryMin: -500000,
+      }),
+    /gaji minimum tidak boleh bernilai negatif/i,
+  );
+
+  // salaryMax < salaryMin
+  assert.throws(
+    () =>
+      validateJobPostingUpdateInput("recruiter-1", "job-123", {
+        salaryMin: 8000000,
+        salaryMax: 4000000,
+      }),
+    /gaji maksimum tidak boleh lebih kecil/i,
+  );
+
+  // highlights array kosong
+  assert.throws(
+    () =>
+      validateJobPostingUpdateInput("recruiter-1", "job-123", {
+        highlights: [],
+      }),
+    /highlights.*wajib memiliki minimal 1 poin/i,
+  );
+
+  // responsibilities array kosong
+  assert.throws(
+    () =>
+      validateJobPostingUpdateInput("recruiter-1", "job-123", {
+        responsibilities: [],
+      }),
+    /responsibilities.*wajib diisi/i,
+  );
+
+  // requiredSkills array kosong
+  assert.throws(
+    () =>
+      validateJobPostingUpdateInput("recruiter-1", "job-123", {
+        requiredSkills: [],
+      }),
+    /requiredskills.*wajib diisi/i,
+  );
+
+  // minSkillbridgeScore di luar rentang 0-100
+  assert.throws(
+    () =>
+      validateJobPostingUpdateInput("recruiter-1", "job-123", {
+        minSkillbridgeScore: 105,
+      }),
+    /skor minimal skillbridge/i,
+  );
+
+  // status tidak valid
+  assert.throws(
+    () =>
+      validateJobPostingUpdateInput("recruiter-1", "job-123", {
+        status: "archived" as unknown as "active",
+      }),
+    /status lowongan tidak valid/i,
+  );
+});
+
+test("updateJobPosting memperbarui data lowongan (judul, status, gaji) secara fail-safe", async () => {
+  const recruiterId = "recruiter-test-update-user";
+  const createdJob = await createJobPosting(recruiterId, "PT Maju Digital Nusantara", {
+    title: "Junior Web Developer",
+    field: "informatics",
+    targetRole: "Junior Web Developer",
+    employmentType: "fulltime",
+    workplaceType: "hybrid",
+    location: "Jakarta",
+    minEducation: "smk",
+    experienceLevel: "fresh_graduate",
+    compensationType: "paid",
+    salaryMin: 5000000,
+    salaryMax: 7000000,
+    highlights: ["Highlight 1", "Highlight 2"],
+    responsibilities: ["Tanggung jawab 1"],
+    requiredSkills: ["TypeScript", "Next.js"],
+    status: "active",
+  });
+
+  assert.equal(createdJob.title, "Junior Web Developer");
+  assert.equal(createdJob.status, "active");
+  assert.equal(createdJob.salaryMin, 5000000);
+  assert.equal(createdJob.salaryMax, 7000000);
+
+  // Update: ubah judul, status, dan rentang gaji
+  const updatedJob = await updateJobPosting(recruiterId, createdJob.id, {
+    title: "Mid-Level Fullstack Developer",
+    status: "closed",
+    salaryMin: 8000000,
+    salaryMax: 12000000,
+    highlights: ["Highlight baru 1", "Highlight baru 2"],
+  });
+
+  assert.equal(updatedJob.id, createdJob.id);
+  assert.equal(updatedJob.title, "Mid-Level Fullstack Developer");
+  assert.equal(updatedJob.status, "closed");
+  assert.equal(updatedJob.salaryMin, 8000000);
+  assert.equal(updatedJob.salaryMax, 12000000);
+  assert.deepEqual(updatedJob.highlights, ["Highlight baru 1", "Highlight baru 2"]);
+  assert.ok(updatedJob.updatedAt, "updatedAt harus tercatat");
+  // Pastikan field lain yang tidak diubah tetap dipertahankan
+  assert.equal(updatedJob.field, "informatics");
+  assert.equal(updatedJob.companyName, "PT Maju Digital Nusantara");
+
+  // Verifikasi lewat getJobPostingById
+  const retrieved = await getJobPostingById(createdJob.id);
+  assert.ok(retrieved !== null);
+  assert.equal(retrieved?.title, "Mid-Level Fullstack Developer");
+  assert.equal(retrieved?.status, "closed");
+  assert.equal(retrieved?.salaryMin, 8000000);
+  assert.equal(retrieved?.salaryMax, 12000000);
+});
+
+test("updateJobPosting memperbarui demo job secara fail-safe", async () => {
+  // Demo job ke-5
+  const demoTargetId = DEMO_JOBS[4].id;
+  const originalTitle = DEMO_JOBS[4].title;
+
+  const updatedDemo = await updateJobPosting("any-recruiter-id", demoTargetId, {
+    title: "Senior UI/UX Designer & Product Lead",
+    status: "closed",
+    salaryMin: 9000000,
+    salaryMax: 15000000,
+  });
+
+  assert.equal(updatedDemo.id, demoTargetId);
+  assert.equal(updatedDemo.title, "Senior UI/UX Designer & Product Lead");
+  assert.equal(updatedDemo.status, "closed");
+  assert.equal(updatedDemo.salaryMin, 9000000);
+  assert.equal(updatedDemo.salaryMax, 15000000);
+
+  const foundDemo = await getJobPostingById(demoTargetId);
+  assert.ok(foundDemo !== null);
+  assert.equal(foundDemo?.title, "Senior UI/UX Designer & Product Lead");
+  assert.equal(foundDemo?.status, "closed");
+
+  // Restore original title for demo clean state
+  await updateJobPosting("any-recruiter-id", demoTargetId, {
+    title: originalTitle,
+    status: "active",
+    salaryMin: 6000000,
+    salaryMax: 8500000,
+  });
+});
+
+test("deleteJobPosting menghapus lowongan dan memastikannya hilang dari daftar dan detail", async () => {
+  const recruiterId = "recruiter-test-delete-user";
+  const createdJob = await createJobPosting(recruiterId, "PT Solusi Hapus Mandiri", {
+    title: "Lowongan Sementara untuk Pengujian Delete",
+    field: "marketing",
+    targetRole: "Junior Digital Marketer",
+    employmentType: "internship",
+    workplaceType: "remote",
+    location: "Remote",
+    minEducation: "smk",
+    experienceLevel: "fresh_graduate",
+    compensationType: "paid",
+    salaryMin: 3000000,
+    salaryMax: 4000000,
+    highlights: ["Highlight 1"],
+    responsibilities: ["Tanggung jawab 1"],
+    requiredSkills: ["Marketing"],
+    status: "active",
+  });
+
+  // Pastikan ada sebelum dihapus
+  const beforeDelete = await getJobPostingById(createdJob.id);
+  assert.ok(beforeDelete !== null);
+  const listBefore = await getJobPostings({ status: "all" });
+  assert.ok(listBefore.some((j) => j.id === createdJob.id));
+
+  // Hapus lowongan
+  const deleteResult = await deleteJobPosting(recruiterId, createdJob.id);
+  assert.equal(deleteResult, true, "deleteJobPosting harus mengembalikan true");
+
+  // Pastikan tidak ditemukan lagi di detail
+  const afterDelete = await getJobPostingById(createdJob.id);
+  assert.equal(afterDelete, null, "Lowongan yang dihapus harus mengembalikan null pada getJobPostingById");
+
+  // Pastikan tidak ada lagi di daftar lowongan
+  const listAfter = await getJobPostings({ status: "all" });
+  assert.ok(
+    !listAfter.some((j) => j.id === createdJob.id),
+    "Lowongan yang dihapus tidak boleh muncul di daftar getJobPostings",
+  );
+});
+
+test("deleteJobPosting memvalidasi input dan bekerja fail-safe saat table missing atau demo job", async () => {
+  // Validasi recruiterId kosong
+  await assert.rejects(
+    async () => deleteJobPosting("", "job-id"),
+    /recruiterId.*wajib diisi/i,
+  );
+
+  // Validasi jobId kosong
+  await assert.rejects(
+    async () => deleteJobPosting("recruiter-id", ""),
+    /jobId.*wajib diisi/i,
+  );
+
+  // Hapus lowongan fiktif saat table missing / fail-safe
+  const nonExistentResult = await deleteJobPosting(
+    "recruiter-id",
+    "00000000-0000-0000-0000-000000000999",
+  );
+  assert.equal(nonExistentResult, true);
+});
+

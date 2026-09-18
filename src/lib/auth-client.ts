@@ -1,5 +1,5 @@
 "use client";
-import { createBrowserSupabase } from "./supabase";
+import { createBrowserSupabase } from "./supabase.ts";
 
 let client: ReturnType<typeof createBrowserSupabase> | undefined;
 export function getSupabase() { return client ??= createBrowserSupabase(); }

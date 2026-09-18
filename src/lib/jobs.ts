@@ -29,6 +29,8 @@ export type {
   JobApplication,
   JobFilters,
 };
+const inMemoryJobs = new Map<string, JobPosting>();
+const deletedJobIds = new Set<string>();
 
 export const DEMO_JOBS: JobPosting[] = [
   {
@@ -505,15 +507,22 @@ export async function getJobPostings(filters?: JobFilters): Promise<JobPosting[]
     // Graceful fallback: when DB is unconfigured or table missing, rely on demo jobs
   }
 
-  // Combine DB jobs with DEMO_JOBS, ensuring no duplicated IDs
+  // Combine DB jobs with in-memory jobs and DEMO_JOBS, ensuring no duplicated IDs and filtering deleted jobs
   const existingIds = new Set(dbJobs.map((j) => j.id));
-  const combined = [...dbJobs, ...DEMO_JOBS.filter((j) => !existingIds.has(j.id))];
+  const inMemList = Array.from(inMemoryJobs.values()).filter((j) => !existingIds.has(j.id));
+  for (const j of inMemList) existingIds.add(j.id);
+  const demoToAdd = DEMO_JOBS.filter((j) => !existingIds.has(j.id));
+
+  const combined = [...dbJobs, ...inMemList, ...demoToAdd].filter(
+    (j) => !deletedJobIds.has(j.id),
+  );
 
   return filterJobs(combined, filters);
 }
 
 export async function getJobPostingById(id: string): Promise<JobPosting | null> {
   if (!id || typeof id !== "string") return null;
+  if (deletedJobIds.has(id)) return null;
 
   try {
     const db = createAdminSupabase();
@@ -527,11 +536,16 @@ export async function getJobPostingById(id: string): Promise<JobPosting | null> 
       return mapDbJobToPosting(data as DbJobRow);
     }
   } catch {
-    // Graceful fallback: when DB is unconfigured or table missing, check demo jobs
+    // Graceful fallback: when DB is unconfigured or table missing, check in-memory / demo jobs
   }
 
+  const inMem = inMemoryJobs.get(id);
+  if (inMem && !deletedJobIds.has(id)) return inMem;
+
   const demoMatch = DEMO_JOBS.find((j) => j.id === id);
-  return demoMatch ?? null;
+  if (demoMatch && !deletedJobIds.has(id)) return demoMatch;
+
+  return null;
 }
 
 export type CreateJobInput = {
@@ -666,6 +680,9 @@ export async function createJobPosting(
     isDemo: false,
   };
 
+  inMemoryJobs.set(newPosting.id, newPosting);
+  deletedJobIds.delete(newPosting.id);
+
   try {
     const db = createAdminSupabase();
     const { data: inserted, error } = await db
@@ -707,13 +724,311 @@ export async function createJobPosting(
       throw new Error(`Gagal menyimpan lowongan: ${error.message}`);
     }
 
-    return mapDbJobToPosting(inserted as DbJobRow);
+    const mapped = mapDbJobToPosting(inserted as DbJobRow);
+    inMemoryJobs.set(mapped.id, mapped);
+    return mapped;
   } catch (cause) {
     if (
       isTableMissing(cause) ||
       (cause instanceof Error && cause.message.includes("Konfigurasi Supabase"))
     ) {
       return newPosting;
+    }
+    throw cause;
+  }
+}
+
+export function validateJobPostingUpdateInput(
+  recruiterId: string,
+  jobId: string,
+  data: Partial<CreateJobInput>,
+): void {
+  if (!recruiterId || typeof recruiterId !== "string" || recruiterId.trim().length === 0) {
+    throw new Error("ID perekrut (recruiterId) wajib diisi.");
+  }
+  if (!jobId || typeof jobId !== "string" || jobId.trim().length === 0) {
+    throw new Error("ID lowongan (jobId) wajib diisi.");
+  }
+  if (data.title !== undefined) {
+    if (typeof data.title !== "string" || data.title.trim().length === 0) {
+      throw new Error("Judul lowongan (title) tidak boleh kosong.");
+    }
+  }
+  if (data.field !== undefined) {
+    const validFields: Field[] = ["informatics", "design", "marketing"];
+    if (!validFields.includes(data.field)) {
+      throw new Error("Bidang lowongan tidak valid (harus informatics, design, atau marketing).");
+    }
+  }
+  if (data.employmentType !== undefined) {
+    const validEmploymentTypes: EmploymentType[] = ["fulltime", "internship", "contract", "parttime"];
+    if (!validEmploymentTypes.includes(data.employmentType)) {
+      throw new Error("Tipe kerja tidak valid.");
+    }
+  }
+  if (data.workplaceType !== undefined) {
+    const validWorkplaceTypes: WorkplaceType[] = ["onsite", "hybrid", "remote"];
+    if (!validWorkplaceTypes.includes(data.workplaceType)) {
+      throw new Error("Tempat kerja tidak valid.");
+    }
+  }
+  if (data.minEducation !== undefined) {
+    const validMinEducations: MinEducation[] = ["smk", "diploma", "bachelor", "any"];
+    if (!validMinEducations.includes(data.minEducation)) {
+      throw new Error("Pendidikan minimal tidak valid.");
+    }
+  }
+  if (data.experienceLevel !== undefined) {
+    const validExperienceLevels: ExperienceLevel[] = ["fresh_graduate", "under_1_year", "1_to_2_years"];
+    if (!validExperienceLevels.includes(data.experienceLevel)) {
+      throw new Error("Tingkat pengalaman tidak valid.");
+    }
+  }
+  if (data.compensationType !== undefined) {
+    const validCompensationTypes: CompensationType[] = ["paid", "unpaid"];
+    if (!validCompensationTypes.includes(data.compensationType)) {
+      throw new Error("Tipe kompensasi tidak valid.");
+    }
+  }
+  if (data.salaryMin !== undefined && data.salaryMin !== null) {
+    if (typeof data.salaryMin !== "number" || data.salaryMin < 0) {
+      throw new Error("Gaji minimum tidak boleh bernilai negatif.");
+    }
+  }
+  if (
+    data.salaryMin !== undefined &&
+    data.salaryMin !== null &&
+    data.salaryMax !== undefined &&
+    data.salaryMax !== null
+  ) {
+    if (data.salaryMax < data.salaryMin) {
+      throw new Error("Gaji maksimum tidak boleh lebih kecil dari gaji minimum.");
+    }
+  }
+  if (data.highlights !== undefined) {
+    if (!Array.isArray(data.highlights) || data.highlights.length === 0) {
+      throw new Error("Highlights lowongan wajib memiliki minimal 1 poin (disarankan 3 poin).");
+    }
+  }
+  if (data.responsibilities !== undefined) {
+    if (!Array.isArray(data.responsibilities) || data.responsibilities.length === 0) {
+      throw new Error("Tanggung jawab pekerjaan (responsibilities) wajib diisi.");
+    }
+  }
+  if (data.requiredSkills !== undefined) {
+    if (!Array.isArray(data.requiredSkills) || data.requiredSkills.length === 0) {
+      throw new Error("Keahlian yang dibutuhkan (requiredSkills) wajib diisi.");
+    }
+  }
+  if (data.minSkillbridgeScore !== undefined && data.minSkillbridgeScore !== null) {
+    if (
+      typeof data.minSkillbridgeScore !== "number" ||
+      data.minSkillbridgeScore < 0 ||
+      data.minSkillbridgeScore > 100
+    ) {
+      throw new Error("Skor minimal Skillbridge harus berupa angka antara 0 dan 100.");
+    }
+  }
+  if (data.status !== undefined) {
+    const validStatuses: JobStatus[] = ["active", "closed"];
+    if (!validStatuses.includes(data.status)) {
+      throw new Error("Status lowongan tidak valid (harus active atau closed).");
+    }
+  }
+}
+
+export async function updateJobPosting(
+  recruiterId: string,
+  jobId: string,
+  data: Partial<CreateJobInput>,
+): Promise<JobPosting> {
+  validateJobPostingUpdateInput(recruiterId, jobId, data);
+
+  const isDemo = DEMO_JOBS.some((j) => j.id === jobId);
+
+  const updateInMemory = (): JobPosting => {
+    const demoIndex = DEMO_JOBS.findIndex((j) => j.id === jobId);
+    const existing =
+      inMemoryJobs.get(jobId) ?? (demoIndex !== -1 ? DEMO_JOBS[demoIndex] : null);
+
+    const minSalary = data.salaryMin !== undefined ? data.salaryMin : (existing?.salaryMin ?? null);
+    const maxSalary = data.salaryMax !== undefined ? data.salaryMax : (existing?.salaryMax ?? null);
+    if (
+      minSalary !== null &&
+      maxSalary !== null &&
+      maxSalary < minSalary &&
+      (data.compensationType === "paid" || (!data.compensationType && existing?.compensationType === "paid"))
+    ) {
+      throw new Error("Gaji maksimum tidak boleh lebih kecil dari gaji minimum.");
+    }
+
+    const updated: JobPosting = {
+      id: jobId,
+      recruiterId: existing?.recruiterId ?? recruiterId,
+      companyName: existing?.companyName ?? "Perusahaan Mitra",
+      companyLogo: data.companyLogo !== undefined ? data.companyLogo : existing?.companyLogo,
+      title: data.title !== undefined ? data.title.trim() : (existing?.title ?? "Lowongan Pekerjaan"),
+      field: data.field ?? existing?.field ?? "informatics",
+      targetRole: data.targetRole ?? existing?.targetRole ?? "Junior Web Developer",
+      employmentType: data.employmentType ?? existing?.employmentType ?? "fulltime",
+      workplaceType: data.workplaceType ?? existing?.workplaceType ?? "hybrid",
+      location: data.location !== undefined ? data.location.trim() : (existing?.location ?? "Indonesia"),
+      minEducation: data.minEducation ?? existing?.minEducation ?? "smk",
+      experienceLevel: data.experienceLevel ?? existing?.experienceLevel ?? "fresh_graduate",
+      compensationType: data.compensationType ?? existing?.compensationType ?? "paid",
+      salaryMin: minSalary,
+      salaryMax: maxSalary,
+      showSalary: data.showSalary !== undefined ? data.showSalary : (existing?.showSalary ?? true),
+      benefits: data.benefits ?? existing?.benefits ?? [],
+      highlights: data.highlights ?? existing?.highlights ?? ["Kesempatan berkarier menarik"],
+      description: data.description !== undefined ? data.description : (existing?.description ?? ""),
+      responsibilities: data.responsibilities ?? existing?.responsibilities ?? ["Melaksanakan tugas teknis"],
+      requiredSkills: data.requiredSkills ?? existing?.requiredSkills ?? ["Keahlian teknis utama"],
+      acceptedEvidenceTypes: data.acceptedEvidenceTypes ?? existing?.acceptedEvidenceTypes ?? ["github"],
+      minSkillbridgeScore:
+        data.minSkillbridgeScore !== undefined
+          ? data.minSkillbridgeScore
+          : (existing?.minSkillbridgeScore ?? 0),
+      status: data.status ?? existing?.status ?? "active",
+      createdAt: existing?.createdAt ?? new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      isDemo: existing?.isDemo ?? isDemo,
+    };
+
+    if (demoIndex !== -1) {
+      DEMO_JOBS[demoIndex] = updated;
+    }
+    inMemoryJobs.set(jobId, updated);
+    deletedJobIds.delete(jobId);
+    return updated;
+  };
+
+  if (isDemo) {
+    return updateInMemory();
+  }
+
+  try {
+    const db = createAdminSupabase();
+    const dbUpdate: Record<string, unknown> = {
+      updated_at: new Date().toISOString(),
+    };
+    if (data.title !== undefined) dbUpdate.title = data.title.trim();
+    if (data.field !== undefined) dbUpdate.field = data.field;
+    if (data.targetRole !== undefined) dbUpdate.target_role = data.targetRole;
+    if (data.employmentType !== undefined) dbUpdate.employment_type = data.employmentType;
+    if (data.workplaceType !== undefined) dbUpdate.workplace_type = data.workplaceType;
+    if (data.location !== undefined) dbUpdate.location = data.location.trim();
+    if (data.minEducation !== undefined) dbUpdate.min_education = data.minEducation;
+    if (data.experienceLevel !== undefined) dbUpdate.experience_level = data.experienceLevel;
+    if (data.compensationType !== undefined) dbUpdate.compensation_type = data.compensationType;
+    if (data.salaryMin !== undefined) dbUpdate.salary_min = data.salaryMin;
+    if (data.salaryMax !== undefined) dbUpdate.salary_max = data.salaryMax;
+    if (data.showSalary !== undefined) dbUpdate.show_salary = data.showSalary;
+    if (data.benefits !== undefined) dbUpdate.benefits = data.benefits;
+    if (data.highlights !== undefined) dbUpdate.highlights = data.highlights;
+    if (data.description !== undefined) dbUpdate.description = data.description;
+    if (data.responsibilities !== undefined) dbUpdate.responsibilities = data.responsibilities;
+    if (data.requiredSkills !== undefined) dbUpdate.required_skills = data.requiredSkills;
+    if (data.acceptedEvidenceTypes !== undefined) dbUpdate.accepted_evidence_types = data.acceptedEvidenceTypes;
+    if (data.minSkillbridgeScore !== undefined) dbUpdate.min_skillbridge_score = data.minSkillbridgeScore;
+    if (data.companyLogo !== undefined) dbUpdate.company_logo = data.companyLogo;
+    if (data.status !== undefined) dbUpdate.status = data.status;
+
+    const { data: updatedRow, error } = await db
+      .from("job_postings")
+      .update(dbUpdate)
+      .eq("id", jobId)
+      .eq("recruiter_id", recruiterId)
+      .select()
+      .maybeSingle();
+
+    if (error) {
+      if (isTableMissing(error)) {
+        return updateInMemory();
+      }
+      throw new Error(`Gagal memperbarui lowongan: ${error.message}`);
+    }
+
+    if (!updatedRow) {
+      if (inMemoryJobs.has(jobId)) {
+        return updateInMemory();
+      }
+      throw new Error("Lowongan tidak ditemukan atau Anda tidak memiliki akses untuk mengubahnya.");
+    }
+
+    const posting = mapDbJobToPosting(updatedRow as DbJobRow);
+    inMemoryJobs.set(jobId, posting);
+    return posting;
+  } catch (cause) {
+    if (
+      isTableMissing(cause) ||
+      (cause instanceof Error && cause.message.includes("Konfigurasi Supabase"))
+    ) {
+      return updateInMemory();
+    }
+    throw cause;
+  }
+}
+
+export async function deleteJobPosting(
+  recruiterId: string,
+  jobId: string,
+): Promise<boolean> {
+  if (!recruiterId || typeof recruiterId !== "string" || recruiterId.trim().length === 0) {
+    throw new Error("ID perekrut (recruiterId) wajib diisi.");
+  }
+  if (!jobId || typeof jobId !== "string" || jobId.trim().length === 0) {
+    throw new Error("ID lowongan (jobId) wajib diisi.");
+  }
+
+  const isDemo = DEMO_JOBS.some((j) => j.id === jobId);
+
+  const deleteInMemory = (): boolean => {
+    deletedJobIds.add(jobId);
+    inMemoryJobs.delete(jobId);
+    const demoIndex = DEMO_JOBS.findIndex((j) => j.id === jobId);
+    if (demoIndex !== -1) {
+      DEMO_JOBS.splice(demoIndex, 1);
+    }
+    return true;
+  };
+
+  if (isDemo) {
+    return deleteInMemory();
+  }
+
+  try {
+    const db = createAdminSupabase();
+
+    // Hapus aplikasi terkait jika cascade belum ada
+    try {
+      await db.from("job_applications").delete().eq("job_id", jobId);
+    } catch {
+      // Abaikan jika tabel tidak ada
+    }
+
+    const { error } = await db
+      .from("job_postings")
+      .delete()
+      .eq("id", jobId)
+      .eq("recruiter_id", recruiterId)
+      .select("id");
+
+    if (error) {
+      if (isTableMissing(error)) {
+        return deleteInMemory();
+      }
+      throw new Error(`Gagal menghapus lowongan: ${error.message}`);
+    }
+
+    deleteInMemory();
+    return true;
+  } catch (cause) {
+    if (
+      isTableMissing(cause) ||
+      (cause instanceof Error && cause.message.includes("Konfigurasi Supabase"))
+    ) {
+      return deleteInMemory();
     }
     throw cause;
   }

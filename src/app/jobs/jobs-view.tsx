@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useId } from "react";
+import { useEffect, useState, useId, useCallback } from "react";
 import { authHeaders, getSupabase } from "@/lib/auth-client";
+import { setupJobRealtimeSync } from "@/lib/realtime-jobs";
 import type {
   JobPosting,
   Field,
@@ -178,7 +179,7 @@ export default function JobsView() {
   }, []);
 
   // Fetch jobs
-  useEffect(() => {
+  const fetchJobs = useCallback(() => {
     let active = true;
 
     const params = new URLSearchParams();
@@ -213,6 +214,50 @@ export default function JobsView() {
       active = false;
     };
   }, [field, minEducation, compensationType, workplaceType, search]);
+
+  useEffect(() => {
+    const cancel = fetchJobs();
+    return () => {
+      cancel?.();
+    };
+  }, [fetchJobs]);
+
+  // 3-Lapis Real-time Synchronization (Supabase Realtime + BroadcastChannel + Window focus)
+  useEffect(() => {
+    const unsubscribe = setupJobRealtimeSync({
+      onJobCreated: () => {
+        fetchJobs();
+      },
+      onJobUpdated: (updatedJob) => {
+        // Jika status lowongan ditutup oleh HR, buang dari portal pelamar
+        setJobs((prev) =>
+          updatedJob.status === "closed"
+            ? prev.filter((j) => j.id !== updatedJob.id)
+            : prev.map((j) => (j.id === updatedJob.id ? updatedJob : j)),
+        );
+
+        setDetailJob((prev) => {
+          if (!prev || prev.id !== updatedJob.id) return prev;
+          return updatedJob.status === "closed" ? null : updatedJob;
+        });
+
+        // Sinkronisasi data filter dengan server
+        fetchJobs();
+      },
+      onJobDeleted: (deletedJobId) => {
+        setJobs((prev) => prev.filter((j) => j.id !== deletedJobId));
+        setDetailJob((prev) => (prev?.id === deletedJobId ? null : prev));
+        setApplyJob((prev) => (prev?.id === deletedJobId ? null : prev));
+      },
+      onRefresh: () => {
+        fetchJobs();
+      },
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [fetchJobs]);
 
   function getFieldFromRole(role: string): Field | null {
     if (role === "Junior Web Developer") return "informatics";

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, useId } from "react";
 import { authHeaders, getSupabase } from "@/lib/auth-client";
+import { setupJobRealtimeSync, broadcastJobSync } from "@/lib/realtime-jobs";
 import type {
   TalentCandidate,
   JobPosting,
@@ -13,6 +14,7 @@ import type {
   WorkplaceType,
   ExperienceLevel,
   CompensationType,
+  JobStatus,
   ApplicationStatus,
 } from "@/lib/types";
 
@@ -161,6 +163,61 @@ export default function RecruiterView() {
   const [jobSubmitError, setJobSubmitError] = useState("");
   const [jobSuccessMessage, setJobSuccessMessage] = useState("");
 
+  // Edit Job State
+  const [editingJob, setEditingJob] = useState<JobPosting | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editCompany, setEditCompany] = useState("");
+  const [editField, setEditField] = useState<Field>("informatics");
+  const [editTargetRole, setEditTargetRole] = useState("Junior Web Developer");
+  const [editEmploymentType, setEditEmploymentType] = useState<EmploymentType>("fulltime");
+  const [editWorkplaceType, setEditWorkplaceType] = useState<WorkplaceType>("hybrid");
+  const [editLocation, setEditLocation] = useState("");
+  const [editMinEdu, setEditMinEdu] = useState<MinEducation>("smk");
+  const [editExpLevel, setEditExpLevel] = useState<ExperienceLevel>("fresh_graduate");
+  const [editCompType, setEditCompType] = useState<CompensationType>("paid");
+  const [editSalaryMin, setEditSalaryMin] = useState<string>("");
+  const [editSalaryMax, setEditSalaryMax] = useState<string>("");
+  const [editShowSalary, setEditShowSalary] = useState(true);
+  const [editStatus, setEditStatus] = useState<JobStatus>("active");
+  const [editMinScore, setEditMinScore] = useState<number>(60);
+  const [editHighlight1, setEditHighlight1] = useState("");
+  const [editHighlight2, setEditHighlight2] = useState("");
+  const [editHighlight3, setEditHighlight3] = useState("");
+  const [editDesc, setEditDesc] = useState("");
+  const [editResponsibilities, setEditResponsibilities] = useState("");
+  const [editRequiredSkills, setEditRequiredSkills] = useState("");
+  const [editBenefits, setEditBenefits] = useState("");
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [editSubmitError, setEditSubmitError] = useState("");
+
+  // Delete Job State
+  const [deletingJob, setDeletingJob] = useState<JobPosting | null>(null);
+  const [isDeletingJob, setIsDeletingJob] = useState(false);
+  const [deleteError, setDeleteError] = useState("");
+
+  // Edit Form IDs
+  const editTitleInputId = useId();
+  const editCompanyInputId = useId();
+  const editStatusSelectId = useId();
+  const editFieldSelectId = useId();
+  const editTargetRoleInputId = useId();
+  const editEmploymentTypeSelectId = useId();
+  const editWorkplaceTypeSelectId = useId();
+  const editLocationInputId = useId();
+  const editMinEduSelectId = useId();
+  const editExpLevelSelectId = useId();
+  const editCompTypeSelectId = useId();
+  const editSalaryMinInputId = useId();
+  const editSalaryMaxInputId = useId();
+  const editMinScoreInputId = useId();
+  const editHl1InputId = useId();
+  const editHl2InputId = useId();
+  const editHl3InputId = useId();
+  const editDescInputId = useId();
+  const editRespInputId = useId();
+  const editSkillsInputId = useId();
+  const editBenefitsInputId = useId();
+
   // Auth initialization
   useEffect(() => {
     let active = true;
@@ -301,6 +358,201 @@ export default function RecruiterView() {
     };
   }, [authState.status, activeTab, refreshTrigger]);
 
+  // 3-Lapis Real-time Synchronization
+  useEffect(() => {
+    if (authState.status !== "recruiter") return;
+
+    const unsubscribe = setupJobRealtimeSync({
+      onJobCreated: (newJob) => {
+        setJobs((prev) => (prev.some((j) => j.id === newJob.id) ? prev : [newJob, ...prev]));
+        setRefreshTrigger((p) => p + 1);
+      },
+      onJobUpdated: (updatedJob) => {
+        setJobs((prev) => prev.map((j) => (j.id === updatedJob.id ? updatedJob : j)));
+        setSelectedJobForApplicants((prev) => (prev?.id === updatedJob.id ? updatedJob : prev));
+      },
+      onJobDeleted: (deletedJobId) => {
+        setJobs((prev) => prev.filter((j) => j.id !== deletedJobId));
+        setSelectedJobForApplicants((prev) => (prev?.id === deletedJobId ? null : prev));
+      },
+      onRefresh: () => {
+        setRefreshTrigger((p) => p + 1);
+      },
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [authState.status]);
+
+  function handleOpenEdit(job: JobPosting) {
+    setEditingJob(job);
+    setEditTitle(job.title || "");
+    setEditCompany(job.companyName || (authState.status === "recruiter" ? authState.user.companyName || "" : ""));
+    setEditField(job.field || "informatics");
+    setEditTargetRole(job.targetRole || "Junior Web Developer");
+    setEditEmploymentType(job.employmentType || "fulltime");
+    setEditWorkplaceType(job.workplaceType || "hybrid");
+    setEditLocation(job.location || "");
+    setEditMinEdu(job.minEducation || "smk");
+    setEditExpLevel(job.experienceLevel || "fresh_graduate");
+    setEditCompType(job.compensationType || "paid");
+    setEditSalaryMin(job.salaryMin !== null && job.salaryMin !== undefined ? String(job.salaryMin) : "");
+    setEditSalaryMax(job.salaryMax !== null && job.salaryMax !== undefined ? String(job.salaryMax) : "");
+    setEditShowSalary(job.showSalary ?? true);
+    setEditStatus(job.status || "active");
+    setEditMinScore(job.minSkillbridgeScore ?? 60);
+    setEditHighlight1(job.highlights?.[0] || "");
+    setEditHighlight2(job.highlights?.[1] || "");
+    setEditHighlight3(job.highlights?.[2] || "");
+    setEditDesc(job.description || "");
+    setEditResponsibilities(job.responsibilities?.join("\n") || "");
+    setEditRequiredSkills(job.requiredSkills?.join(", ") || "");
+    setEditBenefits(job.benefits?.join(", ") || "");
+    setEditSubmitError("");
+  }
+
+  async function handleSaveEdit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!editingJob || authState.status !== "recruiter") return;
+
+    setIsSavingEdit(true);
+    setEditSubmitError("");
+    setJobSuccessMessage("");
+
+    const originalJob = editingJob;
+
+    try {
+      const highlights = [editHighlight1.trim(), editHighlight2.trim(), editHighlight3.trim()].filter(Boolean);
+      const responsibilities = editResponsibilities
+        .split("\n")
+        .map((r) => r.trim())
+        .filter(Boolean);
+      const requiredSkills = editRequiredSkills
+        .split(/[,;\n]/)
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const benefits = editBenefits
+        .split(/[,;\n]/)
+        .map((b) => b.trim())
+        .filter(Boolean);
+
+      const minSal = editCompType === "paid" && editSalaryMin.trim() ? Number(editSalaryMin) : null;
+      const maxSal = editCompType === "paid" && editSalaryMax.trim() ? Number(editSalaryMax) : null;
+
+      if (minSal !== null && maxSal !== null && maxSal < minSal) {
+        throw new Error("Gaji maksimum tidak boleh lebih kecil dari gaji minimum.");
+      }
+
+      const payload = {
+        title: editTitle.trim(),
+        companyName: editCompany.trim() || editingJob.companyName,
+        field: editField,
+        targetRole: editTargetRole.trim(),
+        employmentType: editEmploymentType,
+        workplaceType: editWorkplaceType,
+        location: editLocation.trim(),
+        minEducation: editMinEdu,
+        experienceLevel: editExpLevel,
+        compensationType: editCompType,
+        salaryMin: minSal,
+        salaryMax: maxSal,
+        showSalary: editShowSalary,
+        status: editStatus,
+        highlights: highlights.length > 0 ? highlights : [editTitle.trim()],
+        description: editDesc.trim(),
+        responsibilities: responsibilities.length > 0 ? responsibilities : ["Melaksanakan tugas teknis dengan baik"],
+        requiredSkills: requiredSkills.length > 0 ? requiredSkills : ["Keahlian terkait"],
+        benefits,
+        minSkillbridgeScore: Number(editMinScore) || 0,
+      };
+
+      // Optimistic update di memori (0ms)
+      const optimisticallyUpdatedJob: JobPosting = {
+        ...editingJob,
+        ...payload,
+        updatedAt: new Date().toISOString(),
+      };
+
+      setJobs((prev) => prev.map((j) => (j.id === editingJob.id ? optimisticallyUpdatedJob : j)));
+      if (selectedJobForApplicants?.id === editingJob.id) {
+        setSelectedJobForApplicants(optimisticallyUpdatedJob);
+      }
+      setJobSuccessMessage(`Perubahan lowongan "${payload.title}" berhasil disimpan!`);
+      setEditingJob(null);
+
+      const headers = await authHeaders();
+      const res = await fetch(`/api/jobs/${editingJob.id}`, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        // Rollback jika gagal
+        setJobs((prev) => prev.map((j) => (j.id === originalJob.id ? originalJob : j)));
+        if (selectedJobForApplicants?.id === originalJob.id) {
+          setSelectedJobForApplicants(originalJob);
+        }
+        setJobSuccessMessage("");
+        throw new Error(data.error || "Gagal memperbarui lowongan.");
+      }
+
+      const serverJob = data as JobPosting;
+      setJobs((prev) => prev.map((j) => (j.id === serverJob.id ? serverJob : j)));
+      if (selectedJobForApplicants?.id === serverJob.id) {
+        setSelectedJobForApplicants(serverJob);
+      }
+      broadcastJobSync({ type: "JOB_UPDATED", job: serverJob });
+    } catch (err) {
+      setEditSubmitError(err instanceof Error ? err.message : "Gagal memperbarui lowongan.");
+    } finally {
+      setIsSavingEdit(false);
+    }
+  }
+
+  async function handleConfirmDelete() {
+    if (!deletingJob || authState.status !== "recruiter") return;
+
+    const targetId = deletingJob.id;
+    const targetTitle = deletingJob.title;
+    const previousJobs = [...jobs];
+
+    setIsDeletingJob(true);
+    setDeleteError("");
+
+    // Optimistic delete di memori (0ms)
+    setJobs((prev) => prev.filter((j) => j.id !== targetId));
+    if (selectedJobForApplicants?.id === targetId) {
+      setSelectedJobForApplicants(null);
+    }
+    setDeletingJob(null);
+    setJobSuccessMessage(`Lowongan "${targetTitle}" berhasil dihapus.`);
+
+    try {
+      const headers = await authHeaders();
+      const res = await fetch(`/api/jobs/${targetId}`, {
+        method: "DELETE",
+        headers,
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        // Rollback jika gagal
+        setJobs(previousJobs);
+        setJobSuccessMessage("");
+        throw new Error(data.error || "Gagal menghapus lowongan.");
+      }
+
+      broadcastJobSync({ type: "JOB_DELETED", jobId: targetId });
+    } catch (err) {
+      setJobsError(err instanceof Error ? err.message : "Gagal menghapus lowongan.");
+    } finally {
+      setIsDeletingJob(false);
+    }
+  }
+
   async function handleCreateJob(e: React.FormEvent) {
     e.preventDefault();
     if (authState.status !== "recruiter") return;
@@ -359,8 +611,11 @@ export default function RecruiterView() {
         throw new Error(data.error || "Gagal membuat lowongan pekerjaan.");
       }
 
+      const newJob = data as JobPosting;
+      setJobs((prev) => [newJob, ...prev]);
       setJobSuccessMessage(`Lowongan "${payload.title}" berhasil dipublikasikan!`);
       setIsCreateModalOpen(false);
+      broadcastJobSync({ type: "JOB_CREATED", job: newJob });
       setRefreshTrigger((prev) => prev + 1);
     } catch (err) {
       setJobSubmitError(err instanceof Error ? err.message : "Gagal memproses pembuatan lowongan.");
@@ -976,13 +1231,13 @@ export default function RecruiterView() {
                           style={{
                             fontSize: "0.75rem",
                             fontWeight: 600,
-                            color: "#15803d",
-                            background: "#e6f4ea",
-                            border: "1px solid #ceead6",
+                            color: job.status === "closed" ? "#b91c1c" : "#15803d",
+                            background: job.status === "closed" ? "#fee2e2" : "#e6f4ea",
+                            border: `1px solid ${job.status === "closed" ? "#fca5a5" : "#ceead6"}`,
                             padding: "0.2rem 0.5rem",
                           }}
                         >
-                          Aktif
+                          {job.status === "closed" ? "Tutup" : "Aktif"}
                         </span>
                         {job.isDemo && (
                           <span style={{ fontSize: "0.7rem", color: "var(--muted)", border: "1px dashed var(--line)", padding: "0.15rem 0.4rem" }}>
@@ -1027,14 +1282,48 @@ export default function RecruiterView() {
                         </strong>
                       </div>
 
-                      <button
-                        type="button"
-                        className="button secondary"
-                        style={{ fontSize: "0.88rem", minHeight: "40px" }}
-                        onClick={() => setSelectedJobForApplicants(job)}
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "0.5rem",
+                          flexWrap: "wrap",
+                          justifyContent: "flex-end",
+                        }}
                       >
-                        Lihat Pelamar ({jobApplicants.length})
-                      </button>
+                        <button
+                          type="button"
+                          className="button secondary"
+                          style={{ fontSize: "0.88rem", minHeight: "40px" }}
+                          onClick={() => setSelectedJobForApplicants(job)}
+                        >
+                          Lihat Pelamar ({jobApplicants.length})
+                        </button>
+                        <button
+                          type="button"
+                          className="button secondary"
+                          style={{ fontSize: "0.88rem", minHeight: "40px" }}
+                          onClick={() => handleOpenEdit(job)}
+                        >
+                          Edit Lowongan
+                        </button>
+                        <button
+                          type="button"
+                          className="button secondary"
+                          style={{
+                            fontSize: "0.88rem",
+                            minHeight: "40px",
+                            borderColor: "#fca5a5",
+                            color: "#b91c1c",
+                            background: "#fff5f5",
+                          }}
+                          onClick={() => {
+                            setDeleteError("");
+                            setDeletingJob(job);
+                          }}
+                        >
+                          Hapus Lowongan
+                        </button>
+                      </div>
                     </div>
                   </article>
                 );
@@ -1652,6 +1941,495 @@ export default function RecruiterView() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL: EDIT LOWONGAN PEKERJAAN */}
+      {/* ========================================================= */}
+      {editingJob && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="edit-job-modal-title"
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(20, 33, 61, 0.65)",
+            backdropFilter: "blur(2px)",
+            zIndex: 100,
+            display: "grid",
+            placeItems: "center",
+            padding: "1rem",
+            overflowY: "auto",
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isSavingEdit) setEditingJob(null);
+          }}
+        >
+          <div
+            className="panel"
+            style={{
+              maxWidth: "740px",
+              width: "100%",
+              maxHeight: "92vh",
+              overflowY: "auto",
+              position: "relative",
+              padding: "clamp(1.5rem, 4vw, 2.5rem)",
+            }}
+          >
+            <button
+              type="button"
+              aria-label="Tutup"
+              disabled={isSavingEdit}
+              onClick={() => setEditingJob(null)}
+              style={{
+                position: "absolute",
+                top: "1.25rem",
+                right: "1.25rem",
+                background: "transparent",
+                border: "none",
+                fontSize: "1.5rem",
+                cursor: "pointer",
+                lineHeight: 1,
+              }}
+            >
+              ×
+            </button>
+
+            <div style={{ marginBottom: "1.5rem" }}>
+              <p className="eyebrow" style={{ margin: 0 }}>
+                Kelola Lowongan
+              </p>
+              <h2 id="edit-job-modal-title" style={{ fontSize: "1.5rem", margin: "0.25rem 0" }}>
+                Edit Lowongan Pekerjaan
+              </h2>
+              <p style={{ margin: 0, color: "var(--muted)", fontSize: "0.95rem" }}>
+                Perbarui detail lowongan, status penerimaan pelamar, atau kriteria skor kesiapan kerja.
+              </p>
+            </div>
+
+            {editSubmitError && (
+              <div className="alert" role="alert" style={{ marginBottom: "1.5rem" }}>
+                {editSubmitError}
+              </div>
+            )}
+
+            <form onSubmit={handleSaveEdit} style={{ display: "grid", gap: "1.25rem" }}>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "1rem" }}>
+                <div className="field" style={{ margin: 0 }}>
+                  <label htmlFor={editTitleInputId}>Judul Lowongan</label>
+                  <input
+                    id={editTitleInputId}
+                    type="text"
+                    required
+                    placeholder="Cth: Junior Front-End Web Developer"
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                  />
+                </div>
+
+                <div className="field" style={{ margin: 0 }}>
+                  <label htmlFor={editCompanyInputId}>Nama Perusahaan</label>
+                  <input
+                    id={editCompanyInputId}
+                    type="text"
+                    required
+                    placeholder="Cth: PT Nusantara Solusi Teknologi"
+                    value={editCompany}
+                    onChange={(e) => setEditCompany(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "1rem" }}>
+                <div className="field" style={{ margin: 0 }}>
+                  <label htmlFor={editStatusSelectId}>Status Lowongan</label>
+                  <select
+                    id={editStatusSelectId}
+                    value={editStatus}
+                    onChange={(e) => setEditStatus(e.target.value as JobStatus)}
+                  >
+                    <option value="active">Aktif (Menerima Pelamar)</option>
+                    <option value="closed">Tutup (Lowongan Dinonaktifkan)</option>
+                  </select>
+                </div>
+
+                <div className="field" style={{ margin: 0 }}>
+                  <label htmlFor={editFieldSelectId}>Bidang</label>
+                  <select
+                    id={editFieldSelectId}
+                    value={editField}
+                    onChange={(e) => setEditField(e.target.value as Field)}
+                  >
+                    <option value="informatics">Informatika</option>
+                    <option value="design">DKV</option>
+                    <option value="marketing">Pemasaran</option>
+                  </select>
+                </div>
+
+                <div className="field" style={{ margin: 0 }}>
+                  <label htmlFor={editTargetRoleInputId}>Target Peran</label>
+                  <input
+                    id={editTargetRoleInputId}
+                    type="text"
+                    required
+                    placeholder="Cth: Junior Web Developer"
+                    value={editTargetRole}
+                    onChange={(e) => setEditTargetRole(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem" }}>
+                <div className="field" style={{ margin: 0 }}>
+                  <label htmlFor={editEmploymentTypeSelectId}>Tipe Kerja</label>
+                  <select
+                    id={editEmploymentTypeSelectId}
+                    value={editEmploymentType}
+                    onChange={(e) => setEditEmploymentType(e.target.value as EmploymentType)}
+                  >
+                    <option value="fulltime">Penuh Waktu (Full-time)</option>
+                    <option value="internship">Magang (Internship)</option>
+                    <option value="contract">Kontrak</option>
+                    <option value="parttime">Paruh Waktu</option>
+                  </select>
+                </div>
+
+                <div className="field" style={{ margin: 0 }}>
+                  <label htmlFor={editWorkplaceTypeSelectId}>Tempat Kerja</label>
+                  <select
+                    id={editWorkplaceTypeSelectId}
+                    value={editWorkplaceType}
+                    onChange={(e) => setEditWorkplaceType(e.target.value as WorkplaceType)}
+                  >
+                    <option value="hybrid">Hybrid</option>
+                    <option value="remote">Remote (Jarak Jauh)</option>
+                    <option value="onsite">On-site</option>
+                  </select>
+                </div>
+
+                <div className="field" style={{ margin: 0 }}>
+                  <label htmlFor={editLocationInputId}>Lokasi</label>
+                  <input
+                    id={editLocationInputId}
+                    type="text"
+                    required
+                    placeholder="Cth: Jakarta Selatan"
+                    value={editLocation}
+                    onChange={(e) => setEditLocation(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "1rem" }}>
+                <div className="field" style={{ margin: 0 }}>
+                  <label htmlFor={editMinEduSelectId}>Minimal Pendidikan</label>
+                  <select
+                    id={editMinEduSelectId}
+                    value={editMinEdu}
+                    onChange={(e) => setEditMinEdu(e.target.value as MinEducation)}
+                  >
+                    <option value="smk">SMK / Sederajat (Ramah SMK)</option>
+                    <option value="diploma">D3 / Diploma</option>
+                    <option value="bachelor">S1 / Sarjana</option>
+                    <option value="any">Semua Jenjang</option>
+                  </select>
+                </div>
+
+                <div className="field" style={{ margin: 0 }}>
+                  <label htmlFor={editExpLevelSelectId}>Tingkat Pengalaman</label>
+                  <select
+                    id={editExpLevelSelectId}
+                    value={editExpLevel}
+                    onChange={(e) => setEditExpLevel(e.target.value as ExperienceLevel)}
+                  >
+                    <option value="fresh_graduate">Fresh Graduate</option>
+                    <option value="under_1_year">&lt; 1 Tahun Pengalaman</option>
+                    <option value="1_to_2_years">1 - 2 Tahun Pengalaman</option>
+                  </select>
+                </div>
+
+                <div className="field" style={{ margin: 0 }}>
+                  <label htmlFor={editMinScoreInputId}>Syarat Minimal Skor Skillbridge</label>
+                  <input
+                    id={editMinScoreInputId}
+                    type="number"
+                    min={0}
+                    max={100}
+                    required
+                    value={editMinScore}
+                    onChange={(e) => setEditMinScore(Number(e.target.value))}
+                  />
+                </div>
+              </div>
+
+              {/* Kompensasi & Gaji */}
+              <div style={{ background: "var(--paper)", border: "1px solid var(--line)", padding: "1rem" }}>
+                <strong style={{ display: "block", marginBottom: "0.75rem", fontSize: "0.9rem" }}>
+                  Kebijakan Kompensasi
+                </strong>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "1rem", marginBottom: "0.75rem" }}>
+                  <div className="field" style={{ margin: 0 }}>
+                    <label htmlFor={editCompTypeSelectId}>Tipe Kompensasi</label>
+                    <select
+                      id={editCompTypeSelectId}
+                      value={editCompType}
+                      onChange={(e) => setEditCompType(e.target.value as CompensationType)}
+                    >
+                      <option value="paid">Berbayar (Paid)</option>
+                      <option value="unpaid">Uang Saku / Magang (Unpaid)</option>
+                    </select>
+                  </div>
+
+                  {editCompType === "paid" && (
+                    <>
+                      <div className="field" style={{ margin: 0 }}>
+                        <label htmlFor={editSalaryMinInputId}>Gaji Min (Rp)</label>
+                        <input
+                          id={editSalaryMinInputId}
+                          type="number"
+                          min={0}
+                          placeholder="5000000"
+                          value={editSalaryMin}
+                          onChange={(e) => setEditSalaryMin(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="field" style={{ margin: 0 }}>
+                        <label htmlFor={editSalaryMaxInputId}>Gaji Max (Rp)</label>
+                        <input
+                          id={editSalaryMaxInputId}
+                          type="number"
+                          min={0}
+                          placeholder="7500000"
+                          value={editSalaryMax}
+                          onChange={(e) => setEditSalaryMax(e.target.value)}
+                        />
+                      </div>
+                    </>
+                  )}
+                </div>
+
+                {editCompType === "paid" && (
+                  <label style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem", cursor: "pointer" }}>
+                    <input
+                      type="checkbox"
+                      checked={editShowSalary}
+                      onChange={(e) => setEditShowSalary(e.target.checked)}
+                      style={{ width: "16px", minHeight: "16px" }}
+                    />
+                    Tampilkan rentang gaji secara transparan di kartu lowongan
+                  </label>
+                )}
+              </div>
+
+              {/* 3 Highlights */}
+              <div>
+                <span style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, marginBottom: "0.35rem" }}>
+                  3 Highlights Utama Lowongan (Disarankan 3 poin)
+                </span>
+                <div style={{ display: "grid", gap: "0.5rem" }}>
+                  <input
+                    id={editHl1InputId}
+                    type="text"
+                    required
+                    placeholder="Highlight 1: Cth: Ramah Lulusan SMK & Fresh Graduate Berbasis Portofolio Riil"
+                    value={editHighlight1}
+                    onChange={(e) => setEditHighlight1(e.target.value)}
+                  />
+                  <input
+                    id={editHl2InputId}
+                    type="text"
+                    required
+                    placeholder="Highlight 2: Cth: Mentoring 1-on-1 Mingguan Bersama Tech Lead"
+                    value={editHighlight2}
+                    onChange={(e) => setEditHighlight2(e.target.value)}
+                  />
+                  <input
+                    id={editHl3InputId}
+                    type="text"
+                    placeholder="Highlight 3: Cth: Rentang Gaji Transparan Rp 5.000.000 - Rp 7.500.000"
+                    value={editHighlight3}
+                    onChange={(e) => setEditHighlight3(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Deskripsi */}
+              <div className="field" style={{ margin: 0 }}>
+                <label htmlFor={editDescInputId}>Deskripsi Singkat</label>
+                <textarea
+                  id={editDescInputId}
+                  rows={2}
+                  value={editDesc}
+                  onChange={(e) => setEditDesc(e.target.value)}
+                />
+              </div>
+
+              {/* Tanggung Jawab */}
+              <div className="field" style={{ margin: 0 }}>
+                <label htmlFor={editRespInputId}>Tanggung Jawab Pekerjaan (Satu per baris)</label>
+                <textarea
+                  id={editRespInputId}
+                  rows={3}
+                  required
+                  placeholder="Mengembangkan fitur web&#10;Menjaga kualitas kode&#10;Kolaborasi tim"
+                  value={editResponsibilities}
+                  onChange={(e) => setEditResponsibilities(e.target.value)}
+                />
+              </div>
+
+              {/* Skills */}
+              <div className="field" style={{ margin: 0 }}>
+                <label htmlFor={editSkillsInputId}>Keahlian yang Dibutuhkan (Pisahkan dengan koma)</label>
+                <input
+                  id={editSkillsInputId}
+                  type="text"
+                  required
+                  placeholder="React, Next.js, TypeScript, Tailwind CSS, REST API"
+                  value={editRequiredSkills}
+                  onChange={(e) => setEditRequiredSkills(e.target.value)}
+                />
+              </div>
+
+              {/* Benefits */}
+              <div className="field" style={{ margin: 0 }}>
+                <label htmlFor={editBenefitsInputId}>Fasilitas & Benefit (Pisahkan dengan koma)</label>
+                <input
+                  id={editBenefitsInputId}
+                  type="text"
+                  placeholder="BPJS, Tunjangan Laptop, Tunjangan Internet"
+                  value={editBenefits}
+                  onChange={(e) => setEditBenefits(e.target.value)}
+                />
+              </div>
+
+              <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end", marginTop: "1rem" }}>
+                <button
+                  type="button"
+                  className="button secondary"
+                  disabled={isSavingEdit}
+                  onClick={() => setEditingJob(null)}
+                >
+                  Batal
+                </button>
+                <button type="submit" className="button" disabled={isSavingEdit}>
+                  {isSavingEdit ? "Menyimpan Perubahan..." : "Simpan Perubahan"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL: KONFIRMASI HAPUS LOWONGAN */}
+      {/* ========================================================= */}
+      {deletingJob && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-job-modal-title"
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(20, 33, 61, 0.65)",
+            backdropFilter: "blur(2px)",
+            zIndex: 100,
+            display: "grid",
+            placeItems: "center",
+            padding: "1rem",
+            overflowY: "auto",
+          }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget && !isDeletingJob) setDeletingJob(null);
+          }}
+        >
+          <div
+            className="panel"
+            style={{
+              maxWidth: "520px",
+              width: "100%",
+              position: "relative",
+              padding: "clamp(1.5rem, 4vw, 2rem)",
+            }}
+          >
+            <button
+              type="button"
+              aria-label="Tutup"
+              disabled={isDeletingJob}
+              onClick={() => setDeletingJob(null)}
+              style={{
+                position: "absolute",
+                top: "1.25rem",
+                right: "1.25rem",
+                background: "transparent",
+                border: "none",
+                fontSize: "1.5rem",
+                cursor: "pointer",
+                lineHeight: 1,
+              }}
+            >
+              ×
+            </button>
+
+            <div style={{ marginBottom: "1.25rem" }}>
+              <p className="eyebrow" style={{ margin: 0, color: "#b91c1c" }}>
+                Konfirmasi Hapus
+              </p>
+              <h2 id="delete-job-modal-title" style={{ fontSize: "1.4rem", margin: "0.25rem 0 0.5rem" }}>
+                Hapus Lowongan Pekerjaan?
+              </h2>
+              <p style={{ margin: 0, color: "var(--muted)", fontSize: "0.95rem" }}>
+                Anda akan menghapus lowongan <strong>{deletingJob.title}</strong> dari {deletingJob.companyName}.
+              </p>
+            </div>
+
+            <div
+              style={{
+                background: "#fef2f2",
+                borderLeft: "4px solid #ef4444",
+                padding: "0.85rem 1rem",
+                fontSize: "0.88rem",
+                lineHeight: 1.5,
+                color: "#991b1b",
+                marginBottom: "1.5rem",
+              }}
+            >
+              <strong>Peringatan:</strong> Tindakan ini bersifat permanen dan tidak dapat dibatalkan. Berkas lamaran yang terkait dengan lowongan ini juga akan terhapus dari sistem.
+            </div>
+
+            {deleteError && (
+              <div className="alert" role="alert" style={{ marginBottom: "1.25rem" }}>
+                {deleteError}
+              </div>
+            )}
+
+            <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end" }}>
+              <button
+                type="button"
+                className="button secondary"
+                disabled={isDeletingJob}
+                onClick={() => setDeletingJob(null)}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                className="button"
+                style={{
+                  background: "#dc2626",
+                  borderColor: "#dc2626",
+                  color: "#ffffff",
+                }}
+                disabled={isDeletingJob}
+                onClick={handleConfirmDelete}
+              >
+                {isDeletingJob ? "Menghapus..." : "Ya, Hapus Lowongan"}
+              </button>
+            </div>
           </div>
         </div>
       )}
