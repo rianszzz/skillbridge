@@ -137,7 +137,7 @@ export default function RecruiterView() {
   const [formTitle, setFormTitle] = useState("");
   const [formCompany, setFormCompany] = useState("");
   const [formField, setFormField] = useState<Field>("informatics");
-  const [formTargetRole, setFormTargetRole] = useState("Junior Web Developer");
+  const [formTargetRole, setFormTargetRole] = useState("");
   const [formEmploymentType, setFormEmploymentType] = useState<EmploymentType>("fulltime");
   const [formWorkplaceType, setFormWorkplaceType] = useState<WorkplaceType>("hybrid");
   const [formLocation, setFormLocation] = useState("Jakarta Selatan, DKI Jakarta");
@@ -150,10 +150,10 @@ export default function RecruiterView() {
   const [formMinScore, setFormMinScore] = useState<number>(60);
   const [formHighlights, setFormHighlights] = useState<string[]>([]);
   const [newFormHighlight, setNewFormHighlight] = useState("");
-  const [formDesc, setFormDesc] = useState("Mencari talenta muda berbakat yang berfokus pada karya nyata.");
-  const [formResponsibilities, setFormResponsibilities] = useState("Mengembangkan antarmuka web responsif\nMenjaga kebersihan dan dokumentasi kode\nBerkolaborasi dalam tim teknik");
-  const [formRequiredSkills, setFormRequiredSkills] = useState("React, Next.js, TypeScript, Tailwind CSS, Git");
-  const [formBenefits, setFormBenefits] = useState("BPJS Kesehatan, Tunjangan Internet, Laptop Perusahaan");
+  const [formDesc, setFormDesc] = useState("");
+  const [formResponsibilities, setFormResponsibilities] = useState("");
+  const [formRequiredSkills, setFormRequiredSkills] = useState("");
+  const [formBenefits, setFormBenefits] = useState("");
   const [isSubmittingJob, setIsSubmittingJob] = useState(false);
   const [jobSubmitError, setJobSubmitError] = useState("");
   const [jobSuccessMessage, setJobSuccessMessage] = useState("");
@@ -407,6 +407,35 @@ export default function RecruiterView() {
     setEditSubmitError("");
   }
 
+  function resetCreateJobForm() {
+    setFormTitle("");
+    setFormCompany("");
+    setFormField("informatics");
+    setFormTargetRole("");
+    setFormEmploymentType("fulltime");
+    setFormWorkplaceType("hybrid");
+    setFormLocation("Jakarta Selatan, DKI Jakarta");
+    setFormMinEdu("smk");
+    setFormExpLevel("fresh_graduate");
+    setFormCompType("paid");
+    setFormSalaryMin("5000000");
+    setFormSalaryMax("7500000");
+    setFormShowSalary(true);
+    setFormMinScore(60);
+    setFormHighlights([]);
+    setNewFormHighlight("");
+    setFormDesc("");
+    setFormResponsibilities("");
+    setFormRequiredSkills("");
+    setFormBenefits("");
+    setJobSubmitError("");
+  }
+
+  function openCreateJobModal() {
+    resetCreateJobForm();
+    setIsCreateModalOpen(true);
+  }
+
   function addFormHighlight() {
     const trimmed = newFormHighlight.trim();
     if (!trimmed) return;
@@ -654,8 +683,7 @@ export default function RecruiterView() {
       const newJob = data as JobPosting;
       setJobs((prev) => [newJob, ...prev]);
       setJobSuccessMessage(`Lowongan "${payload.title}" berhasil dipublikasikan!`);
-      setFormHighlights([]);
-      setNewFormHighlight("");
+      resetCreateJobForm();
       setIsCreateModalOpen(false);
       broadcastJobSync({ type: "JOB_CREATED", job: newJob });
       setRefreshTrigger((prev) => prev + 1);
@@ -1462,10 +1490,7 @@ export default function RecruiterView() {
             <button
               type="button"
               className="button"
-              onClick={() => {
-                setJobSubmitError("");
-                setIsCreateModalOpen(true);
-              }}
+              onClick={openCreateJobModal}
             >
               + Pasang Lowongan Baru
             </button>
@@ -1492,7 +1517,7 @@ export default function RecruiterView() {
               <button
                 type="button"
                 className="button"
-                onClick={() => setIsCreateModalOpen(true)}
+                onClick={openCreateJobModal}
               >
                 + Pasang Lowongan Sekarang
               </button>
@@ -2014,7 +2039,7 @@ export default function RecruiterView() {
                     id={targetRoleInputId}
                     type="text"
                     required
-                    placeholder="Cth: Junior Web Developer"
+                    placeholder="Cth: Junior Web Developer / Graphic Designer / Digital Marketer"
                     value={formTargetRole}
                     onChange={(e) => setFormTargetRole(e.target.value)}
                   />
@@ -2270,6 +2295,7 @@ export default function RecruiterView() {
                 <textarea
                   id={descInputId}
                   rows={2}
+                  placeholder="Cth: Mencari talenta muda berbakat yang siap berkembang, berkomitmen, dan berfokus pada hasil karya nyata."
                   value={formDesc}
                   onChange={(e) => setFormDesc(e.target.value)}
                 />
@@ -2282,7 +2308,7 @@ export default function RecruiterView() {
                   id={respInputId}
                   rows={3}
                   required
-                  placeholder="Mengembangkan fitur web&#10;Menjaga kualitas kode&#10;Kolaborasi tim"
+                  placeholder={"Cth:\n• Mengembangkan antarmuka web yang responsif dan teruji\n• Menulis kode yang bersih, modular, dan terdokumentasi\n• Berkolaborasi dalam tim teknis untuk implementasi fitur"}
                   value={formResponsibilities}
                   onChange={(e) => setFormResponsibilities(e.target.value)}
                 />
@@ -2295,7 +2321,7 @@ export default function RecruiterView() {
                   id={skillsInputId}
                   type="text"
                   required
-                  placeholder="React, Next.js, TypeScript, Tailwind CSS, REST API"
+                  placeholder="Cth: React, Next.js, TypeScript, Tailwind CSS, REST API, Git"
                   value={formRequiredSkills}
                   onChange={(e) => setFormRequiredSkills(e.target.value)}
                 />
@@ -2307,7 +2333,7 @@ export default function RecruiterView() {
                 <input
                   id={benefitsInputId}
                   type="text"
-                  placeholder="BPJS, Tunjangan Laptop, Tunjangan Internet"
+                  placeholder="Cth: BPJS Kesehatan & Ketenagakerjaan, Tunjangan Laptop, Mentoring 1-on-1, Bonus Proyek"
                   value={formBenefits}
                   onChange={(e) => setFormBenefits(e.target.value)}
                 />
