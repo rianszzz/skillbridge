@@ -3,22 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { authHeaders, getSupabase } from "@/lib/auth-client";
-
-type TalentCandidate = {
-  id: string;
-  assessmentId: string;
-  candidateName: string;
-  email: string;
-  role: string;
-  field: string;
-  finalScore: number;
-  evidenceType: string;
-  strengths: string[];
-  gaps: string[];
-  createdAt: string;
-  sourceUrl?: string;
-  isDemo: boolean;
-};
+import type { TalentCandidate } from "@/lib/types";
 
 type AuthState =
   | { status: "loading" }

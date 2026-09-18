@@ -1,28 +1,10 @@
-import { createAdminSupabase } from "./supabase.ts";
+import { createAdminSupabase, isTableMissing } from "./supabase.ts";
 import { roleFields } from "./rubrics.ts";
 import { DEMO_SEEDS } from "./demo-seed.ts";
-import type { Role } from "./types.ts";
+import type { Role, TalentCandidate, TalentPoolFilters } from "./types.ts";
 
-export type TalentCandidate = {
-  id: string;
-  assessmentId: string;
-  candidateName: string;
-  email: string;
-  role: Role | string;
-  field: string;
-  finalScore: number;
-  evidenceType: "github" | "image" | "pdf" | string;
-  strengths: string[];
-  gaps: string[];
-  createdAt: string;
-  sourceUrl?: string;
-  isDemo: boolean;
-};
-
-export type TalentPoolFilters = {
-  field?: string;
-  minScore?: number;
-};
+export { isTableMissing };
+export type { TalentCandidate, TalentPoolFilters };
 
 const DEMO_METADATA: Record<string, { candidateName: string; email: string }> = {
   "00000000-0000-4000-8000-000000000001": {
@@ -42,18 +24,6 @@ const DEMO_METADATA: Record<string, { candidateName: string; email: string }> = 
     email: "budi.santoso@demo.skillbridge.id",
   },
 };
-
-export function isTableMissing(error: unknown): boolean {
-  if (!error || typeof error !== "object") return false;
-  const e = error as { code?: string; message?: string };
-  return (
-    e.code === "PGRST204" ||
-    e.code === "PGRST200" ||
-    e.code === "42703" ||
-    e.code === "42P01" ||
-    /does not exist|schema cache|column.*not found|column/i.test(e.message ?? "")
-  );
-}
 
 export function getDemoTalentCandidates(): TalentCandidate[] {
   return DEMO_SEEDS
@@ -180,10 +150,8 @@ export async function getTalentPool(filters?: TalentPoolFilters): Promise<Talent
       );
       dbCandidates = await mapDbRows(db, publicRows);
     }
-  } catch (cause) {
-    if (!isTableMissing(cause)) {
-      // Graceful fallback: when DB is unavailable or unconfigured, rely on demo seeds
-    }
+  } catch {
+    // Graceful fallback: when DB is unavailable or unconfigured, rely on demo seeds
   }
 
   // Merge DB candidates and Demo Seeds without duplicate assessment IDs

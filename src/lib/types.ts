@@ -46,3 +46,24 @@ export type AssessmentResult = {
   limitations: string[];
   finalScore: number | null;
 };
+
+export type TalentCandidate = {
+  id: string;
+  assessmentId: string;
+  candidateName: string;
+  email: string;
+  role: Role | string;
+  field: string;
+  finalScore: number;
+  evidenceType: "github" | "image" | "pdf" | string;
+  strengths: string[];
+  gaps: string[];
+  createdAt: string;
+  sourceUrl?: string;
+  isDemo: boolean;
+};
+
+export type TalentPoolFilters = {
+  field?: string;
+  minScore?: number;
+};

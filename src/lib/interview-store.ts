@@ -1,13 +1,7 @@
-import { createAdminSupabase } from "./supabase";
+import { createAdminSupabase, isTableMissing } from "./supabase";
 
 type InterviewMessage = { role: "user" | "assistant"; content: string };
 type InterviewSession = { id: string; status: "active" | "completed"; focusAreas: string[]; messages: InterviewMessage[]; createdAt: string };
-
-function isTableMissing(error: unknown) {
-  if (!error || typeof error !== "object") return false;
-  const e = error as { code?: string; message?: string };
-  return e.code === "PGRST204" || e.code === "PGRST200" || e.code === "42P01" || /does not exist|schema cache/i.test(e.message ?? "");
-}
 
 export async function loadInterview(userId: string, assessmentId: string): Promise<InterviewSession | null> {
   try {

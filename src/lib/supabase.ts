@@ -29,3 +29,15 @@ export class AuthError extends Error {
   status = 401;
   constructor() { super("Silakan masuk untuk melanjutkan."); }
 }
+
+export function isTableMissing(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const e = error as { code?: string; message?: string };
+  return (
+    e.code === "PGRST204" ||
+    e.code === "PGRST200" ||
+    e.code === "42703" ||
+    e.code === "42P01" ||
+    /does not exist|schema cache|column.*not found|column/i.test(e.message ?? "")
+  );
+}
