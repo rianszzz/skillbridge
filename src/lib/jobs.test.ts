@@ -18,6 +18,7 @@ import {
   isTableMissing,
   parseDeletedJobsCookie,
 } from "./jobs.ts";
+import type { JobPosting } from "./types.ts";
 
 test("DEMO_JOBS mematuhi skema data dan kriteria Proposal Kompres 16", () => {
   assert.ok(DEMO_JOBS.length >= 3, "Harus menyediakan minimal 3 lowongan demo");
@@ -107,12 +108,26 @@ test("filterJobs menyaring berdasarkan bidang (field)", () => {
   assert.equal(allJobs.length, DEMO_JOBS.length);
 });
 
+const mockDiplomaInternshipJob: JobPosting = {
+  ...DEMO_JOBS[0],
+  id: "mock-diploma-internship-job",
+  minEducation: "diploma",
+  compensationType: "unpaid",
+  employmentType: "internship",
+};
+
+const mockContractJob: JobPosting = {
+  ...DEMO_JOBS[0],
+  id: "mock-contract-job",
+  employmentType: "contract",
+};
+
 test("filterJobs menyaring berdasarkan pendidikan minimal (minEducation)", () => {
   const smkJobs = filterJobs(DEMO_JOBS, { minEducation: "smk" });
   assert.ok(smkJobs.length >= 3);
   assert.ok(smkJobs.every((j) => j.minEducation === "smk"));
 
-  const diplomaJobs = filterJobs(DEMO_JOBS, { minEducation: "diploma" });
+  const diplomaJobs = filterJobs([...DEMO_JOBS, mockDiplomaInternshipJob], { minEducation: "diploma" });
   assert.ok(diplomaJobs.length >= 1);
   assert.ok(diplomaJobs.every((j) => j.minEducation === "diploma"));
 
@@ -125,7 +140,7 @@ test("filterJobs menyaring berdasarkan kompensasi paid dan unpaid", () => {
   assert.ok(paidJobs.length >= 3);
   assert.ok(paidJobs.every((j) => j.compensationType === "paid"));
 
-  const unpaidJobs = filterJobs(DEMO_JOBS, { compensationType: "unpaid" });
+  const unpaidJobs = filterJobs([...DEMO_JOBS, mockDiplomaInternshipJob], { compensationType: "unpaid" });
   assert.ok(unpaidJobs.length >= 1);
   assert.ok(unpaidJobs.every((j) => j.compensationType === "unpaid"));
 });
@@ -135,11 +150,11 @@ test("filterJobs menyaring berdasarkan tipe kerja (employmentType)", () => {
   assert.ok(fulltimeJobs.length >= 3);
   assert.ok(fulltimeJobs.every((j) => j.employmentType === "fulltime"));
 
-  const internshipJobs = filterJobs(DEMO_JOBS, { employmentType: "internship" });
+  const internshipJobs = filterJobs([...DEMO_JOBS, mockDiplomaInternshipJob], { employmentType: "internship" });
   assert.ok(internshipJobs.length >= 1);
   assert.ok(internshipJobs.every((j) => j.employmentType === "internship"));
 
-  const contractJobs = filterJobs(DEMO_JOBS, { employmentType: "contract" });
+  const contractJobs = filterJobs([...DEMO_JOBS, mockContractJob], { employmentType: "contract" });
   assert.ok(contractJobs.length >= 1);
   assert.ok(contractJobs.every((j) => j.employmentType === "contract"));
 });
@@ -580,34 +595,36 @@ test("updateJobPosting memperbarui data lowongan (judul, status, gaji) secara fa
 });
 
 test("updateJobPosting memperbarui demo job secara fail-safe", async () => {
-  // Demo job ke-5
-  const demoTargetId = DEMO_JOBS[4].id;
-  const originalTitle = DEMO_JOBS[4].title;
+  // Demo job ke-2 (Desain)
+  const demoTargetId = DEMO_JOBS[1].id;
+  const originalTitle = DEMO_JOBS[1].title;
+  const originalSalaryMin = DEMO_JOBS[1].salaryMin;
+  const originalSalaryMax = DEMO_JOBS[1].salaryMax;
 
   const updatedDemo = await updateJobPosting("any-recruiter-id", demoTargetId, {
-    title: "Senior UI/UX Designer & Product Lead",
+    title: "Senior Graphic & Brand Identity Designer",
     status: "closed",
-    salaryMin: 9000000,
-    salaryMax: 15000000,
+    salaryMin: 8000000,
+    salaryMax: 12000000,
   });
 
   assert.equal(updatedDemo.id, demoTargetId);
-  assert.equal(updatedDemo.title, "Senior UI/UX Designer & Product Lead");
+  assert.equal(updatedDemo.title, "Senior Graphic & Brand Identity Designer");
   assert.equal(updatedDemo.status, "closed");
-  assert.equal(updatedDemo.salaryMin, 9000000);
-  assert.equal(updatedDemo.salaryMax, 15000000);
+  assert.equal(updatedDemo.salaryMin, 8000000);
+  assert.equal(updatedDemo.salaryMax, 12000000);
 
   const foundDemo = await getJobPostingById(demoTargetId);
   assert.ok(foundDemo !== null);
-  assert.equal(foundDemo?.title, "Senior UI/UX Designer & Product Lead");
+  assert.equal(foundDemo?.title, "Senior Graphic & Brand Identity Designer");
   assert.equal(foundDemo?.status, "closed");
 
-  // Restore original title for demo clean state
+  // Restore original state for demo clean state
   await updateJobPosting("any-recruiter-id", demoTargetId, {
     title: originalTitle,
     status: "active",
-    salaryMin: 6000000,
-    salaryMax: 8500000,
+    salaryMin: originalSalaryMin,
+    salaryMax: originalSalaryMax,
   });
 });
 

@@ -35,7 +35,10 @@ export type {
   JobFitEvaluation,
 };
 const inMemoryJobs = new Map<string, JobPosting>();
-const deletedJobIds = new Set<string>();
+const deletedJobIds = new Set<string>([
+  "10000000-0000-4000-8000-000000000004",
+  "10000000-0000-4000-8000-000000000005",
+]);
 const applicationFitMap = new Map<string, JobFitEvaluation>();
 
 export const DEMO_JOBS: JobPosting[] = [
@@ -174,90 +177,6 @@ export const DEMO_JOBS: JobPosting[] = [
     minSkillbridgeScore: 55,
     status: "active",
     createdAt: "2026-08-17T10:15:00Z",
-    isDemo: true,
-  },
-  {
-    id: "10000000-0000-4000-8000-000000000004",
-    companyName: "Inovasi Lab Nusantara",
-    title: "Magang Web QA & Automation Tester",
-    field: "informatics",
-    targetRole: "Junior Web Developer",
-    employmentType: "internship",
-    workplaceType: "remote",
-    location: "Remote (Seluruh Indonesia)",
-    minEducation: "smk",
-    experienceLevel: "fresh_graduate",
-    compensationType: "unpaid",
-    salaryMin: null,
-    salaryMax: null,
-    showSalary: false,
-    benefits: [
-      "Sertifikat Magang Resmi",
-      "Mentoring Intensif QA Engineer",
-      "Konversi ke Posisi Full-Time Bagi Performa Terbaik",
-    ],
-    highlights: [
-      "Program Magang Terarah Khusus Siswa SMK RPL & Mahasiswa Akhir",
-      "Pelatihan Nyata Testing Automation dengan Playwright & Vitest",
-      "Peluang Direkrut Full-Time Setelah 3 Bulan Evaluasi Kinerja",
-    ],
-    description:
-      "Program magang 3 bulan untuk siswa SMK dan fresh graduate yang ingin mendalami pengujian web dan otomatisasi kualitas perangkat lunak.",
-    responsibilities: [
-      "Merancang skenario pengujian manual dan otomatis untuk fitur web",
-      "Mendokumentasikan temuan bug dengan langkah reproduksi yang jelas",
-      "Berkoordinasi dengan pengembang web untuk validasi perbaikan",
-    ],
-    requiredSkills: ["Manual Testing", "Test Case Documentation", "Git", "Dasar JavaScript"],
-    acceptedEvidenceTypes: ["github", "pdf"],
-    minSkillbridgeScore: 50,
-    status: "active",
-    createdAt: "2026-08-18T11:00:00Z",
-    isDemo: true,
-  },
-  {
-    id: "10000000-0000-4000-8000-000000000005",
-    companyName: "Sinergi FinTech Solusi",
-    title: "Junior UI/UX Designer (Diploma/Sarjana)",
-    field: "design",
-    targetRole: "Junior Graphic Designer",
-    employmentType: "contract",
-    workplaceType: "hybrid",
-    location: "Jakarta Pusat, DKI Jakarta",
-    minEducation: "diploma",
-    experienceLevel: "under_1_year",
-    compensationType: "paid",
-    salaryMin: 6000000,
-    salaryMax: 8500000,
-    showSalary: true,
-    benefits: [
-      "Asuransi Rawat Inap & Jalan",
-      "Tunjangan Transportasi & Makan",
-      "Akses Design System Enterprise",
-    ],
-    highlights: [
-      "Keterlibatan Langsung dalam Desain Produk FinTech Skala Enterprise",
-      "Model Kerja Hybrid di Kawasan Bisnis Sudirman Jakarta",
-      "Kompensasi Kompetitif Rp 6.000.000 - Rp 8.500.000 + Insentif",
-    ],
-    description:
-      "Posisi kontrak 1 tahun untuk desainer UI/UX dengan pemahaman desain antarmuka aplikasi perbankan digital dan alur pengguna yang intuitif.",
-    responsibilities: [
-      "Menyusun wireframe, user flow, dan interactive prototype di Figma",
-      "Mengembangkan antarmuka mengacu pada enterprise design system",
-      "Melakukan usability testing sederhana dengan kelompok pengguna sasaran",
-    ],
-    requiredSkills: [
-      "Figma",
-      "Interactive Prototyping",
-      "Design System",
-      "User Flow",
-      "Usability Testing",
-    ],
-    acceptedEvidenceTypes: ["image", "pdf"],
-    minSkillbridgeScore: 70,
-    status: "active",
-    createdAt: "2026-08-19T14:00:00Z",
     isDemo: true,
   },
 ];
