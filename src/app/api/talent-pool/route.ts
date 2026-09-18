@@ -15,6 +15,7 @@ export async function GET(request: Request) {
     }
 
     const url = new URL(request.url);
+    const jobIdParam = url.searchParams.get("jobId") || "all";
     const fieldParam = url.searchParams.get("field") ?? undefined;
     const minScoreParam = url.searchParams.get("minScore");
 
@@ -28,10 +29,15 @@ export async function GET(request: Request) {
     }
 
     const field = fieldParam && fieldParam !== "all" ? fieldParam : undefined;
-    const candidates = await getTalentPool({ field, minScore });
+    const candidates = await getTalentPool(user.id, {
+      jobId: jobIdParam,
+      field,
+      minScore,
+    });
 
     return Response.json(candidates, privateResponse());
   } catch (error) {
     return errorResponse(error, "Talent pool gagal dimuat.");
   }
 }
+

@@ -241,3 +241,38 @@ test("isTableMissing mendeteksi kode dan pesan error ketiadaan tabel atau kolom 
   assert.equal(isTableMissing(null), false);
   assert.equal(isTableMissing(undefined), false);
 });
+
+test("getTalentPool menyaring berdasarkan jobId HR dan memetakan objek TalentCandidate secara lengkap", async () => {
+  const webJobId = "10000000-0000-4000-8000-000000000001";
+  const mktJobId = "10000000-0000-4000-8000-000000000003";
+
+  // Saring hanya untuk lowongan web developer
+  const webCandidates = await getTalentPool("recruiter-test-id", { jobId: webJobId });
+  assert.ok(webCandidates.length >= 1, "Harus memuat minimal pelamar lowongan web");
+  for (const c of webCandidates) {
+    assert.equal(c.jobId, webJobId);
+    assert.equal(c.field, "informatics");
+    assert.ok(c.jobTitle);
+    assert.ok(c.companyName);
+    assert.ok(c.fitEvaluation, "fitEvaluation harus terisi");
+    assert.ok([0, 25, 50, 75, 100].includes(c.fitEvaluation!.score));
+    assert.ok(["high", "medium", "low"].includes(c.fitEvaluation!.fitLevel));
+    assert.equal(c.finalScore, c.fitEvaluation!.score);
+  }
+
+  // Saring hanya untuk lowongan marketing
+  const mktCandidates = await getTalentPool("recruiter-test-id", { jobId: mktJobId });
+  assert.ok(mktCandidates.length >= 1, "Harus memuat minimal pelamar lowongan marketing");
+  for (const c of mktCandidates) {
+    assert.equal(c.jobId, mktJobId);
+    assert.equal(c.field, "marketing");
+    assert.equal(c.candidateName, "Budi Santoso (MKT-02)");
+    assert.ok(c.fitEvaluation);
+    assert.equal(c.fitEvaluation!.score, 75);
+  }
+
+  // Saring dengan jobId = "all" memuat seluruh pelamar
+  const allCandidates = await getTalentPool("recruiter-test-id", { jobId: "all" });
+  assert.ok(allCandidates.length >= 3, "jobId 'all' harus memuat minimal 3 pelamar demo");
+});
+

@@ -6,6 +6,7 @@ import { authHeaders, getSupabase } from "@/lib/auth-client";
 import { setupJobRealtimeSync } from "@/lib/realtime-jobs";
 import type {
   JobPosting,
+  JobApplication,
   Field,
   MinEducation,
   EmploymentType,
@@ -121,6 +122,7 @@ export default function JobsView() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [submittedApp, setSubmittedApp] = useState<JobApplication | null>(null);
 
   // Check auth & load user assessments
   useEffect(() => {
@@ -270,6 +272,7 @@ export default function JobsView() {
     setDetailJob(null);
     setApplyJob(job);
     setSubmitSuccess(false);
+    setSubmittedApp(null);
     setSubmitError("");
     setCoverLetter("");
     if (currentUser) {
@@ -311,11 +314,12 @@ export default function JobsView() {
         body: JSON.stringify(payload),
       });
 
-      const body = await res.json().catch(() => ({}));
+      const body = (await res.json().catch(() => ({}))) as JobApplication & { error?: string };
       if (!res.ok) {
         throw new Error(body.error || "Gagal mengirimkan lamaran.");
       }
 
+      setSubmittedApp(body);
       setSubmitSuccess(true);
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Terjadi kesalahan saat mengirim lamaran.");
@@ -1069,31 +1073,291 @@ export default function JobsView() {
                 </div>
               </div>
             ) : submitSuccess ? (
-              // Sukses Pengiriman
-              <div style={{ textAlign: "center", padding: "1.5rem 0" }}>
+              // Sukses Pengiriman & Evaluasi AI Kriteria Lowongan
+              <div style={{ textAlign: "center", padding: "1rem 0" }}>
                 <div
                   style={{
-                    width: "56px",
-                    height: "56px",
-                    margin: "0 auto 1rem",
+                    width: "52px",
+                    height: "52px",
+                    margin: "0 auto 0.75rem",
                     background: "#e6f4ea",
                     color: "#137333",
                     border: "2px solid #137333",
                     borderRadius: "50%",
                     display: "grid",
                     placeItems: "center",
-                    fontSize: "1.75rem",
+                    fontSize: "1.5rem",
                     fontWeight: 700,
                   }}
                 >
                   ✓
                 </div>
-                <h2 id="apply-job-title" style={{ fontSize: "1.5rem", marginBottom: "0.75rem" }}>
+                <h2 id="apply-job-title" style={{ fontSize: "1.4rem", marginBottom: "0.5rem" }}>
                   Lamaran Berhasil Terkirim!
                 </h2>
-                <p style={{ color: "var(--muted)", marginBottom: "1.75rem", lineHeight: 1.6 }}>
-                  Lamaran Anda untuk posisi <strong>{applyJob.title}</strong> di <strong>{applyJob.companyName}</strong> telah diterima oleh tim HR bersama bukti skor portofolio Anda.
+                <p style={{ color: "var(--muted)", marginBottom: "1.25rem", lineHeight: 1.5, fontSize: "0.95rem" }}>
+                  Lamaran Anda untuk posisi <strong>{applyJob.title}</strong> di <strong>{applyJob.companyName}</strong> telah diterima oleh tim HR bersama bukti portofolio Anda.
                 </p>
+
+                {/* Kartu Ringkasan Hasil Evaluasi Kecocokan AI */}
+                {submittedApp?.fitEvaluation && (
+                  <div
+                    style={{
+                      textAlign: "left",
+                      background: "var(--paper)",
+                      border: "1px solid var(--line)",
+                      borderRadius: "8px",
+                      padding: "1.25rem",
+                      marginBottom: "1.5rem",
+                    }}
+                  >
+                    {/* Header Kartu: Judul & Level Kesesuaian */}
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        borderBottom: "1px solid var(--line)",
+                        paddingBottom: "0.75rem",
+                        marginBottom: "1rem",
+                        flexWrap: "wrap",
+                        gap: "0.5rem",
+                      }}
+                    >
+                      <div>
+                        <span
+                          style={{
+                            fontSize: "0.75rem",
+                            color: "var(--muted)",
+                            textTransform: "uppercase",
+                            fontWeight: 700,
+                            letterSpacing: "0.06em",
+                            display: "block",
+                          }}
+                        >
+                          Transparansi Penilaian Berbasis Kriteria Lowongan
+                        </span>
+                        <h3 style={{ margin: "0.15rem 0 0", fontSize: "1.1rem" }}>
+                          Hasil Evaluasi Kecocokan AI
+                        </h3>
+                      </div>
+
+                      {/* Level Kesesuaian Badge */}
+                      {(() => {
+                        const level = submittedApp.fitEvaluation.fitLevel;
+                        const score = submittedApp.fitEvaluation.score;
+                        if (level === "high" || score >= 75) {
+                          return (
+                            <span
+                              className="chip"
+                              style={{
+                                background: "#e6f4ea",
+                                color: "#137333",
+                                borderColor: "#b7e1cd",
+                                fontWeight: 700,
+                                fontSize: "0.78rem",
+                                padding: "0.25rem 0.65rem",
+                              }}
+                            >
+                              Tingkat Kesesuaian: Tinggi
+                            </span>
+                          );
+                        }
+                        if (level === "medium" || score >= 50) {
+                          return (
+                            <span
+                              className="chip"
+                              style={{
+                                background: "#fef3c7",
+                                color: "#92400e",
+                                borderColor: "#fde68a",
+                                fontWeight: 700,
+                                fontSize: "0.78rem",
+                                padding: "0.25rem 0.65rem",
+                              }}
+                            >
+                              Tingkat Kesesuaian: Menengah
+                            </span>
+                          );
+                        }
+                        return (
+                          <span
+                            className="chip"
+                            style={{
+                              background: "#f3f4f6",
+                              color: "#4b5563",
+                              borderColor: "var(--line)",
+                              fontWeight: 700,
+                              fontSize: "0.78rem",
+                              padding: "0.25rem 0.65rem",
+                            }}
+                          >
+                            Tingkat Kesesuaian: Perlu Penguatan
+                          </span>
+                        );
+                      })()}
+                    </div>
+
+                    {/* Skor Kesesuaian dengan Lowongan */}
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "baseline",
+                        gap: "0.4rem",
+                        marginBottom: "1rem",
+                        paddingBottom: "0.85rem",
+                        borderBottom: "1px solid var(--line)",
+                      }}
+                    >
+                      <span
+                        className="score"
+                        style={{
+                          fontSize: "2.4rem",
+                          lineHeight: 1,
+                          color:
+                            submittedApp.fitEvaluation.score >= 75
+                              ? "#15803d"
+                              : submittedApp.fitEvaluation.score >= 50
+                              ? "#0284c7"
+                              : "var(--ink)",
+                        }}
+                      >
+                        {submittedApp.fitEvaluation.score}
+                      </span>
+                      <span style={{ fontSize: "1.05rem", color: "var(--muted)", fontWeight: 700 }}>
+                        /100
+                      </span>
+                      <span style={{ fontSize: "0.85rem", color: "var(--muted)", marginLeft: "0.5rem" }}>
+                        Skor Kesesuaian dengan Lowongan ({applyJob.title})
+                      </span>
+                    </div>
+
+                    {/* Ringkasan Penilaian AI */}
+                    {submittedApp.fitEvaluation.summary && (
+                      <div
+                        style={{
+                          background: "white",
+                          border: "1px solid var(--line)",
+                          borderLeft: "3px solid var(--chalk)",
+                          padding: "0.75rem 0.9rem",
+                          borderRadius: "6px",
+                          marginBottom: "1rem",
+                          fontSize: "0.88rem",
+                          lineHeight: 1.5,
+                        }}
+                      >
+                        <strong
+                          style={{
+                            display: "block",
+                            fontSize: "0.78rem",
+                            color: "var(--ink)",
+                            textTransform: "uppercase",
+                            letterSpacing: "0.05em",
+                            marginBottom: "0.25rem",
+                          }}
+                        >
+                          Ringkasan Penilaian AI:
+                        </strong>
+                        <p style={{ margin: 0, color: "var(--ink)" }}>
+                          {submittedApp.fitEvaluation.summary}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Poin-poin Kriteria Lowongan yang Berhasil Dipenuhi */}
+                    {submittedApp.fitEvaluation.matchingCriteria &&
+                      submittedApp.fitEvaluation.matchingCriteria.length > 0 && (
+                        <div style={{ marginBottom: "1rem" }}>
+                          <strong
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "0.35rem",
+                              fontSize: "0.82rem",
+                              textTransform: "uppercase",
+                              letterSpacing: "0.05em",
+                              color: "#15803d",
+                              marginBottom: "0.35rem",
+                            }}
+                          >
+                            <span>✓</span> Kriteria Lowongan yang Berhasil Anda Penuhi:
+                          </strong>
+                          <ul
+                            style={{
+                              margin: 0,
+                              paddingLeft: "1.25rem",
+                              fontSize: "0.88rem",
+                              lineHeight: 1.5,
+                              color: "var(--ink)",
+                            }}
+                          >
+                            {submittedApp.fitEvaluation.matchingCriteria.map((item, idx) => (
+                              <li key={idx} style={{ marginBottom: "0.2rem" }}>
+                                {item}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                    {/* Catatan Pengembangan Diri jika ada kriteria belum terpenuhi */}
+                    {submittedApp.fitEvaluation.missingCriteria &&
+                      submittedApp.fitEvaluation.missingCriteria.length > 0 && (
+                        <div style={{ marginBottom: "0.85rem" }}>
+                          <strong
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "0.35rem",
+                              fontSize: "0.82rem",
+                              textTransform: "uppercase",
+                              letterSpacing: "0.05em",
+                              color: "var(--danger)",
+                              marginBottom: "0.35rem",
+                            }}
+                          >
+                            <span>⚠</span> Catatan Pengembangan Diri (Kriteria Belum Terpenuhi):
+                          </strong>
+                          <ul
+                            style={{
+                              margin: 0,
+                              paddingLeft: "1.25rem",
+                              fontSize: "0.88rem",
+                              lineHeight: 1.5,
+                              color: "var(--muted)",
+                            }}
+                          >
+                            {submittedApp.fitEvaluation.missingCriteria.map((item, idx) => (
+                              <li key={idx} style={{ marginBottom: "0.2rem" }}>
+                                {item}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                    {/* Rekomendasi AI */}
+                    {submittedApp.fitEvaluation.recommendation && (
+                      <div
+                        style={{
+                          marginTop: "0.75rem",
+                          padding: "0.65rem 0.85rem",
+                          background: "#fff",
+                          border: "1px solid var(--line)",
+                          borderRadius: "6px",
+                          fontSize: "0.82rem",
+                          lineHeight: 1.45,
+                        }}
+                      >
+                        <strong style={{ color: "var(--ink)" }}>Rekomendasi AI: </strong>
+                        <span style={{ color: "var(--muted)" }}>
+                          {submittedApp.fitEvaluation.recommendation}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
                   <Link className="button" href="/history">
                     Pantau Status di Riwayat
@@ -1101,7 +1365,10 @@ export default function JobsView() {
                   <button
                     type="button"
                     className="button secondary"
-                    onClick={() => setApplyJob(null)}
+                    onClick={() => {
+                      setApplyJob(null);
+                      setSubmittedApp(null);
+                    }}
                   >
                     Kembali ke Lowongan
                   </button>

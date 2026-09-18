@@ -338,7 +338,30 @@ test("Validasi input applyToJob menolak data lamaran yang tidak lengkap atau tid
   assert.equal(application.jobId, DEMO_JOBS[0].id);
   assert.equal(application.candidateName, "Rian Pratama");
   assert.equal(application.status, "pending");
+  assert.ok(application.fitEvaluation, "applyToJob harus memuat fitEvaluation");
+  assert.ok([0, 25, 50, 75, 100].includes(application.fitEvaluation.score));
+  assert.equal(application.skillbridgeScore, application.fitEvaluation.score);
 });
+
+test("DEMO_APPLICATIONS memuat 3 pelamar realistis dengan fitEvaluation terstruktur", () => {
+  assert.equal(DEMO_APPLICATIONS.length, 3, "Harus memuat tepat 3 pelamar demo (Ahmad, Siti, Budi)");
+
+  const names = DEMO_APPLICATIONS.map((a) => a.candidateName);
+  assert.ok(names.some((n) => n.includes("Ahmad Fauzi")));
+  assert.ok(names.some((n) => n.includes("Siti Rahma")));
+  assert.ok(names.some((n) => n.includes("Budi Santoso")));
+
+  for (const app of DEMO_APPLICATIONS) {
+    assert.ok(app.fitEvaluation, `Pelamar ${app.candidateName} harus memiliki fitEvaluation`);
+    assert.ok([0, 25, 50, 75, 100].includes(app.fitEvaluation!.score));
+    assert.ok(["high", "medium", "low"].includes(app.fitEvaluation!.fitLevel));
+    assert.ok(app.fitEvaluation!.matchingCriteria.length > 0);
+    assert.ok(app.fitEvaluation!.missingCriteria.length > 0);
+    assert.ok(app.fitEvaluation!.summary.length > 0);
+    assert.ok(app.fitEvaluation!.recommendation.length > 0);
+  }
+});
+
 
 test("getJobApplicationsForRecruiter dan getJobApplicationsForCandidate bekerja fail-safe", async () => {
   // Recruiter queries applications

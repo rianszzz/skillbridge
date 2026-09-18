@@ -1,4 +1,6 @@
 import { createAdminSupabase, isTableMissing } from "./supabase.ts";
+import { evaluateJobFit } from "./job-fit-evaluator.ts";
+import { DEMO_SEEDS } from "./demo-seed.ts";
 import type {
   Field,
   Role,
@@ -13,6 +15,8 @@ import type {
   JobPosting,
   JobApplication,
   JobFilters,
+  JobFitEvaluation,
+  AssessmentResult,
 } from "./types.ts";
 
 export { isTableMissing };
@@ -28,9 +32,11 @@ export type {
   JobPosting,
   JobApplication,
   JobFilters,
+  JobFitEvaluation,
 };
 const inMemoryJobs = new Map<string, JobPosting>();
 const deletedJobIds = new Set<string>();
+const applicationFitMap = new Map<string, JobFitEvaluation>();
 
 export const DEMO_JOBS: JobPosting[] = [
   {
@@ -273,6 +279,22 @@ export const DEMO_APPLICATIONS: JobApplication[] = [
     isDemo: true,
     jobTitle: "Junior Front-End Web Developer",
     companyName: "PT Nusantara Cloud Solusindo",
+    fitEvaluation: {
+      score: 75,
+      fitLevel: "high",
+      matchingCriteria: [
+        "Keahlian terverifikasi: Next.js, React, TypeScript, dan Tailwind CSS",
+        "Kualitas struktur kode modul web rapi dan responsif",
+        "Tautan portofolio GitHub aktif terlampir untuk verifikasi karya nyata",
+      ],
+      missingCriteria: [
+        "Automated unit testing dan integrasi pengujian CI/CD",
+      ],
+      summary:
+        "Kandidat Ahmad Fauzi menunjukkan tingkat kesesuaian tinggi (75/100) untuk posisi Junior Front-End Web Developer di PT Nusantara Cloud Solusindo dengan penguasaan framework modern yang kuat.",
+      recommendation:
+        "Sangat disarankan untuk dijadwalkan ke tahap wawancara teknis dan code walk-through.",
+    },
   },
   {
     id: "20000000-0000-4000-8000-000000000002",
@@ -281,17 +303,72 @@ export const DEMO_APPLICATIONS: JobApplication[] = [
     candidateName: "Siti Rahma (DKV-02)",
     candidateEmail: "siti.rahma@demo.skillbridge.id",
     assessmentId: "00000000-0000-4000-8000-000000000022",
-    skillbridgeScore: 80,
+    skillbridgeScore: 75,
     portfolioUrl: "https://karyasitirahma.portfolio.id",
     coverLetter:
-      "Portofolio brand identity saya telah dinilai Skillbridge dengan skor 80. Siap berkarya di Studio Karya Kreatif Visual.",
+      "Portofolio brand identity saya telah dinilai Skillbridge dengan skor 75. Siap berkarya di Studio Karya Kreatif Visual.",
     status: "reviewed",
     appliedAt: "2026-08-21T11:30:00Z",
     isDemo: true,
     jobTitle: "Junior Graphic & Brand Identity Designer",
     companyName: "Studio Karya Kreatif Visual",
+    fitEvaluation: {
+      score: 75,
+      fitLevel: "high",
+      matchingCriteria: [
+        "Perancangan identitas visual merek, logo guidelines, dan eksplorasi tipografi di Figma",
+        "Keharmonisan teori warna (color harmony) dan hierarki tata letak visual",
+        "Portofolio digital aktif dengan studi kasus komprehensif",
+      ],
+      missingCriteria: [
+        "Dokumentasi persiapan berkas cetak siap produksi (print production ready)",
+      ],
+      summary:
+        "Kandidat Siti Rahma memiliki kepekaan visual yang sangat baik dan kesesuaian tinggi (75/100) untuk peran Junior Graphic & Brand Identity Designer di Studio Karya Kreatif Visual.",
+      recommendation:
+        "Disarankan untuk peninjauan portofolio langsung bersama Lead Designer / Art Director.",
+    },
+  },
+  {
+    id: "20000000-0000-4000-8000-000000000003",
+    jobId: "10000000-0000-4000-8000-000000000003",
+    candidateId: "00000000-0000-4000-8000-000000000032",
+    candidateName: "Budi Santoso (MKT-02)",
+    candidateEmail: "budi.santoso@demo.skillbridge.id",
+    assessmentId: "00000000-0000-4000-8000-000000000032",
+    skillbridgeScore: 75,
+    portfolioUrl: "https://storage.demo.skillbridge.id/marketing/laporan-kampanye-budi.pdf",
+    coverLetter:
+      "Saya memiliki pengalaman mengelola kampanye multi-kanal dengan analisis performa berbasis data dan metrik ROAS.",
+    status: "reviewed",
+    appliedAt: "2026-08-22T09:00:00Z",
+    isDemo: true,
+    jobTitle: "Junior Digital Performance Marketer",
+    companyName: "Artha Digital Growth",
+    fitEvaluation: {
+      score: 75,
+      fitLevel: "high",
+      matchingCriteria: [
+        "Perancangan dan eksekusi kampanye berbayar multi-kanal (Meta Ads & Google Ads)",
+        "Analisis performa metrik kuantitatif (CTR, CPC, Conversion Rate, dan ROAS)",
+        "Pengujian variasi copy dan visual iklan (A/B testing)",
+      ],
+      missingCriteria: [
+        "Penyajian data baseline historis jangka panjang untuk perbandingan pertumbuhan",
+      ],
+      summary:
+        "Kandidat Budi Santoso menunjukkan kemampuan analitis yang kuat dan kesesuaian tinggi (75/100) untuk posisi Junior Digital Performance Marketer di Artha Digital Growth.",
+      recommendation:
+        "Direkomendasikan untuk uji studi kasus analisa efisiensi ROAS dan alokasi anggaran kampanye.",
+    },
   },
 ];
+
+for (const app of DEMO_APPLICATIONS) {
+  if (app.fitEvaluation) {
+    applicationFitMap.set(app.id, app.fitEvaluation);
+  }
+}
 
 export function filterJobs(jobs: JobPosting[], filters?: JobFilters): JobPosting[] {
   let result = [...jobs];
@@ -397,6 +474,7 @@ type DbApplicationRow = {
   skillbridge_score?: number | string | null;
   portfolio_url?: string | null;
   cover_letter?: string | null;
+  fit_evaluation?: unknown;
   status: ApplicationStatus;
   is_demo?: boolean | null;
   created_at: string;
@@ -444,6 +522,12 @@ function mapDbJobToPosting(row: DbJobRow): JobPosting {
 }
 
 function mapDbApplication(row: DbApplicationRow): JobApplication {
+  const cachedFit = applicationFitMap.get(row.id);
+  const dbFit =
+    row.fit_evaluation && typeof row.fit_evaluation === "object"
+      ? (row.fit_evaluation as JobFitEvaluation)
+      : null;
+
   return {
     id: row.id,
     jobId: row.job_id,
@@ -457,6 +541,7 @@ function mapDbApplication(row: DbApplicationRow): JobApplication {
         : null,
     portfolioUrl: row.portfolio_url ?? undefined,
     coverLetter: row.cover_letter ?? undefined,
+    fitEvaluation: dbFit ?? cachedFit ?? null,
     status: row.status,
     appliedAt: row.created_at,
     isDemo: Boolean(row.is_demo),
@@ -1076,11 +1161,88 @@ export function validateApplicationInput(candidateId: string, data: ApplyJobInpu
   }
 }
 
+async function findAssessment(assessmentId: string): Promise<AssessmentResult | null> {
+  const demo = DEMO_SEEDS.find((s) => s.id === assessmentId);
+  if (demo) return demo;
+
+  try {
+    const db = createAdminSupabase();
+    const { data: asm, error } = await db
+      .from("assessments")
+      .select(`
+        id,
+        created_at,
+        rubric_version,
+        evidence_sufficiency,
+        final_score,
+        strengths,
+        gaps,
+        limitations,
+        rubrics (
+          target_role
+        ),
+        evidence (
+          source_url,
+          evidence_type
+        )
+      `)
+      .eq("id", assessmentId)
+      .maybeSingle();
+
+    if (!error && asm) {
+      const rubric = asm.rubrics as unknown as { target_role: Role } | null;
+      const ev = asm.evidence as unknown as {
+        source_url?: string;
+        evidence_type?: "github" | "image" | "pdf";
+      } | null;
+      return {
+        id: asm.id,
+        createdAt: asm.created_at,
+        role: rubric?.target_role ?? "Junior Web Developer",
+        sourceUrl: ev?.source_url ?? "",
+        evidenceType: ev?.evidence_type ?? "github",
+        rubric_version: (asm.rubric_version as "1.0" | "1.1") ?? "1.1",
+        evidence_sufficiency: asm.evidence_sufficiency as
+          | "sufficient"
+          | "insufficient_evidence",
+        finalScore: asm.final_score !== null ? Number(asm.final_score) : null,
+        strengths: Array.isArray(asm.strengths) ? (asm.strengths as string[]) : [],
+        gaps: Array.isArray(asm.gaps) ? (asm.gaps as string[]) : [],
+        limitations: Array.isArray(asm.limitations)
+          ? (asm.limitations as string[])
+          : [],
+        criteria: [],
+      };
+    }
+  } catch {
+    // Non-fatal
+  }
+  return null;
+}
+
 export async function applyToJob(
   candidateId: string,
   data: ApplyJobInput,
 ): Promise<JobApplication> {
   validateApplicationInput(candidateId, data);
+
+  const job = await getJobPostingById(data.jobId);
+  if (!job) {
+    throw new Error("Lowongan pekerjaan tidak ditemukan.");
+  }
+
+  let assessment: AssessmentResult | null = null;
+  if (data.assessmentId) {
+    assessment = await findAssessment(data.assessmentId);
+  }
+
+  const fitEvaluation = await evaluateJobFit(job, {
+    name: data.candidateName,
+    email: data.candidateEmail,
+    assessment,
+    portfolioUrl: data.portfolioUrl,
+    coverLetter: data.coverLetter,
+  });
 
   const newApplication: JobApplication = {
     id: crypto.randomUUID(),
@@ -1089,30 +1251,42 @@ export async function applyToJob(
     candidateName: data.candidateName.trim(),
     candidateEmail: data.candidateEmail.trim(),
     assessmentId: data.assessmentId ?? null,
-    skillbridgeScore: data.skillbridgeScore ?? null,
+    skillbridgeScore: fitEvaluation.score,
     portfolioUrl: data.portfolioUrl?.trim() ?? undefined,
     coverLetter: data.coverLetter?.trim() ?? undefined,
+    fitEvaluation,
     status: "pending",
     appliedAt: new Date().toISOString(),
     isDemo: false,
+    jobTitle: job.title,
+    companyName: job.companyName,
   };
+
+  applicationFitMap.set(newApplication.id, fitEvaluation);
 
   try {
     const db = createAdminSupabase();
-    const { data: inserted, error } = await db
+    const basePayload = {
+      id: newApplication.id,
+      job_id: data.jobId,
+      candidate_id: candidateId,
+      candidate_name: newApplication.candidateName,
+      candidate_email: newApplication.candidateEmail,
+      assessment_id: newApplication.assessmentId,
+      skillbridge_score: newApplication.skillbridgeScore,
+      portfolio_url: newApplication.portfolioUrl ?? null,
+      cover_letter: newApplication.coverLetter ?? null,
+      status: newApplication.status,
+      is_demo: false,
+    };
+
+    let inserted: unknown = null;
+
+    const resWithFit = await db
       .from("job_applications")
       .insert({
-        id: newApplication.id,
-        job_id: data.jobId,
-        candidate_id: candidateId,
-        candidate_name: newApplication.candidateName,
-        candidate_email: newApplication.candidateEmail,
-        assessment_id: newApplication.assessmentId,
-        skillbridge_score: newApplication.skillbridgeScore,
-        portfolio_url: newApplication.portfolioUrl ?? null,
-        cover_letter: newApplication.coverLetter ?? null,
-        status: newApplication.status,
-        is_demo: false,
+        ...basePayload,
+        fit_evaluation: fitEvaluation,
       })
       .select(`
         *,
@@ -1123,14 +1297,48 @@ export async function applyToJob(
       `)
       .single();
 
-    if (error) {
-      if (isTableMissing(error)) {
+    if (!resWithFit.error && resWithFit.data) {
+      inserted = resWithFit.data;
+    } else if (
+      resWithFit.error &&
+      (resWithFit.error.code === "42703" ||
+        resWithFit.error.message.includes("fit_evaluation"))
+    ) {
+      const resWithoutFit = await db
+        .from("job_applications")
+        .insert(basePayload)
+        .select(`
+          *,
+          job_postings (
+            title,
+            company_name
+          )
+        `)
+        .single();
+
+      if (resWithoutFit.error) {
+        if (isTableMissing(resWithoutFit.error)) {
+          return newApplication;
+        }
+        throw new Error(`Gagal mengirimkan lamaran: ${resWithoutFit.error.message}`);
+      }
+      inserted = resWithoutFit.data;
+    } else if (resWithFit.error) {
+      if (isTableMissing(resWithFit.error)) {
         return newApplication;
       }
-      throw new Error(`Gagal mengirimkan lamaran: ${error.message}`);
+      throw new Error(`Gagal mengirimkan lamaran: ${resWithFit.error.message}`);
     }
 
-    return mapDbApplication(inserted as DbApplicationRow);
+    if (inserted) {
+      const mapped = mapDbApplication(inserted as DbApplicationRow);
+      return {
+        ...mapped,
+        fitEvaluation: mapped.fitEvaluation ?? fitEvaluation,
+      };
+    }
+
+    return newApplication;
   } catch (cause) {
     if (
       isTableMissing(cause) ||

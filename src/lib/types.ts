@@ -47,6 +47,15 @@ export type AssessmentResult = {
   finalScore: number | null;
 };
 
+export type JobFitEvaluation = {
+  score: number; // Anchor: 0, 25, 50, 75, 100
+  fitLevel: "high" | "medium" | "low";
+  matchingCriteria: string[];
+  missingCriteria: string[];
+  summary: string;
+  recommendation: string;
+};
+
 export type TalentCandidate = {
   id: string;
   assessmentId: string;
@@ -61,11 +70,18 @@ export type TalentCandidate = {
   createdAt: string;
   sourceUrl?: string;
   isDemo: boolean;
+  jobId?: string;
+  jobTitle?: string;
+  companyName?: string;
+  fitEvaluation?: JobFitEvaluation | null;
+  status?: ApplicationStatus;
+  coverLetter?: string;
 };
 
 export type TalentPoolFilters = {
   field?: string;
   minScore?: number;
+  jobId?: string | "all";
 };
 
 export type EmploymentType = "fulltime" | "internship" | "contract" | "parttime";
@@ -117,6 +133,7 @@ export type JobApplication = {
   skillbridgeScore?: number | null;
   portfolioUrl?: string;
   coverLetter?: string;
+  fitEvaluation?: JobFitEvaluation | null;
   status: ApplicationStatus;
   appliedAt: string;
   isDemo?: boolean;
@@ -137,4 +154,5 @@ export type JobFilters = {
   searchQuery?: string;
   status?: JobStatus | "all";
 };
+
 

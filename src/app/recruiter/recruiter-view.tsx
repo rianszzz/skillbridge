@@ -24,12 +24,6 @@ type AuthState =
   | { status: "candidate" }
   | { status: "recruiter"; user: { id: string; email?: string; companyName?: string } };
 
-const FIELDS = [
-  { id: "all", label: "Semua Bidang" },
-  { id: "informatics", label: "Informatika" },
-  { id: "design", label: "DKV" },
-  { id: "marketing", label: "Pemasaran" },
-] as const;
 
 const SCORE_FILTERS = [
   { value: 0, label: "Semua Skor" },
@@ -99,7 +93,7 @@ export default function RecruiterView() {
   const [activeTab, setActiveTab] = useState<"talent-pool" | "my-jobs">("talent-pool");
 
   // Talent Pool State
-  const [selectedField, setSelectedField] = useState<string>("all");
+  const [selectedJobId, setSelectedJobId] = useState<string>("all");
   const [selectedScore, setSelectedScore] = useState<number>(0);
   const [candidates, setCandidates] = useState<TalentCandidate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -279,13 +273,16 @@ export default function RecruiterView() {
     };
   }, []);
 
+  // Shared Refresh Trigger for Real-time Updates
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
   // Fetch Talent Pool
   useEffect(() => {
     if (authState.status !== "recruiter" || activeTab !== "talent-pool") return;
 
     let active = true;
     const params = new URLSearchParams();
-    if (selectedField !== "all") params.set("field", selectedField);
+    if (selectedJobId !== "all") params.set("jobId", selectedJobId);
     if (selectedScore > 0) params.set("minScore", String(selectedScore));
 
     authHeaders()
@@ -320,13 +317,11 @@ export default function RecruiterView() {
     return () => {
       active = false;
     };
-  }, [authState.status, activeTab, selectedField, selectedScore]);
+  }, [authState.status, activeTab, selectedJobId, selectedScore, refreshTrigger]);
 
   // Fetch Recruiter Jobs & Applications
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
-
   useEffect(() => {
-    if (authState.status !== "recruiter" || activeTab !== "my-jobs") return;
+    if (authState.status !== "recruiter") return;
     let active = true;
 
     Promise.all([
@@ -356,7 +351,7 @@ export default function RecruiterView() {
     return () => {
       active = false;
     };
-  }, [authState.status, activeTab, refreshTrigger]);
+  }, [authState.status, refreshTrigger]);
 
   // 3-Lapis Real-time Synchronization
   useEffect(() => {
@@ -785,25 +780,57 @@ export default function RecruiterView() {
             }}
           >
             <div>
-              <span
+              <div
                 style={{
-                  display: "block",
-                  fontSize: "0.8rem",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.08em",
-                  fontWeight: 700,
-                  color: "var(--muted)",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
                   marginBottom: "0.5rem",
+                  flexWrap: "wrap",
+                  gap: "0.5rem",
                 }}
               >
-                Saring Berdasarkan Bidang
-              </span>
-              <div className="chips" role="tablist" aria-label="Filter Bidang">
-                {FIELDS.map((f) => {
-                  const active = selectedField === f.id;
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: "0.8rem",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    fontWeight: 700,
+                    color: "var(--muted)",
+                  }}
+                >
+                  Saring Berdasarkan Lowongan Kerja Saya
+                </span>
+                {jobs.length > 0 && (
+                  <span style={{ fontSize: "0.78rem", color: "var(--muted)" }}>
+                    {jobs.filter((j) => j.status === "active").length} lowongan aktif
+                  </span>
+                )}
+              </div>
+              <div className="chips" role="tablist" aria-label="Filter Lowongan Kerja">
+                <button
+                  type="button"
+                  className="chip"
+                  style={{
+                    background: selectedJobId === "all" ? "var(--chalk)" : "white",
+                    borderColor: selectedJobId === "all" ? "var(--ink)" : "var(--line)",
+                    fontWeight: selectedJobId === "all" ? 700 : 500,
+                    cursor: "pointer",
+                  }}
+                  onClick={() => {
+                    setLoading(true);
+                    setSelectedJobId("all");
+                  }}
+                >
+                  Semua Lowongan Saya ({jobs.length})
+                </button>
+                {jobs.map((j) => {
+                  const active = selectedJobId === j.id;
+                  const applicantCount = applications.filter((app) => app.jobId === j.id).length;
                   return (
                     <button
-                      key={f.id}
+                      key={j.id}
                       type="button"
                       className="chip"
                       style={{
@@ -814,14 +841,45 @@ export default function RecruiterView() {
                       }}
                       onClick={() => {
                         setLoading(true);
-                        setSelectedField(f.id);
+                        setSelectedJobId(j.id);
                       }}
                     >
-                      {f.label}
+                      {j.title} ({applicantCount} Pelamar)
                     </button>
                   );
                 })}
               </div>
+
+              {jobs.length > 2 && (
+                <div style={{ marginTop: "0.6rem", maxWidth: "420px" }}>
+                  <select
+                    value={selectedJobId}
+                    onChange={(e) => {
+                      setLoading(true);
+                      setSelectedJobId(e.target.value);
+                    }}
+                    aria-label="Pilih Lowongan Kerja"
+                    style={{
+                      width: "100%",
+                      padding: "0.45rem 0.65rem",
+                      borderRadius: "6px",
+                      border: "1px solid var(--line)",
+                      fontSize: "0.85rem",
+                      background: "white",
+                    }}
+                  >
+                    <option value="all">Semua Lowongan Saya ({jobs.length})</option>
+                    {jobs.map((j) => {
+                      const count = applications.filter((app) => app.jobId === j.id).length;
+                      return (
+                        <option key={j.id} value={j.id}>
+                          {j.title} {j.companyName ? `(${j.companyName})` : ""} — {count} Pelamar
+                        </option>
+                      );
+                    })}
+                  </select>
+                </div>
+              )}
             </div>
 
             <div>
@@ -868,250 +926,463 @@ export default function RecruiterView() {
           {/* Status Loading */}
           {loading && (
             <div style={{ padding: "2rem 0", textAlign: "center", color: "var(--muted)" }}>
-              <p>Menyaring talent pool siap kerja...</p>
+              <p>Menyaring pelamar pada lowongan kerja perusahaan...</p>
             </div>
           )}
 
           {/* Status Kosong */}
           {!loading && candidates.length === 0 && !error && (
             <div className="panel" style={{ textAlign: "center", padding: "3rem 1.5rem" }}>
-              <h2>Tidak ada kandidat yang cocok.</h2>
-              <p className="hint">
-                Belum ditemukan kandidat pada kategori ini dengan batas skor yang dipilih. Coba pilih &quot;Semua Bidang&quot; atau turunkan ambang batas skor.
+              <div
+                style={{
+                  width: "52px",
+                  height: "52px",
+                  margin: "0 auto 1rem",
+                  background: "var(--paper)",
+                  borderRadius: "50%",
+                  display: "grid",
+                  placeItems: "center",
+                  fontSize: "1.5rem",
+                }}
+              >
+                📋
+              </div>
+              <h2 style={{ fontSize: "1.35rem", marginBottom: "0.5rem" }}>
+                {selectedJobId !== "all"
+                  ? "Belum ada pelamar untuk lowongan ini."
+                  : "Belum ada pelamar yang cocok."}
+              </h2>
+              <p className="hint" style={{ maxWidth: "520px", margin: "0.5rem auto 1.5rem" }}>
+                {selectedJobId !== "all" ? (
+                  <>
+                    Belum ditemukan pelamar pada lowongan{" "}
+                    <strong>{jobs.find((j) => j.id === selectedJobId)?.title || "terpilih"}</strong>
+                    {selectedScore > 0 ? ` dengan batas skor kesiapan kerja ≥ ${selectedScore}` : ""}.
+                  </>
+                ) : selectedScore > 0 ? (
+                  `Tidak ditemukan pelamar dengan batas skor kesiapan kerja ≥ ${selectedScore}. Coba turunkan ambang batas skor.`
+                ) : (
+                  "Pelamar yang mengajukan lamaran ke lowongan Anda akan dievaluasi secara otomatis oleh AI berdasarkan kriteria spesifik lowongan pekerjaan."
+                )}
               </p>
-              <div style={{ marginTop: "1rem" }}>
-                <button
-                  type="button"
-                  className="button secondary"
-                  onClick={() => {
-                    setSelectedField("all");
-                    setSelectedScore(0);
-                  }}
-                >
-                  Reset Semua Filter
-                </button>
+              <div style={{ display: "flex", gap: "0.75rem", justifyContent: "center", flexWrap: "wrap" }}>
+                {(selectedJobId !== "all" || selectedScore > 0) && (
+                  <button
+                    type="button"
+                    className="button secondary"
+                    onClick={() => {
+                      setLoading(true);
+                      setSelectedJobId("all");
+                      setSelectedScore(0);
+                    }}
+                  >
+                    Reset Filter
+                  </button>
+                )}
               </div>
             </div>
           )}
 
-          {/* Daftar Kartu Kandidat */}
+          {/* Daftar Kartu Kandidat Pelamar */}
           {!loading && candidates.length > 0 && (
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 340px), 1fr))",
+                gridTemplateColumns: "repeat(auto-fill, minmax(min(100%, 360px), 1fr))",
                 gap: "1.5rem",
                 alignItems: "stretch",
               }}
             >
-              {candidates.map((candidate) => (
-                <article
-                  key={candidate.id}
-                  className="card"
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    background: "white",
-                    border: "1px solid var(--line)",
-                    padding: "clamp(1.2rem, 3vw, 1.75rem)",
-                    wordBreak: "break-word",
-                  }}
-                >
-                  {/* Header Kartu: Badge Bidang & Target Peran */}
-                  <div style={{ marginBottom: "1rem" }}>
+              {candidates.map((candidate) => {
+                const targetJobTitle = candidate.jobTitle || candidate.role;
+                const company = candidate.companyName || authState.user.companyName || "Perusahaan Mitra";
+                const badge = candidate.status ? getApplicationBadge(candidate.status) : null;
+                const fitScore = candidate.fitEvaluation?.score ?? candidate.finalScore;
+
+                return (
+                  <article
+                    key={candidate.id}
+                    className="card"
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      background: "white",
+                      border: "1px solid var(--line)",
+                      padding: "clamp(1.2rem, 3vw, 1.75rem)",
+                      wordBreak: "break-word",
+                    }}
+                  >
+                    {/* Header Kartu: Posisi Lowongan & Info Kandidat */}
+                    <div style={{ marginBottom: "1rem" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: "0.5rem",
+                          marginBottom: "0.5rem",
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <span
+                          className="chip"
+                          style={{
+                            fontSize: "0.75rem",
+                            fontWeight: 700,
+                            padding: "0.2rem 0.55rem",
+                            background: getFieldBg(candidate.field),
+                            borderColor: "var(--line)",
+                          }}
+                        >
+                          {getFieldLabel(candidate.field)}
+                        </span>
+                        {badge && (
+                          <span
+                            className="chip"
+                            style={{
+                              fontSize: "0.72rem",
+                              fontWeight: 600,
+                              background: badge.bg,
+                              color: badge.color,
+                              borderColor: "var(--line)",
+                            }}
+                          >
+                            Status: {badge.label}
+                          </span>
+                        )}
+                        {candidate.isDemo && (
+                          <span
+                            style={{
+                              fontSize: "0.7rem",
+                              color: "var(--muted)",
+                              border: "1px dashed var(--line)",
+                              padding: "0.15rem 0.4rem",
+                              fontWeight: 600,
+                            }}
+                          >
+                            Demo Terverifikasi
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Badge Lowongan & Perusahaan */}
+                      <div style={{ margin: "0.5rem 0 0.75rem" }}>
+                        <span
+                          className="chip"
+                          style={{
+                            fontSize: "0.78rem",
+                            fontWeight: 600,
+                            padding: "0.25rem 0.6rem",
+                            background: "var(--paper)",
+                            borderColor: "var(--line)",
+                            color: "var(--ink)",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "0.35rem",
+                            maxWidth: "100%",
+                          }}
+                        >
+                          <span>💼</span>
+                          <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                            {targetJobTitle}
+                          </span>
+                          <span style={{ color: "var(--muted)", fontWeight: 400 }}>· {company}</span>
+                        </span>
+                      </div>
+
+                      <h2 style={{ fontSize: "1.3rem", margin: "0 0 0.2rem", lineHeight: 1.25 }}>
+                        {candidate.candidateName}
+                      </h2>
+                      <p style={{ margin: 0, fontSize: "0.84rem", color: "var(--muted)" }}>
+                        {candidate.email}
+                      </p>
+                    </div>
+
+                    {/* Skor Kesesuaian Kriteria Lowongan */}
                     <div
                       style={{
+                        margin: "0.25rem 0 1rem",
+                        padding: "0.75rem 0.9rem",
+                        background: "var(--paper)",
+                        borderRadius: "8px",
+                        border: "1px solid var(--line)",
+                      }}
+                    >
+                      <span
+                        style={{
+                          display: "block",
+                          fontSize: "0.72rem",
+                          textTransform: "uppercase",
+                          letterSpacing: "0.06em",
+                          fontWeight: 700,
+                          color: "var(--muted)",
+                          marginBottom: "0.35rem",
+                        }}
+                      >
+                        Skor Kesesuaian Kriteria Lowongan
+                      </span>
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "baseline",
+                          flexWrap: "wrap",
+                          gap: "0.35rem",
+                        }}
+                      >
+                        <span className="score" style={{ fontSize: "2.5rem", lineHeight: 1 }}>
+                          {fitScore}
+                        </span>
+                        <span style={{ fontSize: "1rem", color: "var(--muted)", fontWeight: 700 }}>
+                          /100
+                        </span>
+                        {fitScore >= 75 ? (
+                          <span className="delta positive" style={{ marginLeft: "auto" }}>
+                            Kesesuaian Tinggi (Siap Kerja)
+                          </span>
+                        ) : fitScore >= 50 ? (
+                          <span
+                            className="delta"
+                            style={{
+                              marginLeft: "auto",
+                              background: "#fef3c7",
+                              color: "#92400e",
+                              borderColor: "#fde68a",
+                            }}
+                          >
+                            Kesesuaian Menengah
+                          </span>
+                        ) : (
+                          <span className="delta neutral" style={{ marginLeft: "auto" }}>
+                            Perlu Pertimbangan
+                          </span>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Validasi Bukti Nyata */}
+                    <div
+                      style={{
+                        padding: "0.65rem 0.85rem",
+                        background: "var(--paper)",
+                        borderLeft: "3px solid var(--chalk)",
+                        fontSize: "0.82rem",
+                        lineHeight: 1.45,
+                        marginBottom: "1rem",
+                      }}
+                    >
+                      <strong style={{ display: "block", color: "var(--ink)", marginBottom: "0.15rem" }}>
+                        Validasi Bukti Nyata:
+                      </strong>
+                      <span style={{ color: "var(--muted)" }}>
+                        {getEvidenceLabel(candidate.evidenceType, candidate.sourceUrl)}
+                      </span>
+                    </div>
+
+                    {/* Evaluasi Berbasis Kriteria Lowongan HR */}
+                    {candidate.fitEvaluation ? (
+                      <>
+                        {/* Kriteria Lowongan Terpenuhi */}
+                        <div style={{ marginBottom: "0.75rem" }}>
+                          <strong
+                            style={{
+                              display: "block",
+                              fontSize: "0.78rem",
+                              textTransform: "uppercase",
+                              letterSpacing: "0.05em",
+                              color: "#15803d",
+                              marginBottom: "0.25rem",
+                            }}
+                          >
+                            Kriteria Lowongan Terpenuhi:
+                          </strong>
+                          <ul
+                            style={{
+                              margin: 0,
+                              paddingLeft: "1.2rem",
+                              fontSize: "0.85rem",
+                              lineHeight: 1.45,
+                            }}
+                          >
+                            {candidate.fitEvaluation.matchingCriteria.slice(0, 2).map((item, idx) => (
+                              <li key={idx} style={{ marginBottom: "0.2rem" }}>
+                                {item}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        {/* Gap untuk Pertimbangan HR */}
+                        {candidate.fitEvaluation.missingCriteria.length > 0 && (
+                          <div style={{ marginBottom: "0.75rem" }}>
+                            <strong
+                              style={{
+                                display: "block",
+                                fontSize: "0.78rem",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.05em",
+                                color: "var(--danger)",
+                                marginBottom: "0.25rem",
+                              }}
+                            >
+                              Gap untuk Pertimbangan HR:
+                            </strong>
+                            <ul
+                              style={{
+                                margin: 0,
+                                paddingLeft: "1.2rem",
+                                fontSize: "0.85rem",
+                                lineHeight: 1.45,
+                                color: "var(--muted)",
+                              }}
+                            >
+                              {candidate.fitEvaluation.missingCriteria.slice(0, 2).map((item, idx) => (
+                                <li key={idx} style={{ marginBottom: "0.2rem" }}>
+                                  {item}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {/* Ringkasan & Rekomendasi AI */}
+                        <div
+                          style={{
+                            padding: "0.65rem 0.8rem",
+                            background: "#f0fdf4",
+                            borderLeft: "3px solid #16a34a",
+                            fontSize: "0.82rem",
+                            lineHeight: 1.45,
+                            marginBottom: "1.25rem",
+                          }}
+                        >
+                          <strong style={{ display: "block", color: "#166534", marginBottom: "0.2rem" }}>
+                            Analisis Kecocokan AI terhadap Deskripsi HR:
+                          </strong>
+                          <p style={{ margin: "0 0 0.25rem", color: "var(--ink)" }}>
+                            {candidate.fitEvaluation.summary}
+                          </p>
+                          {candidate.fitEvaluation.recommendation && (
+                            <span style={{ color: "#15803d", fontStyle: "italic", display: "block" }}>
+                              Rekomendasi: {candidate.fitEvaluation.recommendation}
+                            </span>
+                          )}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {/* Fallback ke strengths & gaps */}
+                        <div style={{ marginBottom: "0.75rem" }}>
+                          <strong
+                            style={{
+                              display: "block",
+                              fontSize: "0.78rem",
+                              textTransform: "uppercase",
+                              letterSpacing: "0.05em",
+                              color: "var(--ink)",
+                              marginBottom: "0.25rem",
+                            }}
+                          >
+                            Kekuatan Terbukti:
+                          </strong>
+                          <ul
+                            style={{
+                              margin: 0,
+                              paddingLeft: "1.2rem",
+                              fontSize: "0.85rem",
+                              lineHeight: 1.45,
+                            }}
+                          >
+                            {candidate.strengths.slice(0, 2).map((s, idx) => (
+                              <li key={idx} style={{ marginBottom: "0.2rem" }}>
+                                {s}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        {candidate.gaps.length > 0 && (
+                          <div style={{ marginBottom: "1.25rem" }}>
+                            <strong
+                              style={{
+                                display: "block",
+                                fontSize: "0.78rem",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.05em",
+                                color: "var(--danger)",
+                                marginBottom: "0.25rem",
+                              }}
+                            >
+                              Gap untuk Pertimbangan:
+                            </strong>
+                            <ul
+                              style={{
+                                margin: 0,
+                                paddingLeft: "1.2rem",
+                                fontSize: "0.85rem",
+                                lineHeight: 1.45,
+                                color: "var(--muted)",
+                              }}
+                            >
+                              {candidate.gaps.slice(0, 1).map((g, idx) => (
+                                <li key={idx}>{g}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </>
+                    )}
+
+                    {/* Tombol Aksi */}
+                    <div
+                      className="actions"
+                      style={{
+                        marginTop: "auto",
                         display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
                         gap: "0.5rem",
-                        marginBottom: "0.5rem",
                         flexWrap: "wrap",
                       }}
                     >
-                      <span
-                        className="chip"
-                        style={{
-                          fontSize: "0.75rem",
-                          fontWeight: 700,
-                          padding: "0.2rem 0.55rem",
-                          background: getFieldBg(candidate.field),
-                          borderColor: "var(--line)",
-                        }}
-                      >
-                        {getFieldLabel(candidate.field)}
-                      </span>
-                      {candidate.isDemo && (
-                        <span
-                          style={{
-                            fontSize: "0.7rem",
-                            color: "var(--muted)",
-                            border: "1px dashed var(--line)",
-                            padding: "0.15rem 0.4rem",
-                            fontWeight: 600,
-                          }}
+                      {candidate.assessmentId ? (
+                        <Link
+                          className="button secondary"
+                          href={`/results/${candidate.assessmentId}`}
+                          style={{ flex: "1 1 140px", textAlign: "center", fontSize: "0.85rem" }}
                         >
-                          Demo Terverifikasi
+                          Lihat Bukti Portofolio
+                        </Link>
+                      ) : candidate.sourceUrl ? (
+                        <a
+                          className="button secondary"
+                          href={candidate.sourceUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ flex: "1 1 140px", textAlign: "center", fontSize: "0.85rem" }}
+                        >
+                          Lihat Bukti Portofolio
+                        </a>
+                      ) : (
+                        <span
+                          className="button secondary"
+                          style={{ flex: "1 1 140px", textAlign: "center", fontSize: "0.85rem", opacity: 0.6 }}
+                        >
+                          Lihat Bukti Portofolio
                         </span>
                       )}
-                    </div>
-
-                    <h2 style={{ fontSize: "1.35rem", margin: "0 0 0.35rem", lineHeight: 1.25 }}>
-                      {candidate.role}
-                    </h2>
-                    <p style={{ margin: 0, fontSize: "0.9rem", color: "var(--muted)" }}>
-                      {candidate.candidateName}
-                    </p>
-                  </div>
-
-                  {/* Skor Kesiapan Kerja */}
-                  <div
-                    style={{
-                      margin: "0.5rem 0 1.25rem",
-                      display: "flex",
-                      alignItems: "baseline",
-                      flexWrap: "wrap",
-                      gap: "0.35rem",
-                    }}
-                  >
-                    <span className="score" style={{ fontSize: "2.8rem", lineHeight: 1 }}>
-                      {candidate.finalScore}
-                    </span>
-                    <span style={{ fontSize: "1.05rem", color: "var(--muted)", fontWeight: 700 }}>
-                      /100
-                    </span>
-                    {candidate.finalScore >= 75 ? (
-                      <span className="delta positive" style={{ marginLeft: "0.5rem" }}>
-                        Siap Kerja
-                      </span>
-                    ) : candidate.finalScore >= 50 ? (
-                      <span
-                        className="delta"
-                        style={{
-                          marginLeft: "0.5rem",
-                          background: "#fef3c7",
-                          color: "#92400e",
-                          borderColor: "#fde68a",
-                        }}
+                      <a
+                        className="button"
+                        href={`mailto:${candidate.email}?subject=${encodeURIComponent(
+                          `Skillbridge AI: Rekrutmen Posisi ${targetJobTitle} - ${company}`,
+                        )}&body=${encodeURIComponent(
+                          `Halo ${candidate.candidateName},\n\nKami dari tim rekrutmen ${company} telah meninjau bukti portofolio dan hasil evaluasi kecocokan AI Anda untuk posisi "${targetJobTitle}" dengan Skor Kesesuaian Kriteria Lowongan sebesar ${fitScore}/100.\n\nKualifikasi dan bukti nyata portofolio Anda menarik perhatian tim kami. Apakah Anda bersedia untuk berdiskusi lebih lanjut terkait tahapan seleksi bersama kami?\n\nSalam hangat,\nTim Rekruter / HR ${company}`,
+                        )}`}
+                        style={{ flex: "1 1 140px", textAlign: "center", fontSize: "0.85rem" }}
                       >
-                        Menengah
-                      </span>
-                    ) : (
-                      <span className="delta neutral" style={{ marginLeft: "0.5rem" }}>
-                        Perlu Penguatan
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Label Validasi Bukti Nyata */}
-                  <div
-                    style={{
-                      padding: "0.75rem 0.9rem",
-                      background: "var(--paper)",
-                      borderLeft: "3px solid var(--chalk)",
-                      fontSize: "0.85rem",
-                      lineHeight: 1.45,
-                      marginBottom: "1.25rem",
-                    }}
-                  >
-                    <strong style={{ display: "block", color: "var(--ink)", marginBottom: "0.2rem" }}>
-                      Validasi Bukti Nyata:
-                    </strong>
-                    <span style={{ color: "var(--muted)" }}>
-                      {getEvidenceLabel(candidate.evidenceType, candidate.sourceUrl)}
-                    </span>
-                  </div>
-
-                  {/* Kekuatan Terbukti (2 poin) */}
-                  <div style={{ marginBottom: "1rem" }}>
-                    <strong
-                      style={{
-                        display: "block",
-                        fontSize: "0.8rem",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                        color: "var(--ink)",
-                        marginBottom: "0.35rem",
-                      }}
-                    >
-                      Kekuatan Terbukti:
-                    </strong>
-                    <ul
-                      style={{
-                        margin: 0,
-                        paddingLeft: "1.2rem",
-                        fontSize: "0.9rem",
-                        lineHeight: 1.5,
-                      }}
-                    >
-                      {candidate.strengths.slice(0, 2).map((s, idx) => (
-                        <li key={idx} style={{ marginBottom: "0.25rem" }}>
-                          {s}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Gap untuk Pertimbangan (1 poin) */}
-                  <div style={{ marginBottom: "1.5rem" }}>
-                    <strong
-                      style={{
-                        display: "block",
-                        fontSize: "0.8rem",
-                        textTransform: "uppercase",
-                        letterSpacing: "0.05em",
-                        color: "var(--danger)",
-                        marginBottom: "0.35rem",
-                      }}
-                    >
-                      Gap untuk Pertimbangan:
-                    </strong>
-                    <ul
-                      style={{
-                        margin: 0,
-                        paddingLeft: "1.2rem",
-                        fontSize: "0.9rem",
-                        lineHeight: 1.5,
-                        color: "var(--muted)",
-                      }}
-                    >
-                      {candidate.gaps.slice(0, 1).map((g, idx) => (
-                        <li key={idx}>{g}</li>
-                      ))}
-                    </ul>
-                  </div>
-
-                  {/* Tombol Aksi */}
-                  <div
-                    className="actions"
-                    style={{
-                      marginTop: "auto",
-                      display: "flex",
-                      gap: "0.5rem",
-                      flexWrap: "wrap",
-                    }}
-                  >
-                    <Link
-                      className="button"
-                      href={`/results/${candidate.assessmentId}`}
-                      style={{ flex: "1 1 140px", textAlign: "center", fontSize: "0.9rem" }}
-                    >
-                      Lihat Bukti Lengkap
-                    </Link>
-                    <a
-                      className="button secondary"
-                      href={`mailto:${candidate.email}?subject=${encodeURIComponent(
-                        `Skillbridge AI: Rekrutmen Posisi ${candidate.role}`,
-                      )}&body=${encodeURIComponent(
-                        `Halo ${candidate.candidateName},\n\nKami melihat hasil evaluasi kesiapan kerja Anda di Skillbridge AI untuk target peran ${candidate.role} dengan skor ${candidate.finalScore}/100.\n\nKualifikasi dan bukti nyata portofolio Anda menarik perhatian tim kami. Apakah Anda bersedia untuk berdiskusi lebih lanjut terkait peluang karier bersama kami?\n\nSalam,\nTim Rekruter / HR`,
-                      )}`}
-                      style={{ flex: "1 1 120px", textAlign: "center", fontSize: "0.9rem" }}
-                    >
-                      Kontak Kandidat
-                    </a>
-                  </div>
-                </article>
-              ))}
+                        Hubungi Pelamar
+                      </a>
+                    </div>
+                  </article>
+                );
+              })}
             </div>
           )}
         </>
