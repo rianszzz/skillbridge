@@ -128,9 +128,6 @@ export default function RecruiterView() {
   const salaryMinInputId = useId();
   const salaryMaxInputId = useId();
   const minScoreInputId = useId();
-  const hl1InputId = useId();
-  const hl2InputId = useId();
-  const hl3InputId = useId();
   const descInputId = useId();
   const respInputId = useId();
   const skillsInputId = useId();
@@ -151,9 +148,8 @@ export default function RecruiterView() {
   const [formSalaryMax, setFormSalaryMax] = useState<string>("7500000");
   const [formShowSalary, setFormShowSalary] = useState(true);
   const [formMinScore, setFormMinScore] = useState<number>(60);
-  const [formHighlight1, setFormHighlight1] = useState("Ramah Lulusan SMK & Fresh Graduate Berbasis Portofolio Riil");
-  const [formHighlight2, setFormHighlight2] = useState("Mentoring 1-on-1 Berkala Bersama Senior Engineer");
-  const [formHighlight3, setFormHighlight3] = useState("Rentang Gaji Transparan & Jalur Karier Jelas");
+  const [formHighlights, setFormHighlights] = useState<string[]>([]);
+  const [newFormHighlight, setNewFormHighlight] = useState("");
   const [formDesc, setFormDesc] = useState("Mencari talenta muda berbakat yang berfokus pada karya nyata.");
   const [formResponsibilities, setFormResponsibilities] = useState("Mengembangkan antarmuka web responsif\nMenjaga kebersihan dan dokumentasi kode\nBerkolaborasi dalam tim teknik");
   const [formRequiredSkills, setFormRequiredSkills] = useState("React, Next.js, TypeScript, Tailwind CSS, Git");
@@ -179,9 +175,8 @@ export default function RecruiterView() {
   const [editShowSalary, setEditShowSalary] = useState(true);
   const [editStatus, setEditStatus] = useState<JobStatus>("active");
   const [editMinScore, setEditMinScore] = useState<number>(60);
-  const [editHighlight1, setEditHighlight1] = useState("");
-  const [editHighlight2, setEditHighlight2] = useState("");
-  const [editHighlight3, setEditHighlight3] = useState("");
+  const [editHighlights, setEditHighlights] = useState<string[]>([]);
+  const [newEditHighlight, setNewEditHighlight] = useState("");
   const [editDesc, setEditDesc] = useState("");
   const [editResponsibilities, setEditResponsibilities] = useState("");
   const [editRequiredSkills, setEditRequiredSkills] = useState("");
@@ -209,9 +204,6 @@ export default function RecruiterView() {
   const editSalaryMinInputId = useId();
   const editSalaryMaxInputId = useId();
   const editMinScoreInputId = useId();
-  const editHl1InputId = useId();
-  const editHl2InputId = useId();
-  const editHl3InputId = useId();
   const editDescInputId = useId();
   const editRespInputId = useId();
   const editSkillsInputId = useId();
@@ -406,14 +398,51 @@ export default function RecruiterView() {
     setEditShowSalary(job.showSalary ?? true);
     setEditStatus(job.status || "active");
     setEditMinScore(job.minSkillbridgeScore ?? 60);
-    setEditHighlight1(job.highlights?.[0] || "");
-    setEditHighlight2(job.highlights?.[1] || "");
-    setEditHighlight3(job.highlights?.[2] || "");
+    setEditHighlights(Array.isArray(job.highlights) ? [...job.highlights] : []);
+    setNewEditHighlight("");
     setEditDesc(job.description || "");
     setEditResponsibilities(job.responsibilities?.join("\n") || "");
     setEditRequiredSkills(job.requiredSkills?.join(", ") || "");
     setEditBenefits(job.benefits?.join(", ") || "");
     setEditSubmitError("");
+  }
+
+  function addFormHighlight() {
+    const trimmed = newFormHighlight.trim();
+    if (!trimmed) return;
+    setFormHighlights((prev) => [...prev, trimmed]);
+    setNewFormHighlight("");
+  }
+
+  function updateFormHighlight(index: number, value: string) {
+    setFormHighlights((prev) => {
+      const updated = [...prev];
+      updated[index] = value;
+      return updated;
+    });
+  }
+
+  function removeFormHighlight(index: number) {
+    setFormHighlights((prev) => prev.filter((_, i) => i !== index));
+  }
+
+  function addEditHighlight() {
+    const trimmed = newEditHighlight.trim();
+    if (!trimmed) return;
+    setEditHighlights((prev) => [...prev, trimmed]);
+    setNewEditHighlight("");
+  }
+
+  function updateEditHighlight(index: number, value: string) {
+    setEditHighlights((prev) => {
+      const updated = [...prev];
+      updated[index] = value;
+      return updated;
+    });
+  }
+
+  function removeEditHighlight(index: number) {
+    setEditHighlights((prev) => prev.filter((_, i) => i !== index));
   }
 
   async function handleSaveEdit(e: React.FormEvent) {
@@ -427,7 +456,10 @@ export default function RecruiterView() {
     const originalJob = editingJob;
 
     try {
-      const highlights = [editHighlight1.trim(), editHighlight2.trim(), editHighlight3.trim()].filter(Boolean);
+      const highlights = [
+        ...editHighlights.map((h) => h.trim()),
+        newEditHighlight.trim(),
+      ].filter(Boolean);
       const responsibilities = editResponsibilities
         .split("\n")
         .map((r) => r.trim())
@@ -569,7 +601,10 @@ export default function RecruiterView() {
     try {
       const headers = await authHeaders();
 
-      const highlights = [formHighlight1.trim(), formHighlight2.trim(), formHighlight3.trim()].filter(Boolean);
+      const highlights = [
+        ...formHighlights.map((h) => h.trim()),
+        newFormHighlight.trim(),
+      ].filter(Boolean);
       const responsibilities = formResponsibilities
         .split("\n")
         .map((r) => r.trim())
@@ -619,6 +654,8 @@ export default function RecruiterView() {
       const newJob = data as JobPosting;
       setJobs((prev) => [newJob, ...prev]);
       setJobSuccessMessage(`Lowongan "${payload.title}" berhasil dipublikasikan!`);
+      setFormHighlights([]);
+      setNewFormHighlight("");
       setIsCreateModalOpen(false);
       broadcastJobSync({ type: "JOB_CREATED", job: newJob });
       setRefreshTrigger((prev) => prev + 1);
@@ -2127,35 +2164,103 @@ export default function RecruiterView() {
                 )}
               </div>
 
-              {/* 3 Highlights */}
-              <div>
+              {/* Highlights */}
+              <div style={{ display: "grid", gap: "0.5rem" }}>
                 <span style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, marginBottom: "0.35rem" }}>
-                  3 Highlights Utama Lowongan (Disarankan 3 poin)
+                  Highlights Utama Lowongan (Disarankan 3 poin)
                 </span>
-                <div style={{ display: "grid", gap: "0.5rem" }}>
+                {formHighlights.length > 0 && (
+                  <div style={{ display: "grid", gap: "0.5rem" }}>
+                    {formHighlights.map((hl, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.5rem",
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: "0.8rem",
+                            fontWeight: 700,
+                            color: "var(--muted)",
+                            minWidth: "2rem",
+                            textAlign: "center",
+                            flexShrink: 0,
+                          }}
+                        >
+                          #{index + 1}
+                        </span>
+                        <input
+                          type="text"
+                          value={hl}
+                          onChange={(e) => updateFormHighlight(index, e.target.value)}
+                          placeholder={`Highlight #${index + 1}`}
+                          aria-label={`Highlight ${index + 1}`}
+                          style={{ flex: 1, minHeight: "44px" }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeFormHighlight(index)}
+                          aria-label={`Hapus Highlight ${index + 1}`}
+                          title="Hapus highlight ini"
+                          style={{
+                            minHeight: "44px",
+                            minWidth: "44px",
+                            padding: "0 0.75rem",
+                            background: "transparent",
+                            border: "1px solid var(--line)",
+                            color: "var(--danger)",
+                            cursor: "pointer",
+                            fontSize: "1rem",
+                            fontWeight: 700,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0,
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "0.5rem",
+                    alignItems: "stretch",
+                    flexWrap: "wrap",
+                  }}
+                >
                   <input
-                    id={hl1InputId}
                     type="text"
-                    required
-                    placeholder="Highlight 1: Cth: Ramah Lulusan SMK & Fresh Graduate Berbasis Portofolio Riil"
-                    value={formHighlight1}
-                    onChange={(e) => setFormHighlight1(e.target.value)}
+                    placeholder="Tambahkan Highlight"
+                    value={newFormHighlight}
+                    onChange={(e) => setNewFormHighlight(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addFormHighlight();
+                      }
+                    }}
+                    style={{ flex: "1 1 240px", minHeight: "44px" }}
                   />
-                  <input
-                    id={hl2InputId}
-                    type="text"
-                    required
-                    placeholder="Highlight 2: Cth: Mentoring 1-on-1 Mingguan Bersama Tech Lead"
-                    value={formHighlight2}
-                    onChange={(e) => setFormHighlight2(e.target.value)}
-                  />
-                  <input
-                    id={hl3InputId}
-                    type="text"
-                    placeholder="Highlight 3: Cth: Rentang Gaji Transparan Rp 5.000.000 - Rp 7.500.000"
-                    value={formHighlight3}
-                    onChange={(e) => setFormHighlight3(e.target.value)}
-                  />
+                  <button
+                    type="button"
+                    onClick={addFormHighlight}
+                    className="button secondary"
+                    style={{
+                      minHeight: "44px",
+                      whiteSpace: "nowrap",
+                      padding: "0.5rem 1rem",
+                      fontSize: "0.9rem",
+                    }}
+                  >
+                    + Tambah Highlight
+                  </button>
                 </div>
               </div>
 
@@ -2506,35 +2611,103 @@ export default function RecruiterView() {
                 )}
               </div>
 
-              {/* 3 Highlights */}
-              <div>
+              {/* Highlights */}
+              <div style={{ display: "grid", gap: "0.5rem" }}>
                 <span style={{ display: "block", fontSize: "0.85rem", fontWeight: 700, marginBottom: "0.35rem" }}>
-                  3 Highlights Utama Lowongan (Disarankan 3 poin)
+                  Highlights Utama Lowongan (Disarankan 3 poin)
                 </span>
-                <div style={{ display: "grid", gap: "0.5rem" }}>
+                {editHighlights.length > 0 && (
+                  <div style={{ display: "grid", gap: "0.5rem" }}>
+                    {editHighlights.map((hl, index) => (
+                      <div
+                        key={index}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "0.5rem",
+                        }}
+                      >
+                        <span
+                          style={{
+                            fontSize: "0.8rem",
+                            fontWeight: 700,
+                            color: "var(--muted)",
+                            minWidth: "2rem",
+                            textAlign: "center",
+                            flexShrink: 0,
+                          }}
+                        >
+                          #{index + 1}
+                        </span>
+                        <input
+                          type="text"
+                          value={hl}
+                          onChange={(e) => updateEditHighlight(index, e.target.value)}
+                          placeholder={`Highlight #${index + 1}`}
+                          aria-label={`Highlight ${index + 1}`}
+                          style={{ flex: 1, minHeight: "44px" }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeEditHighlight(index)}
+                          aria-label={`Hapus Highlight ${index + 1}`}
+                          title="Hapus highlight ini"
+                          style={{
+                            minHeight: "44px",
+                            minWidth: "44px",
+                            padding: "0 0.75rem",
+                            background: "transparent",
+                            border: "1px solid var(--line)",
+                            color: "var(--danger)",
+                            cursor: "pointer",
+                            fontSize: "1rem",
+                            fontWeight: 700,
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            flexShrink: 0,
+                          }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "0.5rem",
+                    alignItems: "stretch",
+                    flexWrap: "wrap",
+                  }}
+                >
                   <input
-                    id={editHl1InputId}
                     type="text"
-                    required
-                    placeholder="Highlight 1: Cth: Ramah Lulusan SMK & Fresh Graduate Berbasis Portofolio Riil"
-                    value={editHighlight1}
-                    onChange={(e) => setEditHighlight1(e.target.value)}
+                    placeholder="Tambahkan Highlight"
+                    value={newEditHighlight}
+                    onChange={(e) => setNewEditHighlight(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addEditHighlight();
+                      }
+                    }}
+                    style={{ flex: "1 1 240px", minHeight: "44px" }}
                   />
-                  <input
-                    id={editHl2InputId}
-                    type="text"
-                    required
-                    placeholder="Highlight 2: Cth: Mentoring 1-on-1 Mingguan Bersama Tech Lead"
-                    value={editHighlight2}
-                    onChange={(e) => setEditHighlight2(e.target.value)}
-                  />
-                  <input
-                    id={editHl3InputId}
-                    type="text"
-                    placeholder="Highlight 3: Cth: Rentang Gaji Transparan Rp 5.000.000 - Rp 7.500.000"
-                    value={editHighlight3}
-                    onChange={(e) => setEditHighlight3(e.target.value)}
-                  />
+                  <button
+                    type="button"
+                    onClick={addEditHighlight}
+                    className="button secondary"
+                    style={{
+                      minHeight: "44px",
+                      whiteSpace: "nowrap",
+                      padding: "0.5rem 1rem",
+                      fontSize: "0.9rem",
+                    }}
+                  >
+                    + Tambah Highlight
+                  </button>
                 </div>
               </div>
 
