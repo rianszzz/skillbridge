@@ -130,6 +130,8 @@ export default function JobsView() {
   const [resumeFileName, setResumeFileName] = useState("2_CV_Mochamad Triandra Andantyo.pdf");
   const [resumeUploadTime, setResumeUploadTime] = useState("Ditambahkan 1 hari yang lalu");
   const [isPrimaryCv, setIsPrimaryCv] = useState(true);
+  const [showResumeMenu, setShowResumeMenu] = useState(false);
+  const [resumeFileBlob, setResumeFileBlob] = useState<File | null>(null);
 
   // Cover letter state (Jobstreet reference)
   const [coverLetterMode, setCoverLetterMode] = useState<"upload" | "write" | "none">("write");
@@ -311,16 +313,23 @@ export default function JobsView() {
     setResumeFileName("2_CV_Mochamad Triandra Andantyo.pdf");
     setResumeUploadTime("Ditambahkan 1 hari yang lalu");
     setIsPrimaryCv(true);
+    setShowResumeMenu(false);
+    setResumeFileBlob(null);
     setCoverLetterMode("write");
     setCoverLetter("");
     setCoverLetterFileName("");
 
     // Pre-select assessment matching field or highest score
-    const matching = userAssessments.find((a) => getFieldFromRole(a.role) === job.field);
-    if (matching) {
-      setSelectedAssessmentId(matching.id);
-    } else if (userAssessments.length > 0) {
-      setSelectedAssessmentId(userAssessments[0].id);
+    if (userAssessments.length > 0) {
+      const matchField = userAssessments.find((a) => {
+        if (job.field === "informatics") return a.role.toLowerCase().includes("web");
+        if (job.field === "design") return a.role.toLowerCase().includes("graphic");
+        if (job.field === "marketing") return a.role.toLowerCase().includes("marketer");
+        return false;
+      });
+      setSelectedAssessmentId(matchField ? matchField.id : userAssessments[0].id);
+    } else {
+      setSelectedAssessmentId("");
     }
   }
 
@@ -331,9 +340,52 @@ export default function JobsView() {
       alert("Ukuran file melebihi batas 5MB.");
       return;
     }
+    setResumeFileBlob(file);
     setResumeFileName(file.name);
     setResumeUploadTime("Baru saja diunggah");
     setResumeOption("attached");
+    setShowResumeMenu(false);
+  }
+
+  function handleDownloadResume() {
+    if (resumeFileBlob) {
+      const url = URL.createObjectURL(resumeFileBlob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = resumeFileName || "CV_Resume.pdf";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } else {
+      const candidateInfo = [
+        "Curriculum Vitae / Resume",
+        `Nama: ${applicantName || "Kandidat"}`,
+        `Email: ${applicantEmail || ""}`,
+        phone ? `Telepon: ${phoneCountryCode} ${phone}` : "",
+        location ? `Lokasi: ${location}` : "",
+        `Berkas: ${resumeFileName}`,
+      ]
+        .filter(Boolean)
+        .join("\n");
+      const blob = new Blob([candidateInfo], { type: "text/plain;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = resumeFileName && resumeFileName.endsWith(".pdf") ? resumeFileName : `${resumeFileName || "Resume"}.txt`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+    setShowResumeMenu(false);
+  }
+
+  function handleDeleteResume() {
+    setResumeFileBlob(null);
+    setResumeFileName("");
+    setResumeOption("none");
+    setShowResumeMenu(false);
   }
 
   function handleCoverLetterFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -1621,95 +1673,246 @@ export default function JobsView() {
                       />
                       <div style={{ flex: 1, minWidth: 0 }}>
                         {/* Kartu Berkas Resume */}
-                        <div
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            background: "var(--paper)",
-                            border: "1px solid var(--line)",
-                            borderRadius: "6px",
-                            padding: "0.75rem 0.9rem",
-                            gap: "0.75rem",
-                          }}
-                        >
+                        {resumeFileName ? (
                           <div
                             style={{
                               display: "flex",
                               alignItems: "center",
-                              gap: "0.65rem",
-                              minWidth: 0,
+                              justifyContent: "space-between",
+                              background: "var(--paper)",
+                              border: "1px solid var(--line)",
+                              borderRadius: "6px",
+                              padding: "0.75rem 0.9rem",
+                              gap: "0.75rem",
                             }}
                           >
-                            <span
-                              style={{ fontSize: "1.4rem", lineHeight: 1 }}
-                              aria-hidden="true"
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "0.65rem",
+                                minWidth: 0,
+                              }}
                             >
-                              📄
-                            </span>
-                            <div style={{ minWidth: 0 }}>
-                              <div
-                                style={{
-                                  display: "flex",
-                                  alignItems: "center",
-                                  gap: "0.4rem",
-                                  flexWrap: "wrap",
-                                }}
+                              <span
+                                style={{ fontSize: "1.4rem", lineHeight: 1 }}
+                                aria-hidden="true"
                               >
-                                <span
+                                📄
+                              </span>
+                              <div style={{ minWidth: 0 }}>
+                                <div
                                   style={{
-                                    fontWeight: 700,
-                                    fontSize: "0.9rem",
-                                    color: "var(--ink)",
-                                    wordBreak: "break-all",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "0.4rem",
+                                    flexWrap: "wrap",
                                   }}
                                 >
-                                  {resumeFileName}
-                                </span>
-                                <span
-                                  className="chip"
+                                  <span
+                                    style={{
+                                      fontWeight: 700,
+                                      fontSize: "0.9rem",
+                                      color: "var(--ink)",
+                                      wordBreak: "break-all",
+                                    }}
+                                  >
+                                    {resumeFileName}
+                                  </span>
+                                  <span
+                                    className="chip"
+                                    style={{
+                                      background: "#e0f2fe",
+                                      color: "#0369a1",
+                                      borderColor: "#bae6fd",
+                                      fontSize: "0.72rem",
+                                      fontWeight: 700,
+                                      padding: "0.1rem 0.45rem",
+                                      borderRadius: "999px",
+                                    }}
+                                  >
+                                    Utama
+                                  </span>
+                                </div>
+                                <p
                                   style={{
-                                    background: "#e0f2fe",
-                                    color: "#0369a1",
-                                    borderColor: "#bae6fd",
-                                    fontSize: "0.72rem",
-                                    fontWeight: 700,
-                                    padding: "0.1rem 0.45rem",
-                                    borderRadius: "999px",
+                                    margin: "0.15rem 0 0",
+                                    fontSize: "0.78rem",
+                                    color: "var(--muted)",
                                   }}
                                 >
-                                  Utama
-                                </span>
+                                  {resumeUploadTime}
+                                </p>
                               </div>
-                              <p
+                            </div>
+                            <div style={{ position: "relative" }}>
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  setShowResumeMenu((prev) => !prev);
+                                }}
+                                aria-label="Opsi berkas resume"
+                                title="Opsi berkas resume"
                                 style={{
-                                  margin: "0.15rem 0 0",
-                                  fontSize: "0.78rem",
+                                  background: showResumeMenu ? "rgba(0, 0, 0, 0.06)" : "transparent",
+                                  border: "none",
+                                  cursor: "pointer",
+                                  fontSize: "1.25rem",
+                                  padding: "0.25rem 0.6rem",
+                                  minHeight: "auto",
                                   color: "var(--muted)",
+                                  lineHeight: 1,
+                                  borderRadius: "6px",
+                                  transition: "background 0.15s ease",
                                 }}
                               >
-                                {resumeUploadTime}
-                              </p>
+                                ⋮
+                              </button>
+
+                              {showResumeMenu && (
+                                <>
+                                  <div
+                                    style={{
+                                      position: "fixed",
+                                      inset: 0,
+                                      zIndex: 50,
+                                    }}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      setShowResumeMenu(false);
+                                    }}
+                                  />
+                                  <div
+                                    style={{
+                                      position: "absolute",
+                                      right: 0,
+                                      top: "calc(100% + 4px)",
+                                      background: "#ffffff",
+                                      border: "1px solid #e2e8f0",
+                                      borderRadius: "10px",
+                                      boxShadow: "0 8px 24px rgba(0, 0, 0, 0.14)",
+                                      zIndex: 51,
+                                      minWidth: "140px",
+                                      overflow: "hidden",
+                                    }}
+                                    onClick={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                    }}
+                                  >
+                                    {/* Menu Opsi 1: Unduh */}
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        handleDownloadResume();
+                                      }}
+                                      style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "0.65rem",
+                                        width: "100%",
+                                        padding: "0.75rem 1.1rem",
+                                        background: "#ffffff",
+                                        border: "none",
+                                        cursor: "pointer",
+                                        fontSize: "0.92rem",
+                                        fontWeight: 600,
+                                        color: "#1e293b",
+                                        textAlign: "left",
+                                        minHeight: "auto",
+                                        transition: "background 0.15s ease",
+                                      }}
+                                      onMouseEnter={(e) => (e.currentTarget.style.background = "#f8fafc")}
+                                      onMouseLeave={(e) => (e.currentTarget.style.background = "#ffffff")}
+                                    >
+                                      <svg
+                                        width="16"
+                                        height="16"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        aria-hidden="true"
+                                      >
+                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                        <polyline points="7 10 12 15 17 10" />
+                                        <line x1="12" y1="15" x2="12" y2="3" />
+                                      </svg>
+                                      <span>Unduh</span>
+                                    </button>
+
+                                    {/* Menu Opsi 2: Hapus */}
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        handleDeleteResume();
+                                      }}
+                                      style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "0.65rem",
+                                        width: "100%",
+                                        padding: "0.75rem 1.1rem",
+                                        background: "#fee2e2",
+                                        border: "none",
+                                        borderTop: "1px solid #fecaca",
+                                        cursor: "pointer",
+                                        fontSize: "0.92rem",
+                                        fontWeight: 600,
+                                        color: "#dc2626",
+                                        textAlign: "left",
+                                        minHeight: "auto",
+                                        transition: "background 0.15s ease",
+                                      }}
+                                      onMouseEnter={(e) => (e.currentTarget.style.background = "#fca5a5")}
+                                      onMouseLeave={(e) => (e.currentTarget.style.background = "#fee2e2")}
+                                    >
+                                      <svg
+                                        width="16"
+                                        height="16"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        strokeWidth="2"
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        aria-hidden="true"
+                                      >
+                                        <polyline points="3 6 5 6 21 6" />
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                                        <line x1="10" y1="11" x2="10" y2="17" />
+                                        <line x1="14" y1="11" x2="14" y2="17" />
+                                      </svg>
+                                      <span>Hapus</span>
+                                    </button>
+                                  </div>
+                                </>
+                              )}
                             </div>
                           </div>
-                          <button
-                            type="button"
-                            aria-label="Opsi berkas resume"
-                            title="Opsi berkas resume"
+                        ) : (
+                          <div
                             style={{
-                              background: "transparent",
-                              border: "none",
-                              cursor: "pointer",
-                              fontSize: "1.25rem",
-                              padding: "0.2rem 0.5rem",
-                              minHeight: "auto",
+                              padding: "0.75rem 0.9rem",
+                              background: "var(--paper)",
+                              border: "1px dashed var(--line)",
+                              borderRadius: "6px",
+                              fontSize: "0.85rem",
                               color: "var(--muted)",
-                              lineHeight: 1,
                             }}
                           >
-                            ⋮
-                          </button>
-                        </div>
+                            Belum ada resume terlampir. Gunakan tombol <strong>Unggah</strong> di bawah untuk menambahkan resume Anda.
+                          </div>
+                        )}
 
                         {/* Box sub-pilihan: Jadikan CV utama */}
                         <label
