@@ -361,6 +361,39 @@ test("Validasi input applyToJob menolak data lamaran yang tidak lengkap atau tid
   assert.equal(application.skillbridgeScore, application.fitEvaluation.score);
 });
 
+test("applyToJob menerima dan menyimpan data pelamar tambahan (phone, location, resumeFileName, resumeUrl, coverLetterMode, coverLetterFileName)", async () => {
+  const applicationInput = {
+    jobId: MOCK_JOBS_FIXTURE[0].id,
+    candidateName: "Rian Pratama Architect",
+    candidateEmail: "rian.architect@example.com",
+    phone: "081234567890",
+    location: "Bandung, Jawa Barat",
+    resumeFileName: "CV_Rian_Pratama.pdf",
+    resumeUrl: "https://storage.example.com/resumes/cv_rian.pdf",
+    coverLetterMode: "upload" as const,
+    coverLetterFileName: "Surat_Lamaran_Rian.pdf",
+    coverLetter: "Saya mengajukan lamaran untuk posisi Junior Web Developer.",
+    portfolioUrl: "https://github.com/rian/my-portfolio",
+  };
+
+  const app = await applyToJob("candidate-test-new-fields", applicationInput);
+
+  assert.ok(app.id);
+  assert.equal(app.candidateId, "candidate-test-new-fields");
+  assert.equal(app.jobId, MOCK_JOBS_FIXTURE[0].id);
+  assert.equal(app.candidateName, "Rian Pratama Architect");
+  assert.equal(app.candidateEmail, "rian.architect@example.com");
+  assert.equal(app.phone, "081234567890");
+  assert.equal(app.location, "Bandung, Jawa Barat");
+  assert.equal(app.resumeFileName, "CV_Rian_Pratama.pdf");
+  assert.equal(app.resumeUrl, "https://storage.example.com/resumes/cv_rian.pdf");
+  assert.equal(app.coverLetterMode, "upload");
+  assert.equal(app.coverLetterFileName, "Surat_Lamaran_Rian.pdf");
+  assert.equal(app.coverLetter, "Saya mengajukan lamaran untuk posisi Junior Web Developer.");
+  assert.equal(app.status, "pending");
+  assert.ok(app.fitEvaluation);
+});
+
 test("DEMO_APPLICATIONS kosong di produksi dan MOCK_APPLICATIONS_FIXTURE memuat 3 pelamar realistis dengan fitEvaluation terstruktur", () => {
   assert.equal(DEMO_APPLICATIONS.length, 0, "DEMO_APPLICATIONS harus kosong di produksi");
   assert.equal(MOCK_APPLICATIONS_FIXTURE.length, 3, "Harus memuat tepat 3 pelamar demo di fixture (Ahmad, Siti, Budi)");

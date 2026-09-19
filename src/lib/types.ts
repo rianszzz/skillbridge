@@ -129,6 +129,12 @@ export type JobApplication = {
   candidateId: string;
   candidateName: string;
   candidateEmail: string;
+  phone?: string;
+  location?: string;
+  resumeFileName?: string;
+  resumeUrl?: string;
+  coverLetterMode?: "upload" | "write" | "none";
+  coverLetterFileName?: string;
   assessmentId?: string | null;
   skillbridgeScore?: number | null;
   portfolioUrl?: string;

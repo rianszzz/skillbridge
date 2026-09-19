@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState, useId, useCallback } from "react";
+import { useEffect, useState, useId, useCallback, useRef } from "react";
 import { authHeaders, getSupabase } from "@/lib/auth-client";
 import { setupJobRealtimeSync } from "@/lib/realtime-jobs";
 import {
@@ -121,13 +121,30 @@ export default function JobsView() {
   // Application form state
   const [applicantName, setApplicantName] = useState("");
   const [applicantEmail, setApplicantEmail] = useState("");
+  const [phoneCountryCode, setPhoneCountryCode] = useState("+62");
+  const [phone, setPhone] = useState("");
+  const [location, setLocation] = useState("");
+
+  // Resumé state (Jobstreet reference)
+  const [resumeOption, setResumeOption] = useState<"attached" | "none">("attached");
+  const [resumeFileName, setResumeFileName] = useState("2_CV_Mochamad Triandra Andantyo.pdf");
+  const [resumeUploadTime, setResumeUploadTime] = useState("Ditambahkan 1 hari yang lalu");
+  const [isPrimaryCv, setIsPrimaryCv] = useState(true);
+
+  // Cover letter state (Jobstreet reference)
+  const [coverLetterMode, setCoverLetterMode] = useState<"upload" | "write" | "none">("write");
+  const [coverLetter, setCoverLetter] = useState("");
+  const [coverLetterFileName, setCoverLetterFileName] = useState("");
+
   const [selectedAssessmentId, setSelectedAssessmentId] = useState<string>("");
   const [portfolioUrl, setPortfolioUrl] = useState("");
-  const [coverLetter, setCoverLetter] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState(false);
   const [submittedApp, setSubmittedApp] = useState<JobApplication | null>(null);
+
+  const resumeFileInputRef = useRef<HTMLInputElement>(null);
+  const coverLetterFileInputRef = useRef<HTMLInputElement>(null);
 
   // Check auth & load user assessments
   useEffect(() => {
@@ -143,7 +160,7 @@ export default function JobsView() {
         u.email?.split("@")[0] ||
         "Kandidat";
       setCurrentUser({ id: u.id, email: u.email, name });
-      setApplicantName(name);
+      // applicantName tetap kosong tanpa nilai default
       setApplicantEmail(u.email || "");
 
       // Fetch assessments
@@ -171,7 +188,7 @@ export default function JobsView() {
           u.email?.split("@")[0] ||
           "Kandidat";
         setCurrentUser({ id: u.id, email: u.email, name });
-        setApplicantName(name);
+        // applicantName tetap kosong tanpa nilai default
         setApplicantEmail(u.email || "");
       } else {
         setCurrentUser(null);
@@ -281,11 +298,23 @@ export default function JobsView() {
     setSubmitSuccess(false);
     setSubmittedApp(null);
     setSubmitError("");
-    setCoverLetter("");
+    setApplicantName(""); // Heading [Nama Lengkap] kosong tanpa nilai default
     if (currentUser) {
-      setApplicantName(currentUser.name || "");
       setApplicantEmail(currentUser.email || "");
+    } else {
+      setApplicantEmail("");
     }
+    setPhone("");
+    setPhoneCountryCode("+62");
+    setLocation("");
+    setResumeOption("attached");
+    setResumeFileName("2_CV_Mochamad Triandra Andantyo.pdf");
+    setResumeUploadTime("Ditambahkan 1 hari yang lalu");
+    setIsPrimaryCv(true);
+    setCoverLetterMode("write");
+    setCoverLetter("");
+    setCoverLetterFileName("");
+
     // Pre-select assessment matching field or highest score
     const matching = userAssessments.find((a) => getFieldFromRole(a.role) === job.field);
     if (matching) {
@@ -293,6 +322,28 @@ export default function JobsView() {
     } else if (userAssessments.length > 0) {
       setSelectedAssessmentId(userAssessments[0].id);
     }
+  }
+
+  function handleResumeFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Ukuran file melebihi batas 5MB.");
+      return;
+    }
+    setResumeFileName(file.name);
+    setResumeUploadTime("Baru saja diunggah");
+    setResumeOption("attached");
+  }
+
+  function handleCoverLetterFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) {
+      alert("Ukuran file melebihi batas 5MB.");
+      return;
+    }
+    setCoverLetterFileName(file.name);
   }
 
   async function handleApplySubmit(e: React.FormEvent) {
@@ -306,13 +357,29 @@ export default function JobsView() {
       const selectedAssessment = userAssessments.find((a) => a.id === selectedAssessmentId);
       const headers = await authHeaders();
 
+      const cleanPhone = phone.trim();
+      const fullPhone = cleanPhone
+        ? cleanPhone.startsWith("+")
+          ? cleanPhone
+          : `${phoneCountryCode} ${cleanPhone.replace(/^0+/, "")}`
+        : undefined;
+
       const payload = {
         candidateName: applicantName.trim(),
         candidateEmail: applicantEmail.trim(),
+        phone: fullPhone,
+        location: location.trim() || undefined,
+        resumeFileName:
+          resumeOption === "attached"
+            ? resumeFileName.trim() || "2_CV_Mochamad Triandra Andantyo.pdf"
+            : undefined,
+        coverLetterMode,
+        coverLetter: coverLetterMode === "write" ? coverLetter.trim() || undefined : undefined,
+        coverLetterFileName:
+          coverLetterMode === "upload" ? coverLetterFileName.trim() || undefined : undefined,
         assessmentId: selectedAssessment ? selectedAssessment.id : null,
         skillbridgeScore: selectedAssessment?.finalScore ?? null,
         portfolioUrl: portfolioUrl.trim() || undefined,
-        coverLetter: coverLetter.trim() || undefined,
       };
 
       const res = await fetch(`/api/jobs/${applyJob.id}/apply`, {
@@ -1030,13 +1097,13 @@ export default function JobsView() {
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(20, 33, 61, 0.65)",
-            backdropFilter: "blur(2px)",
+            background: "rgba(20, 33, 61, 0.75)",
             zIndex: 100,
-            display: "grid",
-            placeItems: "center",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             padding: "1rem",
-            overflowY: "auto",
+            overflow: "hidden",
           }}
           onClick={(e) => {
             if (e.target === e.currentTarget && !isSubmitting) setApplyJob(null);
@@ -1051,6 +1118,10 @@ export default function JobsView() {
               overflowY: "auto",
               position: "relative",
               padding: "clamp(1.5rem, 4vw, 2.5rem)",
+              overscrollBehavior: "contain",
+              WebkitOverflowScrolling: "touch",
+              transform: "translateZ(0)",
+              willChange: "scroll-position",
             }}
           >
             <button
@@ -1413,103 +1484,777 @@ export default function JobsView() {
                   </div>
                 )}
 
-                <div className="field">
-                  <label htmlFor="applicant-name">Nama Lengkap</label>
-                  <input
-                    id="applicant-name"
-                    type="text"
-                    required
-                    value={applicantName}
-                    onChange={(e) => setApplicantName(e.target.value)}
-                  />
-                </div>
+                {/* Headline [Informasi Pribadi] */}
+                <div style={{ marginTop: "1.5rem", marginBottom: "1.25rem" }}>
+                  <h3
+                    style={{
+                      fontSize: "1.15rem",
+                      margin: "0 0 1rem",
+                      borderBottom: "1px solid var(--line)",
+                      paddingBottom: "0.5rem",
+                    }}
+                  >
+                    Informasi Pribadi
+                  </h3>
 
-                <div className="field">
-                  <label htmlFor="applicant-email">Alamat Email</label>
-                  <input
-                    id="applicant-email"
-                    type="email"
-                    required
-                    value={applicantEmail}
-                    onChange={(e) => setApplicantEmail(e.target.value)}
-                  />
-                </div>
+                  <div className="field">
+                    <label htmlFor="applicant-name">Nama Lengkap</label>
+                    <input
+                      id="applicant-name"
+                      type="text"
+                      required
+                      value={applicantName}
+                      onChange={(e) => setApplicantName(e.target.value)}
+                    />
+                  </div>
 
-                {/* Pilih Asesmen Portofolio */}
-                <div className="field">
-                  <label htmlFor="applicant-assessment">
-                    Lampirkan Hasil Asesmen Portofolio Skillbridge
-                  </label>
-                  {userAssessments.length > 0 ? (
-                    <>
-                      <select
-                        id="applicant-assessment"
-                        value={selectedAssessmentId}
-                        onChange={(e) => setSelectedAssessmentId(e.target.value)}
-                      >
-                        {userAssessments.map((a) => (
-                          <option key={a.id} value={a.id}>
-                            {a.role} — Skor: {a.finalScore ?? "—"}/100 ({new Date(a.createdAt).toLocaleDateString("id-ID")})
-                          </option>
-                        ))}
-                      </select>
-                      <p className="hint">
-                        HR akan melihat skor tervalidasi dan kutipan bukti portofolio Anda.
-                      </p>
-                    </>
-                  ) : (
+                  <div className="field">
+                    <label htmlFor="applicant-email">Alamat Email</label>
+                    <input
+                      id="applicant-email"
+                      type="email"
+                      required
+                      value={applicantEmail}
+                      onChange={(e) => setApplicantEmail(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="field">
+                    <label htmlFor="applicant-location">Lokasi rumah</label>
+                    <input
+                      id="applicant-location"
+                      type="text"
+                      placeholder="Depok, Jawa Barat"
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                    />
+                  </div>
+
+                  <div className="field">
+                    <label htmlFor="applicant-phone">Nomor telepon</label>
                     <div
                       style={{
-                        padding: "0.85rem",
-                        background: "#fffbeb",
-                        border: "1px solid #fde68a",
-                        fontSize: "0.85rem",
-                        color: "#92400e",
+                        display: "grid",
+                        gridTemplateColumns: "minmax(160px, auto) 1fr",
+                        gap: "0.5rem",
                       }}
                     >
-                      <p style={{ margin: "0 0 0.5rem" }}>
-                        Anda belum memiliki hasil evaluasi portofolio.
-                      </p>
-                      <Link href="/assess" style={{ textDecoration: "underline", fontWeight: 700 }}>
-                        Nilai Bukti Portofolio Sekarang →
-                      </Link>
+                      <select
+                        id="applicant-phone-code"
+                        value={phoneCountryCode}
+                        onChange={(e) => setPhoneCountryCode(e.target.value)}
+                        aria-label="Kode Negara"
+                        style={{
+                          minHeight: "48px",
+                          padding: "0.75rem",
+                          border: "1px solid #8d908c",
+                          background: "white",
+                        }}
+                      >
+                        <option value="+62">Indonesia (+62)</option>
+                        <option value="+65">Singapura (+65)</option>
+                        <option value="+60">Malaysia (+60)</option>
+                        <option value="+61">Australia (+61)</option>
+                        <option value="+1">Amerika Serikat (+1)</option>
+                      </select>
+                      <input
+                        id="applicant-phone"
+                        type="tel"
+                        placeholder="Masukkan nomor telepon"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                      />
                     </div>
-                  )}
+                  </div>
                 </div>
 
-                {/* URL Bukti Portofolio Tambahan */}
-                <div className="field">
-                  <label htmlFor="applicant-portfolio">
-                    Tautan Bukti Portofolio (Opsional)
-                  </label>
-                  <input
-                    id="applicant-portfolio"
-                    type="url"
-                    placeholder="https://github.com/... atau https://behance.net/..."
-                    value={portfolioUrl}
-                    onChange={(e) => setPortfolioUrl(e.target.value)}
-                  />
-                  <p className="hint">
-                    Repositori GitHub, profil Behance/Dribbble, Figma, atau dokumen pendukung.
+                {/* Headline [Resumé] */}
+                <div style={{ marginTop: "1.75rem", marginBottom: "1.25rem" }}>
+                  <h3
+                    style={{
+                      fontSize: "1.15rem",
+                      margin: "0 0 0.85rem",
+                      borderBottom: "1px solid var(--line)",
+                      paddingBottom: "0.5rem",
+                    }}
+                  >
+                    Resumé
+                  </h3>
+
+                  {/* Radio Option 1: File Resume Terlampir */}
+                  <div
+                    style={{
+                      border:
+                        resumeOption === "attached"
+                          ? "1.5px solid var(--ink)"
+                          : "1px solid var(--line)",
+                      borderRadius: "8px",
+                      padding: "1rem",
+                      marginBottom: "0.75rem",
+                      background:
+                        resumeOption === "attached"
+                          ? "rgba(255, 255, 255, 0.95)"
+                          : "white",
+                      transition: "border-color 0.15s ease",
+                    }}
+                  >
+                    <label
+                      style={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: "0.75rem",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="resumeOption"
+                        value="attached"
+                        checked={resumeOption === "attached"}
+                        onChange={() => setResumeOption("attached")}
+                        style={{
+                          width: "18px",
+                          minHeight: "18px",
+                          marginTop: "0.25rem",
+                          cursor: "pointer",
+                        }}
+                      />
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        {/* Kartu Berkas Resume */}
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            background: "var(--paper)",
+                            border: "1px solid var(--line)",
+                            borderRadius: "6px",
+                            padding: "0.75rem 0.9rem",
+                            gap: "0.75rem",
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "0.65rem",
+                              minWidth: 0,
+                            }}
+                          >
+                            <span
+                              style={{ fontSize: "1.4rem", lineHeight: 1 }}
+                              aria-hidden="true"
+                            >
+                              📄
+                            </span>
+                            <div style={{ minWidth: 0 }}>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "0.4rem",
+                                  flexWrap: "wrap",
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    fontWeight: 700,
+                                    fontSize: "0.9rem",
+                                    color: "var(--ink)",
+                                    wordBreak: "break-all",
+                                  }}
+                                >
+                                  {resumeFileName}
+                                </span>
+                                <span
+                                  className="chip"
+                                  style={{
+                                    background: "#e0f2fe",
+                                    color: "#0369a1",
+                                    borderColor: "#bae6fd",
+                                    fontSize: "0.72rem",
+                                    fontWeight: 700,
+                                    padding: "0.1rem 0.45rem",
+                                    borderRadius: "999px",
+                                  }}
+                                >
+                                  Utama
+                                </span>
+                              </div>
+                              <p
+                                style={{
+                                  margin: "0.15rem 0 0",
+                                  fontSize: "0.78rem",
+                                  color: "var(--muted)",
+                                }}
+                              >
+                                {resumeUploadTime}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            aria-label="Opsi berkas resume"
+                            title="Opsi berkas resume"
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              cursor: "pointer",
+                              fontSize: "1.25rem",
+                              padding: "0.2rem 0.5rem",
+                              minHeight: "auto",
+                              color: "var(--muted)",
+                              lineHeight: 1,
+                            }}
+                          >
+                            ⋮
+                          </button>
+                        </div>
+
+                        {/* Box sub-pilihan: Jadikan CV utama */}
+                        <label
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "0.45rem",
+                            marginTop: "0.65rem",
+                            fontSize: "0.85rem",
+                            cursor: "pointer",
+                            color: "var(--ink)",
+                          }}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isPrimaryCv}
+                            onChange={(e) => setIsPrimaryCv(e.target.checked)}
+                            style={{
+                              width: "16px",
+                              minHeight: "16px",
+                              margin: 0,
+                              cursor: "pointer",
+                            }}
+                          />
+                          <span>Jadikan CV utama</span>
+                          <span
+                            title="CV utama akan otomatis digunakan saat Anda melamar lowongan pekerjaan berikutnya."
+                            style={{
+                              color: "var(--muted)",
+                              cursor: "help",
+                              fontSize: "0.85rem",
+                              display: "inline-block",
+                            }}
+                          >
+                            ⓘ
+                          </span>
+                        </label>
+                      </div>
+                    </label>
+                  </div>
+
+                  {/* Radio Option 2: Jangan sertakan resume */}
+                  <div
+                    style={{
+                      border:
+                        resumeOption === "none"
+                          ? "1.5px solid var(--ink)"
+                          : "1px solid var(--line)",
+                      borderRadius: "8px",
+                      padding: "0.85rem 1rem",
+                      marginBottom: "0.75rem",
+                      background:
+                        resumeOption === "none"
+                          ? "rgba(255, 255, 255, 0.95)"
+                          : "white",
+                      transition: "border-color 0.15s ease",
+                    }}
+                  >
+                    <label
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.75rem",
+                        cursor: "pointer",
+                        fontSize: "0.92rem",
+                        fontWeight: 600,
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="resumeOption"
+                        value="none"
+                        checked={resumeOption === "none"}
+                        onChange={() => setResumeOption("none")}
+                        style={{
+                          width: "18px",
+                          minHeight: "18px",
+                          margin: 0,
+                          cursor: "pointer",
+                        }}
+                      />
+                      <span>Jangan sertakan resume</span>
+                    </label>
+                  </div>
+
+                  {/* Tombol [ ↑ Unggah ] untuk memilih file dokumen baru */}
+                  <div style={{ marginTop: "0.65rem", marginBottom: "0.35rem" }}>
+                    <input
+                      ref={resumeFileInputRef}
+                      type="file"
+                      accept=".doc,.docx,.pdf,.txt,.rtf"
+                      style={{ display: "none" }}
+                      onChange={handleResumeFileChange}
+                    />
+                    <button
+                      type="button"
+                      className="button secondary"
+                      onClick={() => resumeFileInputRef.current?.click()}
+                      style={{
+                        minHeight: "38px",
+                        padding: "0.45rem 1rem",
+                        fontSize: "0.88rem",
+                        fontWeight: 600,
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.4rem",
+                      }}
+                    >
+                      <span style={{ fontSize: "1rem" }}>↑</span> Unggah
+                    </button>
+                  </div>
+                  <p
+                    className="hint"
+                    style={{
+                      margin: "0.35rem 0 1rem",
+                      fontSize: "0.8rem",
+                      color: "var(--muted)",
+                    }}
+                  >
+                    Jenis file yang diterima: .doc, .docx, .pdf, .txt, dan .rtf (batas 5MB).
                   </p>
+
+                  {/* Pilih Asesmen Portofolio Skillbridge */}
+                  <div className="field" style={{ marginTop: "1rem" }}>
+                    <label htmlFor="applicant-assessment">
+                      Lampirkan Hasil Asesmen Portofolio Skillbridge
+                    </label>
+                    {userAssessments.length > 0 ? (
+                      <>
+                        <select
+                          id="applicant-assessment"
+                          value={selectedAssessmentId}
+                          onChange={(e) => setSelectedAssessmentId(e.target.value)}
+                        >
+                          {userAssessments.map((a) => (
+                            <option key={a.id} value={a.id}>
+                              {a.role} — Skor: {a.finalScore ?? "—"}/100 (
+                              {new Date(a.createdAt).toLocaleDateString("id-ID")})
+                            </option>
+                          ))}
+                        </select>
+                        <p className="hint">
+                          HR akan melihat skor tervalidasi dan kutipan bukti portofolio Anda.
+                        </p>
+                      </>
+                    ) : (
+                      <div
+                        style={{
+                          padding: "0.85rem",
+                          background: "#fffbeb",
+                          border: "1px solid #fde68a",
+                          fontSize: "0.85rem",
+                          color: "#92400e",
+                        }}
+                      >
+                        <p style={{ margin: "0 0 0.5rem" }}>
+                          Anda belum memiliki hasil evaluasi portofolio.
+                        </p>
+                        <Link
+                          href="/assess"
+                          style={{ textDecoration: "underline", fontWeight: 700 }}
+                        >
+                          Nilai Bukti Portofolio Sekarang →
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* URL Bukti Portofolio Tambahan */}
+                  <div className="field">
+                    <label htmlFor="applicant-portfolio">
+                      Tautan Bukti Portofolio (Opsional)
+                    </label>
+                    <input
+                      id="applicant-portfolio"
+                      type="url"
+                      placeholder="https://github.com/... atau https://behance.net/..."
+                      value={portfolioUrl}
+                      onChange={(e) => setPortfolioUrl(e.target.value)}
+                    />
+                    <p className="hint">
+                      Repositori GitHub, profil Behance/Dribbble, Figma, atau dokumen pendukung.
+                    </p>
+                  </div>
                 </div>
 
-                {/* Surat Pengantar */}
-                <div className="field">
-                  <label htmlFor="applicant-cover-letter">
-                    Surat Pengantar Singkat (Cover Letter)
-                  </label>
-                  <textarea
-                    id="applicant-cover-letter"
-                    rows={4}
-                    placeholder="Jelaskan secara ringkas motivasi Anda, pengalaman relevan, atau sorotan karya terbaik..."
-                    value={coverLetter}
-                    onChange={(e) => setCoverLetter(e.target.value)}
-                  />
+                {/* Headline [Surat lamaran] */}
+                <div style={{ marginTop: "1.75rem", marginBottom: "1.25rem" }}>
+                  <h3
+                    style={{
+                      fontSize: "1.15rem",
+                      margin: "0 0 0.85rem",
+                      borderBottom: "1px solid var(--line)",
+                      paddingBottom: "0.5rem",
+                    }}
+                  >
+                    Surat lamaran
+                  </h3>
+
+                  {/* Radio 1: Unggah surat lamaran */}
+                  <div
+                    style={{
+                      border:
+                        coverLetterMode === "upload"
+                          ? "1.5px solid var(--ink)"
+                          : "1px solid var(--line)",
+                      borderRadius: "8px",
+                      padding: "1rem",
+                      marginBottom: "0.75rem",
+                      background:
+                        coverLetterMode === "upload"
+                          ? "rgba(255, 255, 255, 0.95)"
+                          : "white",
+                      transition: "border-color 0.15s ease",
+                    }}
+                  >
+                    <label
+                      style={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: "0.75rem",
+                        cursor: "pointer",
+                        fontWeight: 600,
+                        fontSize: "0.92rem",
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="coverLetterMode"
+                        value="upload"
+                        checked={coverLetterMode === "upload"}
+                        onChange={() => setCoverLetterMode("upload")}
+                        style={{
+                          width: "18px",
+                          minHeight: "18px",
+                          marginTop: "0.2rem",
+                          cursor: "pointer",
+                        }}
+                      />
+                      <div style={{ flex: 1 }}>
+                        <span>Unggah surat lamaran</span>
+                        {coverLetterMode === "upload" && (
+                          <div style={{ marginTop: "0.75rem" }}>
+                            <input
+                              ref={coverLetterFileInputRef}
+                              type="file"
+                              accept=".doc,.docx,.pdf,.txt,.rtf"
+                              style={{ display: "none" }}
+                              onChange={handleCoverLetterFileChange}
+                            />
+                            <button
+                              type="button"
+                              className="button secondary"
+                              onClick={() => coverLetterFileInputRef.current?.click()}
+                              style={{
+                                minHeight: "38px",
+                                padding: "0.45rem 1rem",
+                                fontSize: "0.88rem",
+                                fontWeight: 600,
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "0.4rem",
+                              }}
+                            >
+                              <span style={{ fontSize: "1rem" }}>↑</span> Unggah
+                            </button>
+                            <p
+                              className="hint"
+                              style={{
+                                margin: "0.35rem 0 0",
+                                fontSize: "0.8rem",
+                                color: "var(--muted)",
+                              }}
+                            >
+                              Jenis file yang diterima: .doc, .docx, .pdf, .txt, dan .rtf (batas 5MB).
+                            </p>
+
+                            {coverLetterFileName && (
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                  background: "var(--paper)",
+                                  border: "1px solid var(--line)",
+                                  borderRadius: "6px",
+                                  padding: "0.6rem 0.85rem",
+                                  marginTop: "0.65rem",
+                                }}
+                              >
+                                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                                  <span>📄</span>
+                                  <span
+                                    style={{
+                                      fontSize: "0.88rem",
+                                      fontWeight: 600,
+                                      color: "var(--ink)",
+                                    }}
+                                  >
+                                    {coverLetterFileName}
+                                  </span>
+                                  <span
+                                    className="chip"
+                                    style={{
+                                      background: "#e6f4ea",
+                                      color: "#137333",
+                                      borderColor: "#b7e1cd",
+                                      fontSize: "0.7rem",
+                                      fontWeight: 700,
+                                      padding: "0.1rem 0.4rem",
+                                      borderRadius: "999px",
+                                    }}
+                                  >
+                                    Terunggah
+                                  </span>
+                                </div>
+                                <button
+                                  type="button"
+                                  aria-label="Hapus berkas surat lamaran"
+                                  onClick={() => setCoverLetterFileName("")}
+                                  style={{
+                                    background: "transparent",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    fontSize: "1.1rem",
+                                    color: "var(--muted)",
+                                    minHeight: "auto",
+                                    padding: "0.2rem",
+                                  }}
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </label>
+                  </div>
+
+                  {/* Radio 2: Tulis surat lamaran */}
+                  <div
+                    style={{
+                      border:
+                        coverLetterMode === "write"
+                          ? "1.5px solid var(--ink)"
+                          : "1px solid var(--line)",
+                      borderRadius: "8px",
+                      padding: "1rem",
+                      marginBottom: "0.75rem",
+                      background:
+                        coverLetterMode === "write"
+                          ? "rgba(255, 255, 255, 0.95)"
+                          : "white",
+                      transition: "border-color 0.15s ease",
+                    }}
+                  >
+                    <label
+                      style={{
+                        display: "flex",
+                        alignItems: "flex-start",
+                        gap: "0.75rem",
+                        cursor: "pointer",
+                        fontWeight: 600,
+                        fontSize: "0.92rem",
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="coverLetterMode"
+                        value="write"
+                        checked={coverLetterMode === "write"}
+                        onChange={() => setCoverLetterMode("write")}
+                        style={{
+                          width: "18px",
+                          minHeight: "18px",
+                          marginTop: "0.2rem",
+                          cursor: "pointer",
+                        }}
+                      />
+                      <div style={{ flex: 1 }}>
+                        <span>Tulis surat lamaran</span>
+                        {coverLetterMode === "write" && (
+                          <div style={{ marginTop: "0.65rem" }}>
+                            <p
+                              style={{
+                                margin: "0 0 0.65rem",
+                                fontSize: "0.85rem",
+                                color: "var(--muted)",
+                                lineHeight: 1.5,
+                                fontWeight: 400,
+                              }}
+                            >
+                              Perkenalkan diri kamu dan jelaskan secara singkat mengapa kamu cocok
+                              untuk jabatan ini. Pertimbangkan keahlian, kualifikasi, dan pengalaman
+                              terkait kamu yang relevan.
+                            </p>
+                            <textarea
+                              id="applicant-cover-letter"
+                              rows={5}
+                              placeholder="Tuliskan surat lamaran Anda di sini..."
+                              value={coverLetter}
+                              onChange={(e) => setCoverLetter(e.target.value)}
+                              style={{ width: "100%" }}
+                            />
+                          </div>
+                        )}
+                      </div>
+                    </label>
+                  </div>
+
+                  {/* Radio 3: Jangan sertakan surat lamaran */}
+                  <div
+                    style={{
+                      border:
+                        coverLetterMode === "none"
+                          ? "1.5px solid var(--ink)"
+                          : "1px solid var(--line)",
+                      borderRadius: "8px",
+                      padding: "0.85rem 1rem",
+                      marginBottom: "0.75rem",
+                      background:
+                        coverLetterMode === "none"
+                          ? "rgba(255, 255, 255, 0.95)"
+                          : "white",
+                      transition: "border-color 0.15s ease",
+                    }}
+                  >
+                    <label
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.75rem",
+                        cursor: "pointer",
+                        fontSize: "0.92rem",
+                        fontWeight: 600,
+                      }}
+                    >
+                      <input
+                        type="radio"
+                        name="coverLetterMode"
+                        value="none"
+                        checked={coverLetterMode === "none"}
+                        onChange={() => setCoverLetterMode("none")}
+                        style={{
+                          width: "18px",
+                          minHeight: "18px",
+                          margin: 0,
+                          cursor: "pointer",
+                        }}
+                      />
+                      <span>Jangan sertakan surat lamaran</span>
+                    </label>
+                  </div>
+                </div>
+
+                {/* Privasi dan Penggunaan Data */}
+                <div
+                  style={{
+                    marginTop: "2rem",
+                    marginBottom: "1.5rem",
+                    padding: "1.1rem 1.25rem",
+                    background: "#f8fafc",
+                    border: "1px solid var(--line)",
+                    borderRadius: "8px",
+                    fontSize: "0.83rem",
+                    lineHeight: 1.55,
+                    color: "var(--ink)",
+                  }}
+                >
+                  {/* Banner Peringatan */}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "flex-start",
+                      gap: "0.5rem",
+                      padding: "0.6rem 0.8rem",
+                      background: "#fffbeb",
+                      border: "1px solid #fde68a",
+                      borderRadius: "6px",
+                      color: "#92400e",
+                      fontWeight: 700,
+                      marginBottom: "0.9rem",
+                    }}
+                  >
+                    <span style={{ fontSize: "1rem", lineHeight: 1.2 }}>⚠️</span>
+                    <span>Jaga Diri Anda: Jangan sertakan informasi sensitif dalam dokumen Anda.</span>
+                  </div>
+
+                  {/* Lindungi Privasi Anda */}
+                  <div style={{ marginBottom: "0.85rem" }}>
+                    <strong
+                      style={{
+                        display: "block",
+                        color: "var(--ink)",
+                        marginBottom: "0.25rem",
+                        fontSize: "0.88rem",
+                      }}
+                    >
+                      Lindungi Privasi Anda
+                    </strong>
+                    <p style={{ margin: 0, color: "var(--muted)" }}>
+                      Hanya bagikan informasi yang diperlukan. Jangan sertakan konten seperti dokumen
+                      identitas (misalnya KTP, paspor, SIM), informasi keuangan (misalnya nomor rekening,
+                      NPWP), suku/ras, agama, atau informasi kesehatan.
+                    </p>
+                  </div>
+
+                  {/* Bagaimana Skillbridge AI Menggunakan Data Anda */}
+                  <div>
+                    <strong
+                      style={{
+                        display: "block",
+                        color: "var(--ink)",
+                        marginBottom: "0.25rem",
+                        fontSize: "0.88rem",
+                      }}
+                    >
+                      Bagaimana Skillbridge AI Menggunakan Data Anda
+                    </strong>
+                    <p style={{ margin: "0 0 0.4rem", color: "var(--muted)" }}>
+                      Dengan memanfaatkan hasil evaluasi portofolio nyata dan skor kesiapan kerja
+                      tervalidasi, Skillbridge AI menganalisis kesesuaian objektif kriteria Anda terhadap
+                      lowongan dan menampilkannya kepada Anda dan tim HR mitra industri.
+                    </p>
+                    <p style={{ margin: "0 0 0.4rem", color: "var(--muted)" }}>
+                      Skillbridge AI menjaga integritas dokumen dan menghapus tautan eksternal yang tidak
+                      aman untuk mematuhi standar keamanan kami.
+                    </p>
+                    <p style={{ margin: 0, color: "var(--muted)", fontStyle: "italic" }}>
+                      Dengan mengirimkan lamaran ini, Anda menyetujui Kebijakan Privasi dan Perlindungan
+                      Data Skillbridge AI.
+                    </p>
+                  </div>
                 </div>
 
                 {/* Actions */}
-                <div style={{ display: "flex", gap: "0.75rem", justifyContent: "flex-end", marginTop: "1.75rem" }}>
+                <div
+                  style={{
+                    display: "flex",
+                    gap: "0.75rem",
+                    justifyContent: "flex-end",
+                    marginTop: "1.75rem",
+                  }}
+                >
                   <button
                     type="button"
                     className="button secondary"

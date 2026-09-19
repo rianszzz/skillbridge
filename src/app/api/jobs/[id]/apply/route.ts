@@ -39,6 +39,12 @@ export async function POST(
       jobId: id,
       candidateName,
       candidateEmail,
+      phone: body.phone?.trim() || undefined,
+      location: body.location?.trim() || undefined,
+      resumeFileName: body.resumeFileName?.trim() || undefined,
+      resumeUrl: body.resumeUrl?.trim() || undefined,
+      coverLetterMode: body.coverLetterMode || undefined,
+      coverLetterFileName: body.coverLetterFileName?.trim() || undefined,
       assessmentId: body.assessmentId || null,
       skillbridgeScore:
         body.skillbridgeScore !== undefined && body.skillbridgeScore !== null

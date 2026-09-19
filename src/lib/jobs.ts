@@ -35,6 +35,7 @@ export type {
   JobFitEvaluation,
 };
 const inMemoryJobs = new Map<string, JobPosting>();
+const inMemoryApplications = new Map<string, JobApplication>();
 const deletedJobIds = new Set<string>([
   "10000000-0000-4000-8000-000000000004",
   "10000000-0000-4000-8000-000000000005",
@@ -393,6 +394,12 @@ type DbApplicationRow = {
   candidate_id: string;
   candidate_name: string;
   candidate_email: string;
+  phone?: string | null;
+  location?: string | null;
+  resume_file_name?: string | null;
+  resume_url?: string | null;
+  cover_letter_mode?: "upload" | "write" | "none" | null;
+  cover_letter_file_name?: string | null;
   assessment_id?: string | null;
   skillbridge_score?: number | string | null;
   portfolio_url?: string | null;
@@ -457,6 +464,12 @@ function mapDbApplication(row: DbApplicationRow): JobApplication {
     candidateId: row.candidate_id,
     candidateName: row.candidate_name,
     candidateEmail: row.candidate_email,
+    phone: row.phone ?? undefined,
+    location: row.location ?? undefined,
+    resumeFileName: row.resume_file_name ?? undefined,
+    resumeUrl: row.resume_url ?? undefined,
+    coverLetterMode: (row.cover_letter_mode as "upload" | "write" | "none" | undefined) ?? undefined,
+    coverLetterFileName: row.cover_letter_file_name ?? undefined,
     assessmentId: row.assessment_id ?? null,
     skillbridgeScore:
       row.skillbridge_score !== null && row.skillbridge_score !== undefined
@@ -1245,6 +1258,11 @@ export async function deleteJobPosting(
   // Hapus dari inMemoryJobs dan tambahkan ke deletedJobIds
   deletedJobIds.add(jobId);
   inMemoryJobs.delete(jobId);
+  for (const [appId, app] of inMemoryApplications.entries()) {
+    if (app.jobId === jobId) {
+      inMemoryApplications.delete(appId);
+    }
+  }
   const demoIndex = DEMO_JOBS.findIndex((j) => j.id === jobId);
   if (demoIndex !== -1) {
     DEMO_JOBS.splice(demoIndex, 1);
@@ -1315,6 +1333,12 @@ export type ApplyJobInput = {
   jobId: string;
   candidateName: string;
   candidateEmail: string;
+  phone?: string;
+  location?: string;
+  resumeFileName?: string;
+  resumeUrl?: string;
+  coverLetterMode?: "upload" | "write" | "none";
+  coverLetterFileName?: string;
   assessmentId?: string | null;
   skillbridgeScore?: number | null;
   portfolioUrl?: string;
@@ -1442,6 +1466,12 @@ export async function applyToJob(
     candidateId,
     candidateName: data.candidateName.trim(),
     candidateEmail: data.candidateEmail.trim(),
+    phone: data.phone?.trim() || undefined,
+    location: data.location?.trim() || undefined,
+    resumeFileName: data.resumeFileName?.trim() || undefined,
+    resumeUrl: data.resumeUrl?.trim() || undefined,
+    coverLetterMode: data.coverLetterMode || undefined,
+    coverLetterFileName: data.coverLetterFileName?.trim() || undefined,
     assessmentId: data.assessmentId ?? null,
     skillbridgeScore: fitEvaluation.score,
     portfolioUrl: data.portfolioUrl?.trim() ?? undefined,
@@ -1455,6 +1485,7 @@ export async function applyToJob(
   };
 
   applicationFitMap.set(newApplication.id, fitEvaluation);
+  inMemoryApplications.set(newApplication.id, newApplication);
 
   try {
     const db = createAdminSupabase();
@@ -1464,6 +1495,12 @@ export async function applyToJob(
       candidate_id: candidateId,
       candidate_name: newApplication.candidateName,
       candidate_email: newApplication.candidateEmail,
+      phone: newApplication.phone ?? null,
+      location: newApplication.location ?? null,
+      resume_file_name: newApplication.resumeFileName ?? null,
+      resume_url: newApplication.resumeUrl ?? null,
+      cover_letter_mode: newApplication.coverLetterMode ?? null,
+      cover_letter_file_name: newApplication.coverLetterFileName ?? null,
       assessment_id: newApplication.assessmentId,
       skillbridge_score: newApplication.skillbridgeScore,
       portfolio_url: newApplication.portfolioUrl ?? null,
@@ -1494,7 +1531,9 @@ export async function applyToJob(
     } else if (
       resWithFit.error &&
       (resWithFit.error.code === "42703" ||
-        resWithFit.error.message.includes("fit_evaluation"))
+        resWithFit.error.message.includes("fit_evaluation") ||
+        resWithFit.error.message.includes("phone") ||
+        resWithFit.error.message.includes("column"))
     ) {
       const resWithoutFit = await db
         .from("job_applications")
@@ -1508,13 +1547,52 @@ export async function applyToJob(
         `)
         .single();
 
-      if (resWithoutFit.error) {
+      if (!resWithoutFit.error && resWithoutFit.data) {
+        inserted = resWithoutFit.data;
+      } else if (
+        resWithoutFit.error &&
+        (resWithoutFit.error.code === "42703" ||
+          resWithoutFit.error.message.includes("phone") ||
+          resWithoutFit.error.message.includes("column"))
+      ) {
+        const legacyPayload = {
+          id: newApplication.id,
+          job_id: data.jobId,
+          candidate_id: candidateId,
+          candidate_name: newApplication.candidateName,
+          candidate_email: newApplication.candidateEmail,
+          assessment_id: newApplication.assessmentId,
+          skillbridge_score: newApplication.skillbridgeScore,
+          portfolio_url: newApplication.portfolioUrl ?? null,
+          cover_letter: newApplication.coverLetter ?? null,
+          status: newApplication.status,
+          is_demo: false,
+        };
+        const resLegacy = await db
+          .from("job_applications")
+          .insert(legacyPayload)
+          .select(`
+            *,
+            job_postings (
+              title,
+              company_name
+            )
+          `)
+          .single();
+
+        if (resLegacy.error) {
+          if (isTableMissing(resLegacy.error)) {
+            return newApplication;
+          }
+          throw new Error(`Gagal mengirimkan lamaran: ${resLegacy.error.message}`);
+        }
+        inserted = resLegacy.data;
+      } else if (resWithoutFit.error) {
         if (isTableMissing(resWithoutFit.error)) {
           return newApplication;
         }
         throw new Error(`Gagal mengirimkan lamaran: ${resWithoutFit.error.message}`);
       }
-      inserted = resWithoutFit.data;
     } else if (resWithFit.error) {
       if (isTableMissing(resWithFit.error)) {
         return newApplication;
@@ -1524,10 +1602,19 @@ export async function applyToJob(
 
     if (inserted) {
       const mapped = mapDbApplication(inserted as DbApplicationRow);
-      return {
+      const finalApp: JobApplication = {
+        ...newApplication,
         ...mapped,
+        phone: mapped.phone ?? newApplication.phone,
+        location: mapped.location ?? newApplication.location,
+        resumeFileName: mapped.resumeFileName ?? newApplication.resumeFileName,
+        resumeUrl: mapped.resumeUrl ?? newApplication.resumeUrl,
+        coverLetterMode: mapped.coverLetterMode ?? newApplication.coverLetterMode,
+        coverLetterFileName: mapped.coverLetterFileName ?? newApplication.coverLetterFileName,
         fitEvaluation: mapped.fitEvaluation ?? fitEvaluation,
       };
+      inMemoryApplications.set(finalApp.id, finalApp);
+      return finalApp;
     }
 
     return newApplication;
@@ -1617,13 +1704,25 @@ export async function getJobApplicationsForRecruiter(
     demoApps = demoApps.filter((a) => a.jobId === jobId);
   }
 
-  // Saring demoApps agar mengabaikan lamaran yang allDeletedJobIds.has(a.jobId) atau deletedAppIds.has(a.id)
+  let inMemApps = Array.from(inMemoryApplications.values());
+  if (jobId) {
+    inMemApps = inMemApps.filter((a) => a.jobId === jobId);
+  }
+
+  // Saring demoApps dan inMemApps agar mengabaikan lamaran yang allDeletedJobIds.has(a.jobId) atau deletedAppIds.has(a.id)
   demoApps = demoApps.filter(
+    (a) => !allDeletedJobIds.has(a.jobId) && !deletedAppIds.has(a.id),
+  );
+  inMemApps = inMemApps.filter(
     (a) => !allDeletedJobIds.has(a.jobId) && !deletedAppIds.has(a.id),
   );
 
   const existingIds = new Set(dbApps.map((a) => a.id));
-  const combined = [...dbApps, ...demoApps.filter((a) => !existingIds.has(a.id))];
+  const combined = [
+    ...dbApps,
+    ...inMemApps.filter((a) => !existingIds.has(a.id)),
+    ...demoApps.filter((a) => !existingIds.has(a.id)),
+  ];
 
   return combined.sort((a, b) => new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime());
 }
@@ -1655,8 +1754,13 @@ export async function getJobApplicationsForCandidate(
   }
 
   const demoApps = DEMO_APPLICATIONS.filter((a) => a.candidateId === candidateId);
+  const inMemApps = Array.from(inMemoryApplications.values()).filter((a) => a.candidateId === candidateId);
   const existingIds = new Set(dbApps.map((a) => a.id));
-  const combined = [...dbApps, ...demoApps.filter((a) => !existingIds.has(a.id))];
+  const combined = [
+    ...dbApps,
+    ...inMemApps.filter((a) => !existingIds.has(a.id)),
+    ...demoApps.filter((a) => !existingIds.has(a.id)),
+  ];
 
   return combined.sort((a, b) => new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime());
 }
