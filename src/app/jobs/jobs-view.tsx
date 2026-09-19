@@ -503,6 +503,7 @@ export default function JobsView() {
     setSavedApplicantProfile(profileData);
     setIsProfileSaved(true);
     setIsEditingProfile(false);
+    setSubmitError("");
   }
 
   function handleCancelEditProfile() {
@@ -570,6 +571,18 @@ export default function JobsView() {
     e.preventDefault();
     if (!applyJob || !currentUser) return;
 
+    if (!isProfileSaved || isEditingProfile) {
+      const msg = "Harap simpan Informasi Pribadi terlebih dahulu dengan menekan tombol \"Simpan Informasi Pribadi\" sebelum mengirimkan lamaran.";
+      setSubmitError(msg);
+      setProfileSaveError("Silakan klik \"Simpan Informasi Pribadi\" untuk mengonfirmasi data Anda.");
+      const btn = document.getElementById("btn-save-personal-info");
+      if (btn) {
+        btn.scrollIntoView({ behavior: "smooth", block: "center" });
+        btn.focus();
+      }
+      return;
+    }
+
     if (!applicantName.trim()) {
       setSubmitError("Nama Lengkap wajib diisi.");
       return;
@@ -583,23 +596,6 @@ export default function JobsView() {
     setSubmitError("");
 
     try {
-      // Perbarui atau simpan profil ke localStorage secara otomatis
-      const profileData = {
-        name: applicantName.trim(),
-        email: applicantEmail.trim(),
-        location: location.trim(),
-        phoneCountryCode,
-        phone: phone.trim(),
-        photoUrl: avatarPhotoUrl || undefined,
-      };
-      try {
-        localStorage.setItem("skillbridge_saved_applicant_profile", JSON.stringify(profileData));
-        setSavedApplicantProfile(profileData);
-        setIsProfileSaved(true);
-      } catch {
-        // ignore
-      }
-
       const selectedAssessment = userAssessments.find((a) => a.id === selectedAssessmentId);
       const headers = await authHeaders();
 
@@ -2222,6 +2218,7 @@ export default function JobsView() {
                       >
                         <button
                           type="button"
+                          id="btn-save-personal-info"
                           onClick={handleSaveApplicantProfile}
                           style={{
                             minHeight: "44px",
