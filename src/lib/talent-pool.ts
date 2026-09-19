@@ -1,7 +1,6 @@
-import { isTableMissing } from "./supabase.ts";
+import { createAdminSupabase, isTableMissing } from "./supabase.ts";
 import { roleFields } from "./rubrics.ts";
 import { DEMO_SEEDS } from "./demo-seed.ts";
-import { getJobApplicationsForRecruiter, getJobPostingById } from "./jobs.ts";
 import type { Role, TalentCandidate, TalentPoolFilters } from "./types.ts";
 
 export { isTableMissing };
@@ -26,8 +25,71 @@ const DEMO_METADATA: Record<string, { candidateName: string; email: string }> = 
   },
 };
 
+const CURATED_DEMO_GRADUATES: TalentCandidate[] = [
+  {
+    id: "00000000-0000-4000-8000-000000000003",
+    assessmentId: "00000000-0000-4000-8000-000000000003",
+    candidateName: "Nadia Putri (INF-03)",
+    email: "nadia.putri@demo.skillbridge.id",
+    role: "Junior Web Developer",
+    field: "informatics",
+    finalScore: 85,
+    evidenceType: "github",
+    strengths: [
+      "Implementasi REST API modular dengan arsitektur bersih dan unit test teruji.",
+      "Dokumentasi README terstruktur dan alur kerja Git bertahap konsisten.",
+    ],
+    gaps: [
+      "Penerapan continuous integration (CI/CD) otomatis untuk rilis aplikasi.",
+    ],
+    createdAt: "2026-08-28T09:00:00.000Z",
+    sourceUrl: "https://github.com/skillbridge-demo/react-pos-system",
+    isDemo: true,
+  },
+  {
+    id: "00000000-0000-4000-8000-000000000023",
+    assessmentId: "00000000-0000-4000-8000-000000000023",
+    candidateName: "Fajar Pratama (DKV-03)",
+    email: "fajar.pratama@demo.skillbridge.id",
+    role: "Junior Graphic Designer",
+    field: "design",
+    finalScore: 75,
+    evidenceType: "image",
+    strengths: [
+      "Konsistensi hierarki visual, kontras warna, dan keterbacaan tipografi berstandar WCAG.",
+      "Dokumentasi eksplorasi proses desain mulai dari konsep hingga purwarupa final.",
+    ],
+    gaps: [
+      "Variasi format ekspor aset untuk layar resolusi tinggi (SVG/WebP).",
+    ],
+    createdAt: "2026-08-28T10:30:00.000Z",
+    sourceUrl: "brand-identity-crafting.png (Karya Desain)",
+    isDemo: true,
+  },
+  {
+    id: "00000000-0000-4000-8000-000000000033",
+    assessmentId: "00000000-0000-4000-8000-000000000033",
+    candidateName: "Dewi Lestari (MKT-03)",
+    email: "dewi.lestari@demo.skillbridge.id",
+    role: "Junior Digital Marketer",
+    field: "marketing",
+    finalScore: 75,
+    evidenceType: "pdf",
+    strengths: [
+      "Analisis kampanye multi-kanal dengan pelacakan CTR dan konversi yang terukur.",
+      "Laporan audit berbasis data disertai rekomendasi optimasi anggaran iklan.",
+    ],
+    gaps: [
+      "Eksperimen A/B testing multi-variabel untuk halaman pendaratan (landing page).",
+    ],
+    createdAt: "2026-08-28T11:15:00.000Z",
+    sourceUrl: "audit-growth-marketing.pdf (Studi Kasus)",
+    isDemo: true,
+  },
+];
+
 export function getDemoTalentCandidates(): TalentCandidate[] {
-  return DEMO_SEEDS
+  const seedCandidates = DEMO_SEEDS
     .filter((seed) => seed.finalScore !== null && seed.evidence_sufficiency === "sufficient")
     .map((seed) => {
       const meta = DEMO_METADATA[seed.id] ?? {
@@ -51,6 +113,18 @@ export function getDemoTalentCandidates(): TalentCandidate[] {
         isDemo: true,
       };
     });
+
+  const seenIds = new Set(seedCandidates.map((c) => c.assessmentId));
+  const combined: TalentCandidate[] = [...seedCandidates];
+
+  for (const curated of CURATED_DEMO_GRADUATES) {
+    if (!seenIds.has(curated.assessmentId)) {
+      seenIds.add(curated.assessmentId);
+      combined.push(curated);
+    }
+  }
+
+  return combined;
 }
 
 export function filterAndSortCandidates(
@@ -82,75 +156,188 @@ export async function getTalentPool(
   recruiterIdOrFilters?: string | TalentPoolFilters,
   filters?: TalentPoolFilters,
 ): Promise<TalentCandidate[]> {
-  let recruiterId = "recruiter-demo-id";
-  let effectiveFilters: TalentPoolFilters | undefined = filters;
+  let effectiveFilters: TalentPoolFilters | undefined;
 
   if (typeof recruiterIdOrFilters === "string") {
-    recruiterId = recruiterIdOrFilters;
+    effectiveFilters = filters;
   } else if (typeof recruiterIdOrFilters === "object" && recruiterIdOrFilters !== null) {
     effectiveFilters = recruiterIdOrFilters;
   }
 
-  const applications = await getJobApplicationsForRecruiter(
-    recruiterId,
-    effectiveFilters?.jobId === "all" ? undefined : effectiveFilters?.jobId,
-  );
+  const demoCandidates = getDemoTalentCandidates();
+  let dbCandidates: TalentCandidate[] = [];
 
-  const candidates: TalentCandidate[] = (
-    await Promise.all(
-      applications.map(async (app): Promise<TalentCandidate | null> => {
-        const job = await getJobPostingById(app.jobId, { recruiterId });
-        if (!job) return null;
-        const finalScore = app.fitEvaluation?.score ?? app.skillbridgeScore ?? 50;
-        return {
-          id: app.id,
-          assessmentId: app.assessmentId ?? app.id,
-          candidateName: app.candidateName,
-          email: app.candidateEmail,
-          phone: app.phone,
-          location: app.location,
-          resumeFileName: app.resumeFileName,
-          resumeUrl: app.resumeUrl,
-          coverLetterMode: app.coverLetterMode,
-          coverLetterFileName: app.coverLetterFileName,
-          role: app.jobTitle ?? job.targetRole ?? "Pelamar",
-          field: job.field ?? "informatics",
-          finalScore,
-          fitEvaluation: app.fitEvaluation ?? null,
-          jobId: app.jobId,
-          jobTitle: app.jobTitle ?? job.title,
-          companyName: app.companyName ?? job.companyName,
-          status: app.status,
-          coverLetter: app.coverLetter,
-          sourceUrl: app.portfolioUrl,
-          evidenceType: (job.acceptedEvidenceTypes?.[0] ?? "github") as "github" | "image" | "pdf",
-          strengths: app.fitEvaluation?.matchingCriteria ?? [],
-          gaps: app.fitEvaluation?.missingCriteria ?? [],
-          createdAt: app.appliedAt,
-          isDemo: Boolean(app.isDemo),
-        };
-      }),
-    )
-  ).filter((c): c is TalentCandidate => c !== null && Boolean(c.jobTitle));
+  try {
+    const db = createAdminSupabase();
+    // 1. Ambil asesmen publik berstatus sufficient dari database
+    const { data: assessments, error } = await db
+      .from("assessments")
+      .select(`
+        id,
+        evidence_id,
+        evidence_sufficiency,
+        final_score,
+        rubric_version,
+        strengths,
+        gaps,
+        created_at,
+        is_public_talent,
+        rubrics (
+          target_role,
+          career_field
+        ),
+        evidence (
+          user_id,
+          evidence_type,
+          source_url,
+          extraction_metadata
+        )
+      `)
+      .eq("evidence_sufficiency", "sufficient")
+      .not("final_score", "is", null)
+      .order("final_score", { ascending: false });
 
-  let result = candidates;
+    if (error) {
+      if (!isTableMissing(error)) {
+        // Coba query cadangan tanpa kolom is_public_talent jika kolom belum dimigrasi
+        const fallback = await db
+          .from("assessments")
+          .select(`
+            id,
+            evidence_id,
+            evidence_sufficiency,
+            final_score,
+            rubric_version,
+            strengths,
+            gaps,
+            created_at,
+            rubrics (
+              target_role,
+              career_field
+            ),
+            evidence (
+              user_id,
+              evidence_type,
+              source_url,
+              extraction_metadata
+            )
+          `)
+          .eq("evidence_sufficiency", "sufficient")
+          .not("final_score", "is", null)
+          .order("final_score", { ascending: false });
 
-  if (typeof effectiveFilters?.minScore === "number" && !Number.isNaN(effectiveFilters.minScore)) {
-    result = result.filter((c) => c.finalScore >= effectiveFilters!.minScore!);
-  }
-
-  if (effectiveFilters?.field && effectiveFilters.field !== "all") {
-    const targetField = effectiveFilters.field.toLowerCase();
-    result = result.filter((c) => c.field.toLowerCase() === targetField);
-  }
-
-  result.sort((a, b) => {
-    if (b.finalScore !== a.finalScore) {
-      return b.finalScore - a.finalScore;
+        if (!fallback.error && fallback.data) {
+          dbCandidates = await mapDbRows(db, fallback.data);
+        }
+      }
+    } else if (assessments) {
+      const publicRows = assessments.filter(
+        (item: { is_public_talent?: boolean }) => item.is_public_talent !== false,
+      );
+      dbCandidates = await mapDbRows(db, publicRows);
     }
-    return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-  });
+  } catch {
+    // Fail-safe: jika database belum siap atau gagal koneksi, andalkan direktori talenta demo
+  }
 
-  return result;
+  // Gabungkan kandidat DB dan talenta terverifikasi tanpa duplikasi ID
+  const seenIds = new Set<string>();
+  const merged: TalentCandidate[] = [];
+
+  for (const c of dbCandidates) {
+    if (!seenIds.has(c.assessmentId)) {
+      seenIds.add(c.assessmentId);
+      merged.push(c);
+    }
+  }
+
+  for (const seed of demoCandidates) {
+    if (!seenIds.has(seed.assessmentId)) {
+      seenIds.add(seed.assessmentId);
+      merged.push(seed);
+    }
+  }
+
+  return filterAndSortCandidates(merged, effectiveFilters);
 }
 
+type AssessmentDbRow = {
+  id: string;
+  final_score: number | string | null;
+  strengths: unknown;
+  gaps: unknown;
+  created_at: string;
+  rubrics?: unknown;
+  evidence?: unknown;
+};
+
+async function mapDbRows(
+  db: ReturnType<typeof createAdminSupabase>,
+  rows: AssessmentDbRow[],
+): Promise<TalentCandidate[]> {
+  if (!rows || rows.length === 0) return [];
+
+  const userIds = Array.from(
+    new Set(
+      rows
+        .map((r) => (r.evidence as { user_id?: string } | undefined)?.user_id)
+        .filter((uid): uid is string => Boolean(uid)),
+    ),
+  );
+
+  const profileMap = new Map<string, { full_name?: string; email?: string }>();
+  if (userIds.length > 0) {
+    try {
+      const { data: profiles } = await db
+        .from("profiles")
+        .select("user_id, full_name, email")
+        .in("user_id", userIds);
+      if (profiles) {
+        for (const p of profiles) {
+          profileMap.set(p.user_id, {
+            full_name: (p as { full_name?: string }).full_name,
+            email: (p as { email?: string }).email,
+          });
+        }
+      }
+    } catch {
+      // Kesalahan query profile non-fatal
+    }
+  }
+
+  return rows.map((item) => {
+    const evidence = (item.evidence as {
+      user_id?: string;
+      evidence_type?: string;
+      source_url?: string;
+      extraction_metadata?: { filename?: string };
+    }) ?? {};
+    const rubric = (item.rubrics as { target_role?: Role; career_field?: string }) ?? {};
+    const profile = evidence.user_id ? profileMap.get(evidence.user_id) : undefined;
+    const shortId = item.id.slice(0, 6).toUpperCase();
+
+    const candidateName = profile?.full_name || `Kandidat #${shortId}`;
+    const email = profile?.email || `kandidat.${item.id.slice(0, 8)}@skillbridge.id`;
+    const role = rubric.target_role ?? "Junior Web Developer";
+    const field = rubric.career_field ?? roleFields[role as Role] ?? "informatics";
+    const sourceUrl =
+      evidence.source_url ??
+      String(evidence.extraction_metadata?.filename ?? "Bukti Unggahan");
+
+    return {
+      id: item.id,
+      assessmentId: item.id,
+      candidateName,
+      email,
+      role,
+      field,
+      finalScore: Number(item.final_score),
+      evidenceType: evidence.evidence_type ?? "github",
+      strengths: Array.isArray(item.strengths) ? (item.strengths as string[]) : [],
+      gaps: Array.isArray(item.gaps) ? (item.gaps as string[]) : [],
+      createdAt: item.created_at,
+      sourceUrl,
+      isDemo: false,
+    };
+  });
+}

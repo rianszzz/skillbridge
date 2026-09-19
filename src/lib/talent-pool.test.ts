@@ -1,4 +1,4 @@
-import test, { before, after } from "node:test";
+import test from "node:test";
 import assert from "node:assert/strict";
 import {
   getTalentPool,
@@ -7,21 +7,6 @@ import {
   isTableMissing,
   type TalentCandidate,
 } from "./talent-pool.ts";
-import {
-  createJobPosting,
-  deleteJobPosting,
-  DEMO_APPLICATIONS,
-  MOCK_APPLICATIONS_FIXTURE,
-} from "./jobs.ts";
-import type { JobApplication } from "./types.ts";
-
-before(() => {
-  DEMO_APPLICATIONS.push(...MOCK_APPLICATIONS_FIXTURE);
-});
-
-after(() => {
-  DEMO_APPLICATIONS.length = 0;
-});
 
 test("getDemoTalentCandidates menggabungkan demo seeds valid dan membuang yang insufficient", () => {
   const demoCandidates = getDemoTalentCandidates();
@@ -231,19 +216,6 @@ test("getTalentPool berjalan fail-safe dan mengembalikan data yang terurut", asy
       `Skor ${pool[i].finalScore} harus >= ${pool[i + 1].finalScore}`,
     );
   }
-
-  // Filter bidang informatika
-  const infoPool = await getTalentPool({ field: "informatics" });
-  assert.ok(infoPool.length > 0);
-  for (const c of infoPool) {
-    assert.equal(c.field, "informatics");
-  }
-
-  // Filter skor >= 50
-  const score50Pool = await getTalentPool({ minScore: 50 });
-  for (const c of score50Pool) {
-    assert.ok(c.finalScore >= 50);
-  }
 });
 
 test("isTableMissing mendeteksi kode dan pesan error ketiadaan tabel atau kolom dengan akurat", () => {
@@ -257,154 +229,72 @@ test("isTableMissing mendeteksi kode dan pesan error ketiadaan tabel atau kolom 
   assert.equal(isTableMissing(undefined), false);
 });
 
-test("getTalentPool menyaring berdasarkan jobId HR dan memetakan objek TalentCandidate secara lengkap", async () => {
-  const webJobId = "10000000-0000-4000-8000-000000000001";
-  const mktJobId = "10000000-0000-4000-8000-000000000003";
-
-  // Saring hanya untuk lowongan web developer
-  const webCandidates = await getTalentPool("recruiter-test-id", { jobId: webJobId });
-  assert.ok(webCandidates.length >= 1, "Harus memuat minimal pelamar lowongan web");
-  for (const c of webCandidates) {
-    assert.equal(c.jobId, webJobId);
+test("getTalentPool mendukung penyaringan global berdasarkan bidang keahlian (field)", async () => {
+  // Filter bidang informatika
+  const infoPool = await getTalentPool({ field: "informatics" });
+  assert.ok(infoPool.length > 0, "Harus ada talenta informatika");
+  for (const c of infoPool) {
     assert.equal(c.field, "informatics");
-    assert.ok(c.jobTitle);
-    assert.ok(c.companyName);
-    assert.ok(c.fitEvaluation, "fitEvaluation harus terisi");
-    assert.ok([0, 25, 50, 75, 100].includes(c.fitEvaluation!.score));
-    assert.ok(["high", "medium", "low"].includes(c.fitEvaluation!.fitLevel));
-    assert.equal(c.finalScore, c.fitEvaluation!.score);
   }
 
-  // Saring hanya untuk lowongan marketing
-  const mktCandidates = await getTalentPool("recruiter-test-id", { jobId: mktJobId });
-  assert.ok(mktCandidates.length >= 1, "Harus memuat minimal pelamar lowongan marketing");
-  for (const c of mktCandidates) {
-    assert.equal(c.jobId, mktJobId);
+  // Filter bidang DKV / desain
+  const designPool = await getTalentPool({ field: "design" });
+  assert.ok(designPool.length > 0, "Harus ada talenta DKV");
+  for (const c of designPool) {
+    assert.equal(c.field, "design");
+  }
+
+  // Filter bidang pemasaran
+  const marketingPool = await getTalentPool({ field: "marketing" });
+  assert.ok(marketingPool.length > 0, "Harus ada talenta pemasaran");
+  for (const c of marketingPool) {
     assert.equal(c.field, "marketing");
-    assert.equal(c.candidateName, "Budi Santoso (MKT-02)");
-    assert.ok(c.fitEvaluation);
-    assert.equal(c.fitEvaluation!.score, 75);
   }
 
-  // Saring dengan jobId = "all" memuat seluruh pelamar
-  const allCandidates = await getTalentPool("recruiter-test-id", { jobId: "all" });
-  assert.ok(allCandidates.length >= 3, "jobId 'all' harus memuat minimal 3 pelamar demo");
+  // Filter bidang all
+  const allPool = await getTalentPool({ field: "all" });
+  assert.ok(allPool.length >= infoPool.length + designPool.length + marketingPool.length);
 });
 
-test("kandidat pelamar dari lowongan yang dihapus tidak muncul di getTalentPool", async () => {
-  const recruiterId = "recruiter-test-talent-pool-delete";
-  const dummyAppId = "app-tp-delete-test-uuid-001";
+test("getTalentPool mendukung penyaringan global berdasarkan ambang batas skor (minScore)", async () => {
+  // Filter skor Siap Kerja (>= 75)
+  const score75Pool = await getTalentPool({ minScore: 75 });
+  assert.ok(score75Pool.length > 0, "Harus ada talenta dengan skor >= 75");
+  for (const c of score75Pool) {
+    assert.ok(c.finalScore >= 75, `Skor ${c.finalScore} harus >= 75`);
+  }
 
-  // Buat lowongan aktif
-  const createdJob = await createJobPosting(recruiterId, "PT Lowongan Dihapus", {
-    title: "Role Khusus Terhapus",
+  // Filter skor Menengah (>= 50)
+  const score50Pool = await getTalentPool({ minScore: 50 });
+  assert.ok(score50Pool.length >= score75Pool.length);
+  for (const c of score50Pool) {
+    assert.ok(c.finalScore >= 50, `Skor ${c.finalScore} harus >= 50`);
+  }
+
+  // Kombinasi bidang dan skor
+  const info75Pool = await getTalentPool({ field: "informatics", minScore: 75 });
+  assert.ok(info75Pool.length > 0);
+  for (const c of info75Pool) {
+    assert.equal(c.field, "informatics");
+    assert.ok(c.finalScore >= 75);
+  }
+});
+
+test("getTalentPool mendukung pemanggilan dengan recruiterId dan tetap mengisolasi direktori talenta global", async () => {
+  // Dukungan backward compatibility pemanggilan getTalentPool(recruiterId, filters)
+  const recruiterPool = await getTalentPool("recruiter-test-id", {
     field: "informatics",
-    targetRole: "Junior Web Developer",
-    employmentType: "fulltime",
-    workplaceType: "remote",
-    location: "Jakarta",
-    minEducation: "smk",
-    experienceLevel: "fresh_graduate",
-    compensationType: "paid",
-    salaryMin: 5000000,
-    salaryMax: 7000000,
-    showSalary: true,
-    benefits: ["Tunjangan"],
-    highlights: ["H1", "H2", "H3"],
-    description: "Deskripsi pekerjaan uji",
-    responsibilities: ["Tanggung jawab 1", "Tanggung jawab 2"],
-    requiredSkills: ["Skill 1", "Skill 2"],
-    acceptedEvidenceTypes: ["github"],
-    minSkillbridgeScore: 50,
+    minScore: 50,
   });
 
-  const testApp: JobApplication = {
-    id: dummyAppId,
-    jobId: createdJob.id,
-    candidateId: "cand-tp-uuid-001",
-    candidateName: "Pelamar Lowongan Dihapus",
-    candidateEmail: "deleted.candidate@test.com",
-    status: "pending",
-    appliedAt: "2026-09-02T12:00:00Z",
-    jobTitle: createdJob.title,
-    companyName: createdJob.companyName,
-    isDemo: true,
-  };
-
-  DEMO_APPLICATIONS.push(testApp);
-
-  try {
-    const poolBefore = await getTalentPool(recruiterId, { jobId: createdJob.id });
-    assert.ok(
-      poolBefore.some((c) => c.id === dummyAppId),
-      "Kandidat harus muncul di talent pool sebelum lowongan dihapus",
-    );
-
-    // Hapus lowongan
-    await deleteJobPosting(recruiterId, createdJob.id);
-
-    // Setelah lowongan dihapus, kandidat tidak boleh muncul di filter jobId spesifik
-    const poolAfterJobFilter = await getTalentPool(recruiterId, { jobId: createdJob.id });
-    assert.equal(
-      poolAfterJobFilter.length,
-      0,
-      "Tidak boleh ada kandidat untuk lowongan yang telah dihapus",
-    );
-
-    // Maupun di talent pool umum
-    const poolAfterAll = await getTalentPool(recruiterId);
-    assert.ok(
-      !poolAfterAll.some((c) => c.id === dummyAppId || c.jobId === createdJob.id),
-      "Kandidat dari lowongan yang dihapus tidak boleh muncul di daftar talent pool umum",
-    );
-  } finally {
-    const idx = DEMO_APPLICATIONS.findIndex((a) => a.id === dummyAppId);
-    if (idx !== -1) {
-      DEMO_APPLICATIONS.splice(idx, 1);
-    }
+  assert.ok(Array.isArray(recruiterPool));
+  assert.ok(recruiterPool.length > 0);
+  for (const c of recruiterPool) {
+    assert.equal(c.field, "informatics");
+    assert.ok(c.finalScore >= 50);
+    assert.ok(c.candidateName);
+    assert.ok(c.email);
+    assert.ok(c.assessmentId);
+    assert.ok(c.evidenceType);
   }
 });
-
-test("getTalentPool menyaring kandidat dari lowongan yang dihapus via user_metadata recruiter", async () => {
-  const testRecruiterId = "00000000-0000-4000-8000-000000000077";
-  const deletedJobId = "10000000-0000-4000-8000-000000000001";
-
-  const origFetch = globalThis.fetch;
-  const origUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const origKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-
-  process.env.NEXT_PUBLIC_SUPABASE_URL = "http://localhost:54321";
-  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
-
-  globalThis.fetch = async (url) => {
-    if (url.toString().includes("/auth/v1/admin/users/")) {
-      return new Response(
-        JSON.stringify({
-          id: testRecruiterId,
-          user_metadata: {
-            deleted_job_ids: [deletedJobId],
-          },
-        }),
-        { status: 200, headers: { "Content-Type": "application/json" } },
-      );
-    }
-    return new Response(JSON.stringify([]), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  };
-
-  try {
-    const pool = await getTalentPool(testRecruiterId);
-    assert.ok(
-      !pool.some((c) => c.jobId === deletedJobId),
-      "Kandidat dari lowongan yang ada di metadata.deleted_job_ids tidak boleh muncul di getTalentPool",
-    );
-  } finally {
-    globalThis.fetch = origFetch;
-    process.env.NEXT_PUBLIC_SUPABASE_URL = origUrl;
-    process.env.SUPABASE_SERVICE_ROLE_KEY = origKey;
-  }
-});
-
-
