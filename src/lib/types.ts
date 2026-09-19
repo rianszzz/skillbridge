@@ -96,7 +96,7 @@ export type PortfolioItemType =
   | "certificate"
   | "other";
 
-export type PortfolioAttachmentMode = "link" | "file";
+export type PortfolioAttachmentMode = "link" | "file" | "both";
 
 export type PortfolioItem = {
   id: string;

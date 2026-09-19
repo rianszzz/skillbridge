@@ -349,34 +349,35 @@ export default function HistoryView() {
                       )}
                       {app.portfolioItems && app.portfolioItems.length > 0 ? (
                         app.portfolioItems.map((pi, idx) => {
-                          const isFile = pi.attachmentMode === "file" || Boolean(pi.fileName) || Boolean(pi.fileData);
-                          if (isFile) {
-                            return (
-                              <a
-                                key={pi.id || idx}
-                                className="button secondary"
-                                href={pi.fileData || pi.url || "#"}
-                                download={pi.fileName || `berkas-portofolio-${idx + 1}`}
-                                style={{ fontSize: "0.85rem", minHeight: "38px" }}
-                              >
-                                {pi.fileName ? `Unduh: ${pi.fileName}` : pi.title || `Unduh Berkas #${idx + 1}`}
-                              </a>
-                            );
-                          }
-                          const safeUrl = pi.url
-                            ? (pi.url.startsWith("http") ? pi.url : `https://${pi.url}`)
+                          const hasFile = Boolean(pi.fileName) || Boolean(pi.fileData) || pi.attachmentMode === "file" || pi.attachmentMode === "both";
+                          const hasUrl = Boolean(pi.url && !pi.url.startsWith("data:"));
+                          const safeUrl = hasUrl
+                            ? (pi.url!.startsWith("http") ? pi.url! : `https://${pi.url}`)
                             : "#";
                           return (
-                            <a
-                              key={pi.id || idx}
-                              className="button secondary"
-                              href={safeUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{ fontSize: "0.85rem", minHeight: "38px" }}
-                            >
-                              {pi.title || `Buka Portofolio #${idx + 1}`}
-                            </a>
+                            <div key={pi.id || idx} style={{ display: "inline-flex", gap: "0.35rem", flexWrap: "wrap" }}>
+                              {hasFile && (
+                                <a
+                                  className="button secondary"
+                                  href={pi.fileData || pi.url || "#"}
+                                  download={pi.fileName || `berkas-portofolio-${idx + 1}`}
+                                  style={{ fontSize: "0.85rem", minHeight: "38px" }}
+                                >
+                                  {pi.fileName ? `Unduh: ${pi.fileName}` : pi.title || `Unduh Berkas #${idx + 1}`}
+                                </a>
+                              )}
+                              {hasUrl && (
+                                <a
+                                  className="button secondary"
+                                  href={safeUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{ fontSize: "0.85rem", minHeight: "38px" }}
+                                >
+                                  {pi.title || `Buka Tautan #${idx + 1}`}
+                                </a>
+                              )}
+                            </div>
                           );
                         })
                       ) : app.portfolioUrl ? (

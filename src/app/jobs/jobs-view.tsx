@@ -24,7 +24,7 @@ import type {
 export type CandidatePortfolioFormItem = {
   id: string;
   type: PortfolioItemType;
-  attachmentMode: "link" | "file";
+  attachmentMode?: "link" | "file" | "both";
   title: string;
   url: string;
   fileName?: string;
@@ -34,15 +34,50 @@ export type CandidatePortfolioFormItem = {
   verifiedSkills: string[];
 };
 
+export function detectPortfolioTypeFromUrl(url: string): PortfolioItemType | null {
+  const lower = url.toLowerCase().trim();
+  if (!lower) return null;
+  if (lower.includes("github.com")) {
+    if (lower.match(/github\.com\/[^/]+\/[^/]+/)) {
+      return "github_repo";
+    }
+    return "github_profile";
+  }
+  if (lower.includes("figma.com")) {
+    return "figma";
+  }
+  if (lower.includes("behance.net") || lower.includes("dribbble.com")) {
+    return "design";
+  }
+  if (
+    lower.includes("vercel.app") ||
+    lower.includes("netlify.app") ||
+    lower.includes(".io") ||
+    lower.includes(".dev") ||
+    lower.includes(".web.app")
+  ) {
+    return "live_demo";
+  }
+  if (
+    lower.includes("notion.site") ||
+    lower.includes("notion.so") ||
+    lower.includes("medium.com") ||
+    lower.includes("drive.google.com")
+  ) {
+    return "case_study";
+  }
+  return null;
+}
+
 const PORTFOLIO_TYPE_OPTIONS: { id: PortfolioItemType; label: string; placeholder: string }[] = [
-  { id: "github_repo", label: "Repositori GitHub (Proyek/Kode)", placeholder: "https://github.com/username/project" },
-  { id: "github_profile", label: "Profil GitHub Lengkap", placeholder: "https://github.com/username" },
-  { id: "live_demo", label: "Demo Aplikasi / Web Live", placeholder: "https://my-project.vercel.app" },
-  { id: "design", label: "Portofolio Desain (Behance / Dribbble)", placeholder: "https://behance.net/gallery/..." },
-  { id: "figma", label: "Prototype / File Figma", placeholder: "https://figma.com/file/... atau @username" },
-  { id: "case_study", label: "Case Study / Laporan Kampanye", placeholder: "https://drive.google.com/... atau https://notion.so/..." },
-  { id: "certificate", label: "Sertifikasi Profesional", placeholder: "https://dicoding.com/certificates/... atau URL sertifikat" },
-  { id: "other", label: "Tautan Portofolio / Dokumen Lainnya", placeholder: "https://..." },
+  { id: "github_repo", label: "Repositori GitHub", placeholder: "https://github.com/username/project" },
+  { id: "github_profile", label: "Profil GitHub", placeholder: "https://github.com/username" },
+  { id: "live_demo", label: "Demo Web Live", placeholder: "https://my-project.vercel.app" },
+  { id: "design", label: "Portofolio Desain", placeholder: "https://behance.net/gallery/..." },
+  { id: "figma", label: "Prototype Figma", placeholder: "https://figma.com/file/..." },
+  { id: "case_study", label: "Case Study & Metrik", placeholder: "https://notion.so/... atau Google Drive" },
+  { id: "certificate", label: "Sertifikasi", placeholder: "https://dicoding.com/certificates/..." },
+  { id: "other", label: "Tautan Karya Lainnya", placeholder: "https://..." },
 ];
 
 const FIELDS: { id: Field | "all"; label: string }[] = [
@@ -469,7 +504,18 @@ export default function JobsView() {
     value: string,
   ) {
     setPortfolioItems((prev) =>
-      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item)),
+      prev.map((item) => {
+        if (item.id !== id) return item;
+        if (field === "url") {
+          const autoType = detectPortfolioTypeFromUrl(value);
+          return {
+            ...item,
+            url: value,
+            type: autoType || item.type,
+          };
+        }
+        return { ...item, [field]: value };
+      }),
     );
   }
 
@@ -732,25 +778,24 @@ export default function JobsView() {
 
       const validPortfolioItems = portfolioItems
         .filter((item) => {
-          if (item.attachmentMode === "file") {
-            return Boolean(item.fileName && item.fileName.trim().length > 0);
-          }
-          return Boolean(item.url && item.url.trim().length > 0);
+          const hasFile = Boolean(item.fileName && item.fileName.trim().length > 0);
+          const hasUrl = Boolean(item.url && item.url.trim().length > 0);
+          return hasFile || hasUrl;
         })
         .map((item, idx) => {
+          const hasFile = Boolean(item.fileName && item.fileName.trim().length > 0);
+          const hasUrl = Boolean(item.url && item.url.trim().length > 0);
+          const mode: "link" | "file" | "both" =
+            hasFile && hasUrl ? "both" : hasFile ? "file" : "link";
           const fallbackTitle =
-            item.attachmentMode === "file"
-              ? item.fileName || `Portofolio #${idx + 1}`
-              : item.url || `Portofolio #${idx + 1}`;
-          const displayTitle = item.title.trim() || fallbackTitle;
+            item.title.trim() ||
+            item.fileName ||
+            (item.url ? item.url.replace(/^https?:\/\//, "") : `Portofolio #${idx + 1}`);
           return {
             id: item.id,
-            title: displayTitle,
-            attachmentMode: item.attachmentMode,
-            url:
-              item.attachmentMode === "link"
-                ? item.url.trim()
-                : item.fileData || undefined,
+            title: fallbackTitle,
+            attachmentMode: mode,
+            url: hasUrl ? item.url.trim() : (item.fileData || undefined),
             fileName: item.fileName || undefined,
             fileSize: item.fileSize || undefined,
             fileType: item.fileType || undefined,
@@ -2921,12 +2966,17 @@ export default function JobsView() {
                           className="button secondary"
                           style={{
                             fontSize: "0.85rem",
-                            padding: "0.45rem 0.95rem",
+                            padding: "0.5rem 1rem",
                             minHeight: "38px",
                             display: "inline-flex",
                             alignItems: "center",
                             gap: "0.4rem",
                             fontWeight: 600,
+                            border: "1.5px solid var(--ink)",
+                            borderRadius: "6px",
+                            background: "white",
+                            color: "var(--ink)",
+                            cursor: "pointer",
                           }}
                         >
                           <span style={{ fontSize: "1.1rem", lineHeight: 1 }}>+</span>
@@ -2935,22 +2985,24 @@ export default function JobsView() {
                       </div>
                     ) : (
                       <>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "0.75rem" }}>
+                        <div style={{ display: "flex", flexDirection: "column", gap: "1rem", marginBottom: "0.85rem" }}>
                           {portfolioItems.map((item, idx) => {
-                            const typeConfig =
-                              PORTFOLIO_TYPE_OPTIONS.find((opt) => opt.id === item.type) ||
-                              PORTFOLIO_TYPE_OPTIONS[0];
+                            const skillsToDisplay =
+                              applyJob.requiredSkills && applyJob.requiredSkills.length > 0
+                                ? applyJob.requiredSkills
+                                : ["React", "Flutter", "Rust", "PHP", "MySQL", "PostgreSQL"];
                             return (
                               <div
                                 key={item.id}
                                 style={{
-                                  border: "1px solid var(--line)",
+                                  border: "1.5px solid var(--line)",
                                   borderRadius: "8px",
-                                  padding: "0.85rem",
-                                  background: "#fcfcfc",
+                                  padding: "1rem",
+                                  background: "#ffffff",
                                   display: "flex",
                                   flexDirection: "column",
-                                  gap: "0.65rem",
+                                  gap: "0.75rem",
+                                  boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
                                 }}
                               >
                                 {/* Top Row: #{idx + 1}, Title input with editable placeholder, and Delete button */}
@@ -2961,7 +3013,7 @@ export default function JobsView() {
                                       fontWeight: 700,
                                       color: "var(--muted)",
                                       background: "#f1f5f9",
-                                      padding: "0.2rem 0.5rem",
+                                      padding: "0.25rem 0.5rem",
                                       borderRadius: "4px",
                                       flexShrink: 0,
                                     }}
@@ -2979,8 +3031,8 @@ export default function JobsView() {
                                       flex: 1,
                                       fontSize: "0.85rem",
                                       fontWeight: 600,
-                                      padding: "0.35rem 0.6rem",
-                                      borderRadius: "4px",
+                                      padding: "0.4rem 0.65rem",
+                                      borderRadius: "6px",
                                       border: "1px solid var(--line)",
                                       background: "white",
                                     }}
@@ -2995,7 +3047,7 @@ export default function JobsView() {
                                       color: "#94a3b8",
                                       cursor: "pointer",
                                       padding: "0.25rem 0.5rem",
-                                      fontSize: "1.1rem",
+                                      fontSize: "1.15rem",
                                       lineHeight: 1,
                                       flexShrink: 0,
                                     }}
@@ -3004,298 +3056,254 @@ export default function JobsView() {
                                   </button>
                                 </div>
 
-                                {/* Attachment Mode Selector: Tab Buttons */}
-                                <div
-                                  style={{
-                                    display: "flex",
-                                    gap: "0.35rem",
-                                    alignItems: "center",
-                                    background: "#f1f5f9",
-                                    padding: "0.2rem",
-                                    borderRadius: "6px",
-                                    width: "fit-content",
-                                  }}
-                                >
-                                  <button
-                                    type="button"
-                                    onClick={() => handleUpdatePortfolioItem(item.id, "attachmentMode", "link")}
-                                    style={{
-                                      fontSize: "0.76rem",
-                                      padding: "0.25rem 0.75rem",
-                                      borderRadius: "4px",
-                                      border: item.attachmentMode === "link" ? "1px solid #bae6fd" : "none",
-                                      background: item.attachmentMode === "link" ? "white" : "transparent",
-                                      color: item.attachmentMode === "link" ? "#0369a1" : "var(--muted)",
-                                      fontWeight: item.attachmentMode === "link" ? 700 : 500,
-                                      cursor: "pointer",
-                                      display: "inline-flex",
-                                      alignItems: "center",
-                                      gap: "0.3rem",
-                                      boxShadow: item.attachmentMode === "link" ? "0 1px 2px rgba(0,0,0,0.05)" : "none",
-                                    }}
-                                  >
-                                    <span>Tautan URL</span>
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleUpdatePortfolioItem(item.id, "attachmentMode", "file")}
-                                    style={{
-                                      fontSize: "0.76rem",
-                                      padding: "0.25rem 0.75rem",
-                                      borderRadius: "4px",
-                                      border: item.attachmentMode === "file" ? "1px solid #bae6fd" : "none",
-                                      background: item.attachmentMode === "file" ? "white" : "transparent",
-                                      color: item.attachmentMode === "file" ? "#0369a1" : "var(--muted)",
-                                      fontWeight: item.attachmentMode === "file" ? 700 : 500,
-                                      cursor: "pointer",
-                                      display: "inline-flex",
-                                      alignItems: "center",
-                                      gap: "0.3rem",
-                                      boxShadow: item.attachmentMode === "file" ? "0 1px 2px rgba(0,0,0,0.05)" : "none",
-                                    }}
-                                  >
-                                    <span>Unggah Berkas File</span>
-                                  </button>
-                                </div>
-
-                                {/* Content based on Attachment Mode */}
-                                {item.attachmentMode === "file" ? (
+                                {/* Kotak Unggah File */}
+                                {item.fileName ? (
                                   <div
                                     style={{
-                                      border: "1px dashed var(--line)",
-                                      borderRadius: "6px",
-                                      padding: "0.85rem",
-                                      background: "#fafafa",
+                                      display: "flex",
+                                      justifyContent: "space-between",
+                                      alignItems: "center",
+                                      background: "#f8fafc",
+                                      padding: "0.75rem 1rem",
+                                      borderRadius: "8px",
+                                      border: "1px solid #cbd5e1",
+                                      gap: "0.5rem",
+                                      flexWrap: "wrap",
                                     }}
                                   >
-                                    {item.fileName ? (
-                                      <div
+                                    <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", overflow: "hidden" }}>
+                                      <span
                                         style={{
-                                          display: "flex",
-                                          justifyContent: "space-between",
-                                          alignItems: "center",
-                                          background: "white",
-                                          padding: "0.5rem 0.75rem",
-                                          borderRadius: "5px",
-                                          border: "1px solid var(--line)",
-                                          gap: "0.5rem",
-                                          flexWrap: "wrap",
+                                          fontSize: "0.72rem",
+                                          fontWeight: 700,
+                                          padding: "0.15rem 0.45rem",
+                                          background: "#f0fdf4",
+                                          border: "1px solid #bbf7d0",
+                                          borderRadius: "4px",
+                                          color: "#166534",
+                                          textTransform: "uppercase",
                                         }}
                                       >
-                                        <div style={{ display: "flex", alignItems: "center", gap: "0.45rem", overflow: "hidden" }}>
-                                          <span
-                                            style={{
-                                              fontSize: "0.7rem",
-                                              fontWeight: 700,
-                                              padding: "0.1rem 0.35rem",
-                                              background: "#f1f5f9",
-                                              borderRadius: "3px",
-                                              color: "#475569",
-                                              textTransform: "uppercase",
-                                            }}
-                                          >
-                                            {item.fileName.split(".").pop() || "FILE"}
-                                          </span>
-                                          <span
-                                            style={{
-                                              fontSize: "0.82rem",
-                                              fontWeight: 600,
-                                              color: "var(--ink)",
-                                              textOverflow: "ellipsis",
-                                              overflow: "hidden",
-                                              whiteSpace: "nowrap",
-                                            }}
-                                          >
-                                            {item.fileName}
-                                          </span>
-                                          {item.fileSize ? (
-                                            <span style={{ fontSize: "0.72rem", color: "var(--muted)" }}>
-                                              ({(item.fileSize / 1024).toFixed(0)} KB)
-                                            </span>
-                                          ) : null}
-                                        </div>
-                                        <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
-                                          <label
-                                            htmlFor={`portfolio-file-${item.id}`}
-                                            style={{
-                                              fontSize: "0.75rem",
-                                              color: "#0284c7",
-                                              cursor: "pointer",
-                                              fontWeight: 600,
-                                              textDecoration: "underline",
-                                            }}
-                                          >
-                                            Ganti Berkas
-                                          </label>
-                                          <button
-                                            type="button"
-                                            onClick={() => handleClearPortfolioFile(item.id)}
-                                            style={{
-                                              border: "none",
-                                              background: "transparent",
-                                              color: "#dc2626",
-                                              fontSize: "0.75rem",
-                                              cursor: "pointer",
-                                              fontWeight: 600,
-                                            }}
-                                          >
-                                            Hapus
-                                          </button>
-                                        </div>
-                                        <input
-                                          type="file"
-                                          id={`portfolio-file-${item.id}`}
-                                          accept=".docx,.xlsx,.pdf,.jpg,.jpeg,.png,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/pdf,image/jpeg,image/png"
-                                          style={{ display: "none" }}
-                                          onChange={(e) => {
-                                            const file = e.target.files?.[0] || null;
-                                            handlePortfolioFileChange(item.id, file);
-                                          }}
-                                        />
+                                        {item.fileName.split(".").pop() || "BERKAS"}
+                                      </span>
+                                      <span
+                                        style={{
+                                          fontSize: "0.84rem",
+                                          fontWeight: 600,
+                                          color: "var(--ink)",
+                                          textOverflow: "ellipsis",
+                                          overflow: "hidden",
+                                          whiteSpace: "nowrap",
+                                        }}
+                                      >
+                                        {item.fileName}
+                                      </span>
+                                      {item.fileSize ? (
+                                        <span style={{ fontSize: "0.72rem", color: "var(--muted)" }}>
+                                          ({(item.fileSize / 1024).toFixed(0)} KB)
+                                        </span>
+                                      ) : null}
+                                    </div>
+                                    <div style={{ display: "flex", gap: "0.6rem", alignItems: "center" }}>
+                                      <label
+                                        htmlFor={`portfolio-file-${item.id}`}
+                                        style={{
+                                          fontSize: "0.75rem",
+                                          color: "#0284c7",
+                                          cursor: "pointer",
+                                          fontWeight: 600,
+                                          textDecoration: "underline",
+                                        }}
+                                      >
+                                        Ganti Berkas
+                                      </label>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleClearPortfolioFile(item.id)}
+                                        style={{
+                                          border: "none",
+                                          background: "transparent",
+                                          color: "#dc2626",
+                                          fontSize: "0.75rem",
+                                          cursor: "pointer",
+                                          fontWeight: 600,
+                                        }}
+                                      >
+                                        Hapus
+                                      </button>
+                                    </div>
+                                    <input
+                                      type="file"
+                                      id={`portfolio-file-${item.id}`}
+                                      accept=".docx,.xlsx,.pdf,.jpg,.jpeg,.png,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/pdf,image/jpeg,image/png"
+                                      style={{ display: "none" }}
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0] || null;
+                                        handlePortfolioFileChange(item.id, file);
+                                      }}
+                                    />
+                                  </div>
+                                ) : (
+                                  <div>
+                                    <input
+                                      type="file"
+                                      id={`portfolio-file-${item.id}`}
+                                      accept=".docx,.xlsx,.pdf,.jpg,.jpeg,.png,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/pdf,image/jpeg,image/png"
+                                      style={{ display: "none" }}
+                                      onChange={(e) => {
+                                        const file = e.target.files?.[0] || null;
+                                        handlePortfolioFileChange(item.id, file);
+                                      }}
+                                    />
+                                    <label
+                                      htmlFor={`portfolio-file-${item.id}`}
+                                      style={{
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        border: "1.5px solid #cbd5e1",
+                                        borderRadius: "8px",
+                                        padding: "1.4rem 1rem",
+                                        background: "#fafafa",
+                                        cursor: "pointer",
+                                        textAlign: "center",
+                                        transition: "border-color 0.15s ease, background 0.15s ease",
+                                      }}
+                                    >
+                                      <div
+                                        style={{
+                                          fontWeight: 600,
+                                          fontSize: "0.95rem",
+                                          color: "var(--ink)",
+                                          marginBottom: "0.25rem",
+                                        }}
+                                      >
+                                        Unggah File
                                       </div>
-                                    ) : (
-                                      <div style={{ textAlign: "center", padding: "0.5rem 0" }}>
-                                        <input
-                                          type="file"
-                                          id={`portfolio-file-${item.id}`}
-                                          accept=".docx,.xlsx,.pdf,.jpg,.jpeg,.png,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/pdf,image/jpeg,image/png"
-                                          style={{ display: "none" }}
-                                          onChange={(e) => {
-                                            const file = e.target.files?.[0] || null;
-                                            handlePortfolioFileChange(item.id, file);
-                                          }}
-                                        />
-                                        <label
-                                          htmlFor={`portfolio-file-${item.id}`}
-                                          className="button secondary"
+                                      <div
+                                        style={{
+                                          fontSize: "0.78rem",
+                                          color: "var(--muted)",
+                                        }}
+                                      >
+                                        Docx, Xlsx, PDF, JPG, PNG
+                                      </div>
+                                    </label>
+                                  </div>
+                                )}
+
+                                {/* Teks Atau */}
+                                <div
+                                  style={{
+                                    textAlign: "center",
+                                    fontSize: "0.85rem",
+                                    fontWeight: 500,
+                                    color: "var(--muted)",
+                                    padding: "0.15rem 0",
+                                  }}
+                                >
+                                  Atau
+                                </div>
+
+                                {/* Input Tautan URL Portofolio */}
+                                <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
+                                  <input
+                                    type="url"
+                                    placeholder="Tautan URL Portofolio"
+                                    value={item.url}
+                                    onChange={(e) =>
+                                      handleUpdatePortfolioItem(item.id, "url", e.target.value)
+                                    }
+                                    style={{
+                                      flex: 1,
+                                      fontSize: "0.85rem",
+                                      padding: "0.5rem 0.75rem",
+                                      borderRadius: "6px",
+                                      border: "1.5px solid #cbd5e1",
+                                      background: "white",
+                                    }}
+                                  />
+                                  <select
+                                    aria-label="Kategori Portofolio"
+                                    value={item.type}
+                                    onChange={(e) =>
+                                      handleUpdatePortfolioItem(
+                                        item.id,
+                                        "type",
+                                        e.target.value as PortfolioItemType,
+                                      )
+                                    }
+                                    style={{
+                                      fontSize: "0.78rem",
+                                      padding: "0.5rem 0.5rem",
+                                      borderRadius: "6px",
+                                      border: "1.5px solid #cbd5e1",
+                                      background: "#f8fafc",
+                                      color: "var(--ink)",
+                                      maxWidth: "145px",
+                                    }}
+                                  >
+                                    {PORTFOLIO_TYPE_OPTIONS.map((opt) => (
+                                      <option key={opt.id} value={opt.id}>
+                                        {opt.label}
+                                      </option>
+                                    ))}
+                                  </select>
+                                </div>
+
+                                {/* Garis Pembatas Dotted & Centang Keahlian */}
+                                <div
+                                  style={{
+                                    marginTop: "0.25rem",
+                                    paddingTop: "0.75rem",
+                                    borderTop: "1px dashed #cbd5e1",
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      fontSize: "0.76rem",
+                                      color: "var(--muted)",
+                                      display: "block",
+                                      marginBottom: "0.5rem",
+                                    }}
+                                  >
+                                    Centang keahlian lowongan yang dibuktikan oleh karya/sertifikat ini:
+                                  </span>
+                                  <div style={{ display: "flex", flexWrap: "wrap", gap: "0.4rem" }}>
+                                    {skillsToDisplay.map((skill) => {
+                                      const isTagged = item.verifiedSkills.includes(skill);
+                                      return (
+                                        <button
+                                          key={skill}
+                                          type="button"
+                                          onClick={() =>
+                                            handleTogglePortfolioSkill(item.id, skill)
+                                          }
                                           style={{
-                                            fontSize: "0.82rem",
-                                            padding: "0.4rem 0.85rem",
-                                            minHeight: "36px",
+                                            fontSize: "0.76rem",
+                                            padding: "0.28rem 0.65rem",
+                                            borderRadius: "6px",
+                                            border: isTagged
+                                              ? "1px solid #0284c7"
+                                              : "1px solid #cbd5e1",
+                                            background: isTagged ? "#f0f9ff" : "white",
+                                            color: isTagged ? "#0284c7" : "var(--ink)",
                                             cursor: "pointer",
                                             display: "inline-flex",
                                             alignItems: "center",
-                                            gap: "0.35rem",
+                                            gap: "0.25rem",
+                                            fontWeight: isTagged ? 600 : 400,
+                                            transition: "all 0.15s ease",
                                           }}
                                         >
-                                          <span>Pilih Berkas File</span>
-                                        </label>
-                                        <span
-                                          style={{
-                                            display: "block",
-                                            fontSize: "0.73rem",
-                                            color: "var(--muted)",
-                                            marginTop: "0.4rem",
-                                          }}
-                                        >
-                                          Format: DOCX, XLSX, PDF, JPG, PNG (maks. 10MB)
-                                        </span>
-                                      </div>
-                                    )}
+                                          <span>{isTagged ? "✓" : "+"}</span>
+                                          <span>{skill}</span>
+                                        </button>
+                                      );
+                                    })}
                                   </div>
-                                ) : (
-                                  <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
-                                    <div>
-                                      <select
-                                        aria-label="Kategori Bukti Portofolio"
-                                        value={item.type}
-                                        onChange={(e) =>
-                                          handleUpdatePortfolioItem(
-                                            item.id,
-                                            "type",
-                                            e.target.value as PortfolioItemType,
-                                          )
-                                        }
-                                        style={{
-                                          width: "100%",
-                                          fontSize: "0.82rem",
-                                          padding: "0.38rem 0.5rem",
-                                          borderRadius: "4px",
-                                          border: "1px solid var(--line)",
-                                          background: "white",
-                                        }}
-                                      >
-                                        {PORTFOLIO_TYPE_OPTIONS.map((opt) => (
-                                          <option key={opt.id} value={opt.id}>
-                                            {opt.label}
-                                          </option>
-                                        ))}
-                                      </select>
-                                    </div>
-                                    <div>
-                                      <input
-                                        type="url"
-                                        placeholder={typeConfig.placeholder}
-                                        value={item.url}
-                                        onChange={(e) =>
-                                          handleUpdatePortfolioItem(item.id, "url", e.target.value)
-                                        }
-                                        style={{
-                                          width: "100%",
-                                          fontSize: "0.82rem",
-                                          padding: "0.4rem 0.55rem",
-                                          borderRadius: "4px",
-                                          border: "1px solid var(--line)",
-                                          background: "white",
-                                        }}
-                                      />
-                                    </div>
-                                  </div>
-                                )}
-
-                                {/* Skill Tagging for this project */}
-                                {applyJob.requiredSkills && applyJob.requiredSkills.length > 0 && (
-                                  <div
-                                    style={{
-                                      paddingTop: "0.35rem",
-                                      borderTop: "1px dashed var(--line)",
-                                    }}
-                                  >
-                                    <span
-                                      style={{
-                                        fontSize: "0.73rem",
-                                        color: "var(--muted)",
-                                        display: "block",
-                                        marginBottom: "0.3rem",
-                                      }}
-                                    >
-                                      Centang keahlian lowongan yang dibuktikan oleh karya/sertifikat ini:
-                                    </span>
-                                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
-                                      {applyJob.requiredSkills.map((skill) => {
-                                        const isTagged = item.verifiedSkills.includes(skill);
-                                        return (
-                                          <button
-                                            key={skill}
-                                            type="button"
-                                            onClick={() =>
-                                              handleTogglePortfolioSkill(item.id, skill)
-                                            }
-                                            style={{
-                                              fontSize: "0.72rem",
-                                              padding: "0.2rem 0.5rem",
-                                              borderRadius: "12px",
-                                              border: isTagged
-                                                ? "1px solid #38bdf8"
-                                                : "1px solid var(--line)",
-                                              background: isTagged ? "#f0f9ff" : "white",
-                                              color: isTagged ? "#0369a1" : "var(--ink)",
-                                              cursor: "pointer",
-                                              display: "inline-flex",
-                                              alignItems: "center",
-                                              gap: "0.25rem",
-                                              fontWeight: isTagged ? 600 : 400,
-                                              transition: "all 0.15s ease",
-                                            }}
-                                          >
-                                            <span>{isTagged ? "✓" : "+"}</span>
-                                            <span>{skill}</span>
-                                          </button>
-                                        );
-                                      })}
-                                    </div>
-                                  </div>
-                                )}
+                                </div>
                               </div>
                             );
                           })}
@@ -3306,16 +3314,21 @@ export default function JobsView() {
                           onClick={handleAddPortfolioItem}
                           className="button secondary"
                           style={{
-                            fontSize: "0.82rem",
-                            padding: "0.4rem 0.85rem",
-                            minHeight: "36px",
+                            fontSize: "0.85rem",
+                            padding: "0.45rem 1rem",
+                            minHeight: "38px",
                             display: "inline-flex",
                             alignItems: "center",
-                            gap: "0.35rem",
+                            gap: "0.4rem",
                             fontWeight: 600,
+                            border: "1.5px solid var(--ink)",
+                            borderRadius: "6px",
+                            background: "white",
+                            color: "var(--ink)",
+                            cursor: "pointer",
                           }}
                         >
-                          <span>+</span>
+                          <span style={{ fontSize: "1.1rem", lineHeight: 1 }}>+</span>
                           <span>Tambahkan Portofolio</span>
                         </button>
                       </>

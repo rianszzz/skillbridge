@@ -2092,11 +2092,12 @@ export default function RecruiterView() {
                           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                             {activeApp.portfolioItems && activeApp.portfolioItems.length > 0 ? (
                               activeApp.portfolioItems.map((item, idx) => {
-                                const isFile = item.attachmentMode === "file" || Boolean(item.fileName) || Boolean(item.fileData);
+                                const hasFile = Boolean(item.fileName) || Boolean(item.fileData) || item.attachmentMode === "file" || item.attachmentMode === "both";
+                                const hasUrl = Boolean(item.url && !item.url.startsWith("data:"));
                                 const badge = getPortfolioTypeLabel(item.type, item.attachmentMode, item.fileName);
-                                const safeUrl = item.url
-                                  ? (item.url.startsWith("http") ? item.url : `https://${item.url}`)
-                                  : (item.fileData || "#");
+                                const safeUrl = hasUrl
+                                  ? (item.url!.startsWith("http") ? item.url! : `https://${item.url}`)
+                                  : "#";
                                 return (
                                   <div
                                     key={item.id || idx}
@@ -2128,48 +2129,51 @@ export default function RecruiterView() {
                                         <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--ink)" }}>
                                           {item.title || item.fileName || item.url}
                                         </span>
-                                        {isFile && item.fileSize ? (
+                                        {hasFile && item.fileSize ? (
                                           <span style={{ fontSize: "0.72rem", color: "var(--muted)" }}>
                                             ({(item.fileSize / 1024).toFixed(0)} KB)
                                           </span>
                                         ) : null}
                                       </div>
-                                      {isFile ? (
-                                        <a
-                                          href={item.fileData || item.url || "#"}
-                                          download={item.fileName || `berkas-portofolio-${idx + 1}`}
-                                          style={{
-                                            fontSize: "0.78rem",
-                                            color: "#0f766e",
-                                            display: "inline-flex",
-                                            alignItems: "center",
-                                            gap: "0.25rem",
-                                            textDecoration: "underline",
-                                            fontWeight: 600,
-                                          }}
-                                        >
-                                          <IconDownload width={12} height={12} />
-                                          <span>Unduh Berkas</span>
-                                        </a>
-                                      ) : (
-                                        <a
-                                          href={safeUrl}
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                          style={{
-                                            fontSize: "0.78rem",
-                                            color: "#0284c7",
-                                            display: "inline-flex",
-                                            alignItems: "center",
-                                            gap: "0.25rem",
-                                            textDecoration: "underline",
-                                            fontWeight: 600,
-                                          }}
-                                        >
-                                          <span>Buka Tautan</span>
-                                          <IconExternalLink width={12} height={12} />
-                                        </a>
-                                      )}
+                                      <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
+                                        {hasFile && (
+                                          <a
+                                            href={item.fileData || item.url || "#"}
+                                            download={item.fileName || `berkas-portofolio-${idx + 1}`}
+                                            style={{
+                                              fontSize: "0.78rem",
+                                              color: "#0f766e",
+                                              display: "inline-flex",
+                                              alignItems: "center",
+                                              gap: "0.25rem",
+                                              textDecoration: "underline",
+                                              fontWeight: 600,
+                                            }}
+                                          >
+                                            <IconDownload width={12} height={12} />
+                                            <span>Unduh Berkas</span>
+                                          </a>
+                                        )}
+                                        {hasUrl && (
+                                          <a
+                                            href={safeUrl}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            style={{
+                                              fontSize: "0.78rem",
+                                              color: "#0284c7",
+                                              display: "inline-flex",
+                                              alignItems: "center",
+                                              gap: "0.25rem",
+                                              textDecoration: "underline",
+                                              fontWeight: 600,
+                                            }}
+                                          >
+                                            <span>Buka Tautan</span>
+                                            <IconExternalLink width={12} height={12} />
+                                          </a>
+                                        )}
+                                      </div>
                                     </div>
 
                                     {/* Tag Keahlian yang Dibuktikan */}
@@ -2357,62 +2361,63 @@ export default function RecruiterView() {
                       >
                         {activeApp.portfolioItems && activeApp.portfolioItems.length > 0 ? (
                           activeApp.portfolioItems.map((pi, idx) => {
-                            const isFile = pi.attachmentMode === "file" || Boolean(pi.fileName) || Boolean(pi.fileData);
-                            if (isFile) {
-                              return (
-                                <a
-                                  key={pi.id || idx}
-                                  href={pi.fileData || pi.url || "#"}
-                                  download={pi.fileName || `berkas-portofolio-${idx + 1}`}
-                                  className="button secondary"
-                                  style={{
-                                    fontSize: "0.82rem",
-                                    minHeight: "36px",
-                                    display: "inline-flex",
-                                    alignItems: "center",
-                                    gap: "0.35rem",
-                                    padding: "0 0.85rem",
-                                  }}
-                                >
-                                  <IconDownload width={13} height={13} />
-                                  <span>
-                                    {pi.fileName
-                                      ? pi.fileName.length > 25
-                                        ? `${pi.fileName.slice(0, 23)}...`
-                                        : pi.fileName
-                                      : pi.title || `Unduh Berkas #${idx + 1}`}
-                                  </span>
-                                </a>
-                              );
-                            }
-                            const safeUrl = pi.url
-                              ? (pi.url.startsWith("http") ? pi.url : `https://${pi.url}`)
+                            const hasFile = Boolean(pi.fileName) || Boolean(pi.fileData) || pi.attachmentMode === "file" || pi.attachmentMode === "both";
+                            const hasUrl = Boolean(pi.url && !pi.url.startsWith("data:"));
+                            const safeUrl = hasUrl
+                              ? (pi.url!.startsWith("http") ? pi.url! : `https://${pi.url}`)
                               : "#";
                             return (
-                              <a
-                                key={pi.id || idx}
-                                href={safeUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="button secondary"
-                                style={{
-                                  fontSize: "0.82rem",
-                                  minHeight: "36px",
-                                  display: "inline-flex",
-                                  alignItems: "center",
-                                  gap: "0.35rem",
-                                  padding: "0 0.85rem",
-                                }}
-                              >
-                                <IconExternalLink width={13} height={13} />
-                                <span>
-                                  {pi.title
-                                    ? pi.title.length > 25
-                                      ? `${pi.title.slice(0, 23)}...`
-                                      : pi.title
-                                    : `Buka Portofolio #${idx + 1}`}
-                                </span>
-                              </a>
+                              <div key={pi.id || idx} style={{ display: "inline-flex", gap: "0.35rem", flexWrap: "wrap" }}>
+                                {hasFile && (
+                                  <a
+                                    href={pi.fileData || pi.url || "#"}
+                                    download={pi.fileName || `berkas-portofolio-${idx + 1}`}
+                                    className="button secondary"
+                                    style={{
+                                      fontSize: "0.82rem",
+                                      minHeight: "36px",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: "0.35rem",
+                                      padding: "0 0.85rem",
+                                    }}
+                                  >
+                                    <IconDownload width={13} height={13} />
+                                    <span>
+                                      {pi.fileName
+                                        ? pi.fileName.length > 25
+                                          ? `${pi.fileName.slice(0, 23)}...`
+                                          : pi.fileName
+                                        : pi.title || `Unduh Berkas #${idx + 1}`}
+                                    </span>
+                                  </a>
+                                )}
+                                {hasUrl && (
+                                  <a
+                                    href={safeUrl}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="button secondary"
+                                    style={{
+                                      fontSize: "0.82rem",
+                                      minHeight: "36px",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: "0.35rem",
+                                      padding: "0 0.85rem",
+                                    }}
+                                  >
+                                    <IconExternalLink width={13} height={13} />
+                                    <span>
+                                      {pi.title
+                                        ? pi.title.length > 25
+                                          ? `${pi.title.slice(0, 23)}...`
+                                          : pi.title
+                                        : `Buka Tautan #${idx + 1}`}
+                                    </span>
+                                  </a>
+                                )}
+                              </div>
                             );
                           })
                         ) : activeApp.portfolioUrl ? (

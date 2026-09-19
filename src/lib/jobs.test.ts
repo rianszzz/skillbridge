@@ -465,6 +465,38 @@ test("applyToJob menerima portfolioItems berupa berkas unggahan (file attachment
   assert.deepEqual(app.portfolioItems[0].verifiedSkills, ["TypeScript", "Next.js"]);
 });
 
+test("applyToJob menerima portfolioItems dengan berkas DAN tautan (attachmentMode: both)", async () => {
+  const applicationInput = {
+    jobId: "10000000-0000-4000-8000-000000000001",
+    candidateName: "Rian Dual Portfolio",
+    candidateEmail: "rian.dual@example.com",
+    portfolioItems: [
+      {
+        id: "dual-item-1",
+        title: "Dokumen PDF & Demo Web",
+        attachmentMode: "both" as const,
+        url: "https://rian-demo.vercel.app",
+        fileName: "laporan-arsitektur.pdf",
+        fileSize: 256000,
+        fileType: "application/pdf",
+        fileData: "data:application/pdf;base64,ABCD...",
+        type: "live_demo" as const,
+        verifiedSkills: ["React", "Next.js"],
+      },
+    ],
+  };
+
+  const app = await applyToJob("candidate-test-dual-portfolio", applicationInput);
+
+  assert.ok(app.id);
+  assert.equal(app.portfolioItems?.length, 1);
+  assert.equal(app.portfolioItems![0].attachmentMode, "both");
+  assert.equal(app.portfolioItems![0].fileName, "laporan-arsitektur.pdf");
+  assert.equal(app.portfolioItems![0].url, "https://rian-demo.vercel.app");
+  assert.equal(app.portfolioItems![0].fileData, "data:application/pdf;base64,ABCD...");
+  assert.deepEqual(app.portfolioItems![0].verifiedSkills, ["React", "Next.js"]);
+});
+
 test("DEMO_APPLICATIONS kosong di produksi dan MOCK_APPLICATIONS_FIXTURE memuat 3 pelamar realistis dengan fitEvaluation terstruktur", () => {
   assert.equal(DEMO_APPLICATIONS.length, 0, "DEMO_APPLICATIONS harus kosong di produksi");
   assert.equal(MOCK_APPLICATIONS_FIXTURE.length, 3, "Harus memuat tepat 3 pelamar demo di fixture (Ahmad, Siti, Budi)");
