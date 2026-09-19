@@ -17,6 +17,7 @@ import {
   validateJobPostingUpdateInput,
   updateJobPosting,
   deleteJobPosting,
+  updateApplicationStatus,
   isTableMissing,
   parseDeletedJobsCookie,
 } from "./jobs.ts";
@@ -941,6 +942,69 @@ test("getJobApplicationsForRecruiter menyaring deleted_job_ids dan deleted_appli
     process.env.SUPABASE_SERVICE_ROLE_KEY = origKey;
   }
 });
+
+test("updateApplicationStatus memvalidasi input dan memperbarui status pelamar secara fail-safe", async () => {
+  const recruiterId = "recruiter-status-test";
+
+  // 1. Invalid status rejection
+  await assert.rejects(
+    () =>
+      // @ts-expect-error - testing invalid status
+      updateApplicationStatus(recruiterId, "app-123", "invalid_status"),
+    /Status lamaran tidak valid/,
+  );
+
+  // 2. Create a test job and application
+  const testJob = await createJobPosting(recruiterId, "PT Test QA", {
+    title: "QA Engineer Status Test",
+    field: "informatics",
+    targetRole: "Junior Web Developer",
+    employmentType: "fulltime",
+    workplaceType: "onsite",
+    location: "Bandung",
+    minEducation: "smk",
+    experienceLevel: "fresh_graduate",
+    compensationType: "paid",
+    salaryMin: 5000000,
+    salaryMax: 7000000,
+    showSalary: true,
+    benefits: ["BPJS"],
+    highlights: ["QA Automation"],
+    description: "Mencari QA",
+    responsibilities: ["Testing"],
+    requiredSkills: ["Testing"],
+    minSkillbridgeScore: 50,
+  });
+
+  const testApp = await applyToJob("candidate-status-test", {
+    jobId: testJob.id,
+    candidateName: "Kandidat Status Test",
+    candidateEmail: "candidate@statustest.com",
+    phone: "+62 81234567890",
+    location: "Bandung, Jawa Barat",
+    resumeFileName: "CV_Kandidat_Test.pdf",
+    coverLetterMode: "write",
+    coverLetter: "Saya berminat posisi QA ini.",
+  });
+
+  assert.equal(testApp.status, "pending");
+  assert.equal(testApp.phone, "+62 81234567890");
+  assert.equal(testApp.location, "Bandung, Jawa Barat");
+  assert.equal(testApp.resumeFileName, "CV_Kandidat_Test.pdf");
+
+  // 3. Update status to shortlisted
+  const updated1 = await updateApplicationStatus(recruiterId, testApp.id, "shortlisted");
+  assert.equal(updated1.status, "shortlisted");
+
+  // 4. Update status to accepted
+  const updated2 = await updateApplicationStatus(recruiterId, testApp.id, "accepted");
+  assert.equal(updated2.status, "accepted");
+
+  // 5. Update status to rejected
+  const updated3 = await updateApplicationStatus(recruiterId, testApp.id, "rejected");
+  assert.equal(updated3.status, "rejected");
+});
+
 
 
 

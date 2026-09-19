@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState, useId, useCallback, useRef } from "react";
 import { authHeaders, getSupabase } from "@/lib/auth-client";
-import { setupJobRealtimeSync } from "@/lib/realtime-jobs";
+import { setupJobRealtimeSync, broadcastJobSync } from "@/lib/realtime-jobs";
 import {
   getDeletedJobIds,
   markJobAsDeleted,
@@ -447,6 +447,7 @@ export default function JobsView() {
 
       setSubmittedApp(body);
       setSubmitSuccess(true);
+      broadcastJobSync({ type: "JOBS_REFRESH" });
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Terjadi kesalahan saat mengirim lamaran.");
     } finally {

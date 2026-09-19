@@ -61,6 +61,12 @@ export type TalentCandidate = {
   assessmentId: string;
   candidateName: string;
   email: string;
+  phone?: string;
+  location?: string;
+  resumeFileName?: string;
+  resumeUrl?: string;
+  coverLetterMode?: "upload" | "write" | "none";
+  coverLetterFileName?: string;
   role: Role | string;
   field: string;
   finalScore: number;

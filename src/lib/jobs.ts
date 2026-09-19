@@ -453,6 +453,7 @@ function mapDbJobToPosting(row: DbJobRow): JobPosting {
 
 function mapDbApplication(row: DbApplicationRow): JobApplication {
   const cachedFit = applicationFitMap.get(row.id);
+  const cachedMem = inMemoryApplications.get(row.id);
   const dbFit =
     row.fit_evaluation && typeof row.fit_evaluation === "object"
       ? (row.fit_evaluation as JobFitEvaluation)
@@ -464,25 +465,25 @@ function mapDbApplication(row: DbApplicationRow): JobApplication {
     candidateId: row.candidate_id,
     candidateName: row.candidate_name,
     candidateEmail: row.candidate_email,
-    phone: row.phone ?? undefined,
-    location: row.location ?? undefined,
-    resumeFileName: row.resume_file_name ?? undefined,
-    resumeUrl: row.resume_url ?? undefined,
-    coverLetterMode: (row.cover_letter_mode as "upload" | "write" | "none" | undefined) ?? undefined,
-    coverLetterFileName: row.cover_letter_file_name ?? undefined,
-    assessmentId: row.assessment_id ?? null,
+    phone: row.phone ?? cachedMem?.phone ?? undefined,
+    location: row.location ?? cachedMem?.location ?? undefined,
+    resumeFileName: row.resume_file_name ?? cachedMem?.resumeFileName ?? undefined,
+    resumeUrl: row.resume_url ?? cachedMem?.resumeUrl ?? undefined,
+    coverLetterMode: (row.cover_letter_mode as "upload" | "write" | "none" | undefined) ?? cachedMem?.coverLetterMode ?? undefined,
+    coverLetterFileName: row.cover_letter_file_name ?? cachedMem?.coverLetterFileName ?? undefined,
+    assessmentId: row.assessment_id ?? cachedMem?.assessmentId ?? null,
     skillbridgeScore:
       row.skillbridge_score !== null && row.skillbridge_score !== undefined
         ? Number(row.skillbridge_score)
-        : null,
-    portfolioUrl: row.portfolio_url ?? undefined,
-    coverLetter: row.cover_letter ?? undefined,
-    fitEvaluation: dbFit ?? cachedFit ?? null,
-    status: row.status,
-    appliedAt: row.created_at,
+        : cachedMem?.skillbridgeScore ?? null,
+    portfolioUrl: row.portfolio_url ?? cachedMem?.portfolioUrl ?? undefined,
+    coverLetter: row.cover_letter ?? cachedMem?.coverLetter ?? undefined,
+    fitEvaluation: dbFit ?? cachedFit ?? cachedMem?.fitEvaluation ?? null,
+    status: row.status ?? cachedMem?.status ?? "pending",
+    appliedAt: row.created_at || cachedMem?.appliedAt || new Date().toISOString(),
     isDemo: Boolean(row.is_demo),
-    jobTitle: row.job_postings?.title ?? undefined,
-    companyName: row.job_postings?.company_name ?? undefined,
+    jobTitle: row.job_postings?.title ?? cachedMem?.jobTitle ?? undefined,
+    companyName: row.job_postings?.company_name ?? cachedMem?.companyName ?? undefined,
   };
 }
 
@@ -1621,7 +1622,10 @@ export async function applyToJob(
   } catch (cause) {
     if (
       isTableMissing(cause) ||
-      (cause instanceof Error && cause.message.includes("Konfigurasi Supabase"))
+      (cause instanceof Error &&
+        (cause.message.includes("Konfigurasi Supabase") ||
+          cause.message.toLowerCase().includes("supabase") ||
+          cause.message.toLowerCase().includes("fetch failed")))
     ) {
       return newApplication;
     }
@@ -1763,5 +1767,66 @@ export async function getJobApplicationsForCandidate(
   ];
 
   return combined.sort((a, b) => new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime());
+}
+
+export async function updateApplicationStatus(
+  recruiterId: string,
+  applicationId: string,
+  status: ApplicationStatus,
+): Promise<JobApplication> {
+  const validStatuses: ApplicationStatus[] = ["pending", "reviewed", "shortlisted", "accepted", "rejected"];
+  if (!validStatuses.includes(status)) {
+    throw new Error("Status lamaran tidak valid.");
+  }
+
+  // 1. Update in-memory
+  const memApp = inMemoryApplications.get(applicationId);
+  if (memApp) {
+    memApp.status = status;
+    inMemoryApplications.set(applicationId, memApp);
+  }
+
+  // 2. Update demo applications
+  const demoIdx = DEMO_APPLICATIONS.findIndex((a) => a.id === applicationId);
+  if (demoIdx !== -1) {
+    DEMO_APPLICATIONS[demoIdx] = {
+      ...DEMO_APPLICATIONS[demoIdx],
+      status,
+    };
+    return DEMO_APPLICATIONS[demoIdx];
+  }
+
+  // 3. Database update
+  try {
+    const db = createAdminSupabase();
+    const { data, error } = await db
+      .from("job_applications")
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq("id", applicationId)
+      .select(`
+        *,
+        job_postings (
+          id,
+          title,
+          company_name,
+          recruiter_id
+        )
+      `)
+      .single();
+
+    if (!error && data) {
+      const mapped = mapDbApplication(data as DbApplicationRow);
+      inMemoryApplications.set(mapped.id, mapped);
+      return mapped;
+    }
+  } catch {
+    // Graceful fail-safe fallback
+  }
+
+  if (memApp) {
+    return memApp;
+  }
+
+  throw new Error("Lamaran tidak ditemukan atau Anda tidak memiliki akses.");
 }
 
