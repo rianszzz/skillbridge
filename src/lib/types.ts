@@ -96,10 +96,17 @@ export type PortfolioItemType =
   | "certificate"
   | "other";
 
+export type PortfolioAttachmentMode = "link" | "file";
+
 export type PortfolioItem = {
   id: string;
   title: string;
-  url: string;
+  attachmentMode?: PortfolioAttachmentMode;
+  url?: string;
+  fileName?: string;
+  fileSize?: number;
+  fileType?: string;
+  fileData?: string;
   type: PortfolioItemType;
   verifiedSkills?: string[];
   description?: string;

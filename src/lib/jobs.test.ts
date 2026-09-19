@@ -22,8 +22,6 @@ import {
   parseDeletedJobsCookie,
   saveApplicationToRecruiterMetadata,
   updateApplicationStatusInRecruiterMetadata,
-  saveApplicationToCandidateMetadata,
-  updateApplicationStatusInCandidateMetadata,
   resetInMemoryApplicationsForTesting,
 } from "./jobs.ts";
 import type { JobPosting, JobApplication } from "./types.ts";
@@ -432,6 +430,39 @@ test("applyToJob menerima dan menyimpan portfolioItems dinamis dengan skill tagg
   assert.equal(app.portfolioItems[0].title, "Proyek Next.js E-Commerce");
   assert.equal(app.portfolioItems[1].type, "live_demo");
   assert.deepEqual(app.portfolioItems[0].verifiedSkills, ["Next.js", "React"]);
+});
+
+test("applyToJob menerima portfolioItems berupa berkas unggahan (file attachment)", async () => {
+  const applicationInput = {
+    jobId: "10000000-0000-4000-8000-000000000001",
+    candidateName: "Rian File Portfolio",
+    candidateEmail: "rian.file@example.com",
+    portfolioItems: [
+      {
+        id: "file-item-1",
+        title: "Dokumen Portofolio PDF",
+        attachmentMode: "file" as const,
+        fileName: "portofolio-projek.pdf",
+        fileSize: 1024 * 500,
+        fileType: "application/pdf",
+        fileData: "data:application/pdf;base64,JVBERi0xLjQK...",
+        type: "certificate" as const,
+        verifiedSkills: ["TypeScript", "Next.js"],
+      },
+    ],
+  };
+
+  const app = await applyToJob("candidate-test-file-portfolio", applicationInput);
+
+  assert.ok(app.id);
+  assert.equal(app.portfolioUrl, "portofolio-projek.pdf");
+  assert.ok(app.portfolioItems);
+  assert.equal(app.portfolioItems.length, 1);
+  assert.equal(app.portfolioItems[0].attachmentMode, "file");
+  assert.equal(app.portfolioItems[0].fileName, "portofolio-projek.pdf");
+  assert.equal(app.portfolioItems[0].fileSize, 512000);
+  assert.equal(app.portfolioItems[0].fileData, "data:application/pdf;base64,JVBERi0xLjQK...");
+  assert.deepEqual(app.portfolioItems[0].verifiedSkills, ["TypeScript", "Next.js"]);
 });
 
 test("DEMO_APPLICATIONS kosong di produksi dan MOCK_APPLICATIONS_FIXTURE memuat 3 pelamar realistis dengan fitEvaluation terstruktur", () => {

@@ -191,14 +191,6 @@ function IconFileText({ width = 16, height = 16, className = "" }: { width?: num
   );
 }
 
-function IconPaperclip({ width = 16, height = 16, className = "" }: { width?: number; height?: number; className?: string }) {
-  return (
-    <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-      <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48" />
-    </svg>
-  );
-}
-
 function IconCheck({ width = 16, height = 16, className = "" }: { width?: number; height?: number; className?: string }) {
   return (
     <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
@@ -230,18 +222,6 @@ function IconMessageCircle({ width = 16, height = 16, className = "" }: { width?
   return (
     <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
       <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
-    </svg>
-  );
-}
-
-function IconCalendar({ width = 16, height = 16, className = "" }: { width?: number; height?: number; className?: string }) {
-  return (
-    <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
-      <rect width="18" height="18" x="3" y="4" rx="2" />
-      <path d="M8 2v4" />
-      <path d="M16 2v4" />
-      <path d="M3 10h18" />
-      <path d="m9 16 2 2 4-4" />
     </svg>
   );
 }
@@ -289,8 +269,19 @@ function getCandidateInitials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-function getPortfolioTypeLabel(type?: string): { label: string; color: string; bg: string; border: string } {
+function getPortfolioTypeLabel(
+  type?: string,
+  attachmentMode?: string,
+  fileName?: string
+): { label: string; color: string; bg: string; border: string } {
+  if (attachmentMode === "file" || (!type && fileName)) {
+    const ext = fileName ? fileName.split(".").pop()?.toUpperCase() : "";
+    const label = ext ? `Berkas ${ext}` : "Berkas File";
+    return { label, color: "#0f766e", bg: "#f0fdfa", border: "#99f6e4" };
+  }
   switch (type) {
+    case "file":
+      return { label: "Berkas File", color: "#0f766e", bg: "#f0fdfa", border: "#99f6e4" };
     case "github_repo":
       return { label: "GitHub Repo", color: "#1e293b", bg: "#f1f5f9", border: "#cbd5e1" };
     case "github_profile":
@@ -2101,8 +2092,11 @@ export default function RecruiterView() {
                           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
                             {activeApp.portfolioItems && activeApp.portfolioItems.length > 0 ? (
                               activeApp.portfolioItems.map((item, idx) => {
-                                const badge = getPortfolioTypeLabel(item.type);
-                                const safeUrl = item.url.startsWith("http") ? item.url : `https://${item.url}`;
+                                const isFile = item.attachmentMode === "file" || Boolean(item.fileName) || Boolean(item.fileData);
+                                const badge = getPortfolioTypeLabel(item.type, item.attachmentMode, item.fileName);
+                                const safeUrl = item.url
+                                  ? (item.url.startsWith("http") ? item.url : `https://${item.url}`)
+                                  : (item.fileData || "#");
                                 return (
                                   <div
                                     key={item.id || idx}
@@ -2132,26 +2126,50 @@ export default function RecruiterView() {
                                           {badge.label}
                                         </span>
                                         <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--ink)" }}>
-                                          {item.title || item.url}
+                                          {item.title || item.fileName || item.url}
                                         </span>
+                                        {isFile && item.fileSize ? (
+                                          <span style={{ fontSize: "0.72rem", color: "var(--muted)" }}>
+                                            ({(item.fileSize / 1024).toFixed(0)} KB)
+                                          </span>
+                                        ) : null}
                                       </div>
-                                      <a
-                                        href={safeUrl}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        style={{
-                                          fontSize: "0.78rem",
-                                          color: "#0284c7",
-                                          display: "inline-flex",
-                                          alignItems: "center",
-                                          gap: "0.25rem",
-                                          textDecoration: "underline",
-                                          fontWeight: 600,
-                                        }}
-                                      >
-                                        <span>Buka Tautan</span>
-                                        <IconExternalLink width={12} height={12} />
-                                      </a>
+                                      {isFile ? (
+                                        <a
+                                          href={item.fileData || item.url || "#"}
+                                          download={item.fileName || `berkas-portofolio-${idx + 1}`}
+                                          style={{
+                                            fontSize: "0.78rem",
+                                            color: "#0f766e",
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            gap: "0.25rem",
+                                            textDecoration: "underline",
+                                            fontWeight: 600,
+                                          }}
+                                        >
+                                          <IconDownload width={12} height={12} />
+                                          <span>Unduh Berkas</span>
+                                        </a>
+                                      ) : (
+                                        <a
+                                          href={safeUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          style={{
+                                            fontSize: "0.78rem",
+                                            color: "#0284c7",
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            gap: "0.25rem",
+                                            textDecoration: "underline",
+                                            fontWeight: 600,
+                                          }}
+                                        >
+                                          <span>Buka Tautan</span>
+                                          <IconExternalLink width={12} height={12} />
+                                        </a>
+                                      )}
                                     </div>
 
                                     {/* Tag Keahlian yang Dibuktikan */}
@@ -2338,32 +2356,65 @@ export default function RecruiterView() {
                         }}
                       >
                         {activeApp.portfolioItems && activeApp.portfolioItems.length > 0 ? (
-                          activeApp.portfolioItems.map((pi, idx) => (
-                            <a
-                              key={pi.id || idx}
-                              href={pi.url.startsWith("http") ? pi.url : `https://${pi.url}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="button secondary"
-                              style={{
-                                fontSize: "0.82rem",
-                                minHeight: "36px",
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: "0.35rem",
-                                padding: "0 0.85rem",
-                              }}
-                            >
-                              <IconExternalLink width={13} height={13} />
-                              <span>
-                                {pi.title
-                                  ? pi.title.length > 25
-                                    ? `${pi.title.slice(0, 23)}...`
-                                    : pi.title
-                                  : `Buka Portofolio #${idx + 1}`}
-                              </span>
-                            </a>
-                          ))
+                          activeApp.portfolioItems.map((pi, idx) => {
+                            const isFile = pi.attachmentMode === "file" || Boolean(pi.fileName) || Boolean(pi.fileData);
+                            if (isFile) {
+                              return (
+                                <a
+                                  key={pi.id || idx}
+                                  href={pi.fileData || pi.url || "#"}
+                                  download={pi.fileName || `berkas-portofolio-${idx + 1}`}
+                                  className="button secondary"
+                                  style={{
+                                    fontSize: "0.82rem",
+                                    minHeight: "36px",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "0.35rem",
+                                    padding: "0 0.85rem",
+                                  }}
+                                >
+                                  <IconDownload width={13} height={13} />
+                                  <span>
+                                    {pi.fileName
+                                      ? pi.fileName.length > 25
+                                        ? `${pi.fileName.slice(0, 23)}...`
+                                        : pi.fileName
+                                      : pi.title || `Unduh Berkas #${idx + 1}`}
+                                  </span>
+                                </a>
+                              );
+                            }
+                            const safeUrl = pi.url
+                              ? (pi.url.startsWith("http") ? pi.url : `https://${pi.url}`)
+                              : "#";
+                            return (
+                              <a
+                                key={pi.id || idx}
+                                href={safeUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="button secondary"
+                                style={{
+                                  fontSize: "0.82rem",
+                                  minHeight: "36px",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: "0.35rem",
+                                  padding: "0 0.85rem",
+                                }}
+                              >
+                                <IconExternalLink width={13} height={13} />
+                                <span>
+                                  {pi.title
+                                    ? pi.title.length > 25
+                                      ? `${pi.title.slice(0, 23)}...`
+                                      : pi.title
+                                    : `Buka Portofolio #${idx + 1}`}
+                                </span>
+                              </a>
+                            );
+                          })
                         ) : activeApp.portfolioUrl ? (
                           <a
                             href={

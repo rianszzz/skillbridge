@@ -52,7 +52,7 @@ export function fallbackJobFitEvaluation(
     ...(applicant.assessment?.strengths ?? []),
     ...(applicant.assessment?.criteria?.map((c) => c.reason) ?? []),
     applicant.portfolioUrl ?? "",
-    ...(applicant.portfolioItems?.map((p) => `${p.title} ${p.url} ${p.type} ${p.verifiedSkills?.join(" ") ?? ""}`) ?? []),
+    ...(applicant.portfolioItems?.map((p) => `${p.title} ${p.url ?? ""} ${p.fileName ?? ""} ${p.type} ${p.verifiedSkills?.join(" ") ?? ""}`) ?? []),
     applicant.coverLetter ?? "",
   ]
     .join(" ")

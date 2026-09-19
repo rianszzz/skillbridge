@@ -1743,7 +1743,7 @@ export async function applyToJob(
   const effectivePortfolioUrl =
     data.portfolioUrl?.trim() ||
     (data.portfolioItems && data.portfolioItems.length > 0
-      ? data.portfolioItems[0].url
+      ? data.portfolioItems[0].url || data.portfolioItems[0].fileName
       : undefined);
 
   const fitEvaluation = await evaluateJobFit(job, {
