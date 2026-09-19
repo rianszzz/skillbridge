@@ -218,6 +218,7 @@ export default function JobsView() {
   const [selectedAssessmentId, setSelectedAssessmentId] = useState<string>("");
   const [portfolioUrl, setPortfolioUrl] = useState("");
   const [portfolioItems, setPortfolioItems] = useState<CandidatePortfolioFormItem[]>([]);
+  const [dragOverPortfolioId, setDragOverPortfolioId] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -521,6 +522,12 @@ export default function JobsView() {
 
   function handlePortfolioFileChange(id: string, file: File | null) {
     if (!file) return;
+    const ext = file.name.split(".").pop()?.toLowerCase() || "";
+    const allowedExts = ["docx", "xlsx", "pdf", "jpg", "jpeg", "png"];
+    if (!allowedExts.includes(ext)) {
+      alert("Format file tidak didukung. Harap unggah berkas DOCX, XLSX, PDF, JPG, atau PNG.");
+      return;
+    }
     if (file.size > 10 * 1024 * 1024) {
       alert("Ukuran file melebihi batas 10MB.");
       return;
@@ -3059,16 +3066,39 @@ export default function JobsView() {
                                 {/* Kotak Unggah File */}
                                 {item.fileName ? (
                                   <div
+                                    onDragOver={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      setDragOverPortfolioId(item.id);
+                                    }}
+                                    onDragEnter={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      setDragOverPortfolioId(item.id);
+                                    }}
+                                    onDragLeave={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      setDragOverPortfolioId(null);
+                                    }}
+                                    onDrop={(e) => {
+                                      e.preventDefault();
+                                      e.stopPropagation();
+                                      setDragOverPortfolioId(null);
+                                      const file = e.dataTransfer.files?.[0] || null;
+                                      handlePortfolioFileChange(item.id, file);
+                                    }}
                                     style={{
                                       display: "flex",
                                       justifyContent: "space-between",
                                       alignItems: "center",
-                                      background: "#f8fafc",
+                                      background: dragOverPortfolioId === item.id ? "#f0f9ff" : "#f8fafc",
                                       padding: "0.75rem 1rem",
                                       borderRadius: "8px",
-                                      border: "1px solid #cbd5e1",
+                                      border: dragOverPortfolioId === item.id ? "2px dashed #0284c7" : "1px solid #cbd5e1",
                                       gap: "0.5rem",
                                       flexWrap: "wrap",
+                                      transition: "all 0.15s ease",
                                     }}
                                   >
                                     <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", overflow: "hidden" }}>
@@ -3157,15 +3187,37 @@ export default function JobsView() {
                                     />
                                     <label
                                       htmlFor={`portfolio-file-${item.id}`}
+                                      onDragOver={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setDragOverPortfolioId(item.id);
+                                      }}
+                                      onDragEnter={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setDragOverPortfolioId(item.id);
+                                      }}
+                                      onDragLeave={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setDragOverPortfolioId(null);
+                                      }}
+                                      onDrop={(e) => {
+                                        e.preventDefault();
+                                        e.stopPropagation();
+                                        setDragOverPortfolioId(null);
+                                        const file = e.dataTransfer.files?.[0] || null;
+                                        handlePortfolioFileChange(item.id, file);
+                                      }}
                                       style={{
                                         display: "flex",
                                         flexDirection: "column",
                                         alignItems: "center",
                                         justifyContent: "center",
-                                        border: "1.5px solid #cbd5e1",
+                                        border: dragOverPortfolioId === item.id ? "2px dashed #0284c7" : "1.5px solid #cbd5e1",
                                         borderRadius: "8px",
                                         padding: "1.4rem 1rem",
-                                        background: "#fafafa",
+                                        background: dragOverPortfolioId === item.id ? "#f0f9ff" : "#fafafa",
                                         cursor: "pointer",
                                         textAlign: "center",
                                         transition: "border-color 0.15s ease, background 0.15s ease",
@@ -3175,16 +3227,16 @@ export default function JobsView() {
                                         style={{
                                           fontWeight: 600,
                                           fontSize: "0.95rem",
-                                          color: "var(--ink)",
+                                          color: dragOverPortfolioId === item.id ? "#0284c7" : "var(--ink)",
                                           marginBottom: "0.25rem",
                                         }}
                                       >
-                                        Unggah File
+                                        {dragOverPortfolioId === item.id ? "Lepaskan file di sini..." : "Unggah File"}
                                       </div>
                                       <div
                                         style={{
                                           fontSize: "0.78rem",
-                                          color: "var(--muted)",
+                                          color: dragOverPortfolioId === item.id ? "#0369a1" : "var(--muted)",
                                         }}
                                       >
                                         Docx, Xlsx, PDF, JPG, PNG
