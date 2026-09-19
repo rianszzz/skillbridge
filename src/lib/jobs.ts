@@ -396,6 +396,7 @@ type DbApplicationRow = {
   candidate_email: string;
   phone?: string | null;
   location?: string | null;
+  photo_url?: string | null;
   resume_file_name?: string | null;
   resume_url?: string | null;
   cover_letter_mode?: "upload" | "write" | "none" | null;
@@ -467,6 +468,7 @@ function mapDbApplication(row: DbApplicationRow): JobApplication {
     candidateEmail: row.candidate_email,
     phone: row.phone ?? cachedMem?.phone ?? undefined,
     location: row.location ?? cachedMem?.location ?? undefined,
+    photoUrl: row.photo_url ?? cachedMem?.photoUrl ?? undefined,
     resumeFileName: row.resume_file_name ?? cachedMem?.resumeFileName ?? undefined,
     resumeUrl: row.resume_url ?? cachedMem?.resumeUrl ?? undefined,
     coverLetterMode: (row.cover_letter_mode as "upload" | "write" | "none" | undefined) ?? cachedMem?.coverLetterMode ?? undefined,
@@ -1336,6 +1338,7 @@ export type ApplyJobInput = {
   candidateEmail: string;
   phone?: string;
   location?: string;
+  photoUrl?: string;
   resumeFileName?: string;
   resumeUrl?: string;
   coverLetterMode?: "upload" | "write" | "none";
@@ -1469,6 +1472,7 @@ export async function applyToJob(
     candidateEmail: data.candidateEmail.trim(),
     phone: data.phone?.trim() || undefined,
     location: data.location?.trim() || undefined,
+    photoUrl: data.photoUrl?.trim() || undefined,
     resumeFileName: data.resumeFileName?.trim() || undefined,
     resumeUrl: data.resumeUrl?.trim() || undefined,
     coverLetterMode: data.coverLetterMode || undefined,
@@ -1498,6 +1502,7 @@ export async function applyToJob(
       candidate_email: newApplication.candidateEmail,
       phone: newApplication.phone ?? null,
       location: newApplication.location ?? null,
+      photo_url: newApplication.photoUrl ?? null,
       resume_file_name: newApplication.resumeFileName ?? null,
       resume_url: newApplication.resumeUrl ?? null,
       cover_letter_mode: newApplication.coverLetterMode ?? null,
@@ -1608,6 +1613,7 @@ export async function applyToJob(
         ...mapped,
         phone: mapped.phone ?? newApplication.phone,
         location: mapped.location ?? newApplication.location,
+        photoUrl: mapped.photoUrl ?? newApplication.photoUrl,
         resumeFileName: mapped.resumeFileName ?? newApplication.resumeFileName,
         resumeUrl: mapped.resumeUrl ?? newApplication.resumeUrl,
         coverLetterMode: mapped.coverLetterMode ?? newApplication.coverLetterMode,

@@ -41,6 +41,7 @@ export async function POST(
       candidateEmail,
       phone: body.phone?.trim() || undefined,
       location: body.location?.trim() || undefined,
+      photoUrl: body.photoUrl?.trim() || undefined,
       resumeFileName: body.resumeFileName?.trim() || undefined,
       resumeUrl: body.resumeUrl?.trim() || undefined,
       coverLetterMode: body.coverLetterMode || undefined,

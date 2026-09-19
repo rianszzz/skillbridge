@@ -63,6 +63,7 @@ export type TalentCandidate = {
   email: string;
   phone?: string;
   location?: string;
+  photoUrl?: string;
   resumeFileName?: string;
   resumeUrl?: string;
   coverLetterMode?: "upload" | "write" | "none";
@@ -137,6 +138,7 @@ export type JobApplication = {
   candidateEmail: string;
   phone?: string;
   location?: string;
+  photoUrl?: string;
   resumeFileName?: string;
   resumeUrl?: string;
   coverLetterMode?: "upload" | "write" | "none";

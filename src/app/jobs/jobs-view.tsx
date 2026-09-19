@@ -125,6 +125,23 @@ export default function JobsView() {
   const [phone, setPhone] = useState("");
   const [location, setLocation] = useState("");
 
+  // Saved applicant profile state (Jobstreet-style personal profile box)
+  const [savedApplicantProfile, setSavedApplicantProfile] = useState<{
+    name: string;
+    email: string;
+    location: string;
+    phoneCountryCode: string;
+    phone: string;
+    photoUrl?: string;
+  } | null>(null);
+  const [isProfileSaved, setIsProfileSaved] = useState(false);
+  const [isEditingProfile, setIsEditingProfile] = useState(true);
+  const [avatarPhotoUrl, setAvatarPhotoUrl] = useState("");
+  const [photoHover, setPhotoHover] = useState(false);
+  const [pencilHover, setPencilHover] = useState(false);
+  const [profileSaveError, setProfileSaveError] = useState("");
+  const photoFileInputRef = useRef<HTMLInputElement>(null);
+
   // Resumé state (Jobstreet reference)
   const [resumeOption, setResumeOption] = useState<"attached" | "none">("attached");
   const [resumeFileName, setResumeFileName] = useState("2_CV_Mochamad Triandra Andantyo.pdf");
@@ -202,6 +219,32 @@ export default function JobsView() {
       active = false;
       listener.subscription.unsubscribe();
     };
+  }, []);
+
+  // Hydrate saved applicant profile from localStorage on client mount
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      try {
+        const raw = localStorage.getItem("skillbridge_saved_applicant_profile");
+        if (raw) {
+          const data = JSON.parse(raw);
+          if (data && typeof data === "object" && (data.name || data.email)) {
+            setSavedApplicantProfile(data);
+            setIsProfileSaved(true);
+            setIsEditingProfile(false);
+            if (data.name) setApplicantName(data.name);
+            if (data.email) setApplicantEmail(data.email);
+            if (data.location) setLocation(data.location);
+            if (data.phoneCountryCode) setPhoneCountryCode(data.phoneCountryCode);
+            if (data.phone) setPhone(data.phone);
+            if (data.photoUrl) setAvatarPhotoUrl(data.photoUrl);
+          }
+        }
+      } catch {
+        // ignore
+      }
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   // Fetch jobs
@@ -300,15 +343,48 @@ export default function JobsView() {
     setSubmitSuccess(false);
     setSubmittedApp(null);
     setSubmitError("");
-    setApplicantName(""); // Heading [Nama Lengkap] kosong tanpa nilai default
-    if (currentUser) {
-      setApplicantEmail(currentUser.email || "");
-    } else {
-      setApplicantEmail("");
+    setProfileSaveError("");
+    setPhotoHover(false);
+    setPencilHover(false);
+
+    // Load from localStorage jika sudah tersimpan
+    let hasLoadedProfile = false;
+    try {
+      const raw = localStorage.getItem("skillbridge_saved_applicant_profile");
+      if (raw) {
+        const data = JSON.parse(raw);
+        if (data && typeof data === "object" && (data.name || data.email)) {
+          setSavedApplicantProfile(data);
+          setIsProfileSaved(true);
+          setIsEditingProfile(false);
+          setApplicantName(data.name || "");
+          setApplicantEmail(data.email || currentUser?.email || "");
+          setLocation(data.location || "");
+          setPhoneCountryCode(data.phoneCountryCode || "+62");
+          setPhone(data.phone || "");
+          setAvatarPhotoUrl(data.photoUrl || "");
+          hasLoadedProfile = true;
+        }
+      }
+    } catch {
+      // ignore
     }
-    setPhone("");
-    setPhoneCountryCode("+62");
-    setLocation("");
+
+    if (!hasLoadedProfile) {
+      setApplicantName(""); // Heading [Nama Lengkap] kosong tanpa nilai default
+      if (currentUser) {
+        setApplicantEmail(currentUser.email || "");
+      } else {
+        setApplicantEmail("");
+      }
+      setPhone("");
+      setPhoneCountryCode("+62");
+      setLocation("");
+      setAvatarPhotoUrl("");
+      setSavedApplicantProfile(null);
+      setIsProfileSaved(false);
+      setIsEditingProfile(true);
+    }
     setResumeOption("attached");
     setResumeFileName("2_CV_Mochamad Triandra Andantyo.pdf");
     setResumeUploadTime("Ditambahkan 1 hari yang lalu");
@@ -398,14 +474,132 @@ export default function JobsView() {
     setCoverLetterFileName(file.name);
   }
 
+  function handleSaveApplicantProfile() {
+    if (!applicantName.trim()) {
+      setProfileSaveError("Nama Lengkap wajib diisi.");
+      return;
+    }
+    if (!applicantEmail.trim()) {
+      setProfileSaveError("Alamat Email wajib diisi.");
+      return;
+    }
+    setProfileSaveError("");
+
+    const profileData = {
+      name: applicantName.trim(),
+      email: applicantEmail.trim(),
+      location: location.trim(),
+      phoneCountryCode,
+      phone: phone.trim(),
+      photoUrl: avatarPhotoUrl || undefined,
+    };
+
+    try {
+      localStorage.setItem("skillbridge_saved_applicant_profile", JSON.stringify(profileData));
+    } catch (err) {
+      console.error("Gagal menyimpan profil ke localStorage:", err);
+    }
+
+    setSavedApplicantProfile(profileData);
+    setIsProfileSaved(true);
+    setIsEditingProfile(false);
+  }
+
+  function handleCancelEditProfile() {
+    if (savedApplicantProfile) {
+      setApplicantName(savedApplicantProfile.name || "");
+      setApplicantEmail(savedApplicantProfile.email || "");
+      setLocation(savedApplicantProfile.location || "");
+      setPhoneCountryCode(savedApplicantProfile.phoneCountryCode || "+62");
+      setPhone(savedApplicantProfile.phone || "");
+      setAvatarPhotoUrl(savedApplicantProfile.photoUrl || "");
+    }
+    setProfileSaveError("");
+    setIsEditingProfile(false);
+  }
+
+  function handlePhotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const validTypes = ["image/png", "image/jpeg", "image/jpg"];
+    const validExtensions = [".png", ".jpg", ".jpeg"];
+    const fileExt = file.name.toLowerCase().slice(file.name.lastIndexOf("."));
+    if (!validTypes.includes(file.type.toLowerCase()) && !validExtensions.includes(fileExt)) {
+      alert("Harap unggah berkas foto dengan format PNG atau JPG.");
+      if (photoFileInputRef.current) photoFileInputRef.current.value = "";
+      return;
+    }
+
+    if (file.size > 3 * 1024 * 1024) {
+      alert("Ukuran foto profil melebihi batas 3MB.");
+      if (photoFileInputRef.current) photoFileInputRef.current.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const base64 = event.target?.result as string;
+      if (base64) {
+        setAvatarPhotoUrl(base64);
+        setSavedApplicantProfile((prev) => {
+          const updated = {
+            name: prev?.name || applicantName.trim(),
+            email: prev?.email || applicantEmail.trim(),
+            location: prev?.location || location.trim(),
+            phoneCountryCode: prev?.phoneCountryCode || phoneCountryCode,
+            phone: prev?.phone || phone.trim(),
+            photoUrl: base64,
+          };
+          try {
+            localStorage.setItem("skillbridge_saved_applicant_profile", JSON.stringify(updated));
+          } catch (err) {
+            console.error("Gagal menyimpan foto profil ke localStorage:", err);
+          }
+          return updated;
+        });
+      }
+    };
+    reader.readAsDataURL(file);
+    if (photoFileInputRef.current) {
+      photoFileInputRef.current.value = "";
+    }
+  }
+
   async function handleApplySubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!applyJob || !currentUser) return;
+
+    if (!applicantName.trim()) {
+      setSubmitError("Nama Lengkap wajib diisi.");
+      return;
+    }
+    if (!applicantEmail.trim()) {
+      setSubmitError("Alamat Email wajib diisi.");
+      return;
+    }
 
     setIsSubmitting(true);
     setSubmitError("");
 
     try {
+      // Perbarui atau simpan profil ke localStorage secara otomatis
+      const profileData = {
+        name: applicantName.trim(),
+        email: applicantEmail.trim(),
+        location: location.trim(),
+        phoneCountryCode,
+        phone: phone.trim(),
+        photoUrl: avatarPhotoUrl || undefined,
+      };
+      try {
+        localStorage.setItem("skillbridge_saved_applicant_profile", JSON.stringify(profileData));
+        setSavedApplicantProfile(profileData);
+        setIsProfileSaved(true);
+      } catch {
+        // ignore
+      }
+
       const selectedAssessment = userAssessments.find((a) => a.id === selectedAssessmentId);
       const headers = await authHeaders();
 
@@ -1554,75 +1748,534 @@ export default function JobsView() {
                     Informasi Pribadi
                   </h3>
 
-                  <div className="field">
-                    <label htmlFor="applicant-name">Nama Lengkap</label>
-                    <input
-                      id="applicant-name"
-                      type="text"
-                      required
-                      value={applicantName}
-                      onChange={(e) => setApplicantName(e.target.value)}
-                    />
-                  </div>
+                  {/* Hidden input untuk unggah foto profil */}
+                  <input
+                    ref={photoFileInputRef}
+                    type="file"
+                    accept="image/png, image/jpeg, image/jpg"
+                    style={{ display: "none" }}
+                    onChange={handlePhotoChange}
+                  />
 
-                  <div className="field">
-                    <label htmlFor="applicant-email">Alamat Email</label>
-                    <input
-                      id="applicant-email"
-                      type="email"
-                      required
-                      value={applicantEmail}
-                      onChange={(e) => setApplicantEmail(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="field">
-                    <label htmlFor="applicant-location">Lokasi rumah</label>
-                    <input
-                      id="applicant-location"
-                      type="text"
-                      placeholder="Depok, Jawa Barat"
-                      value={location}
-                      onChange={(e) => setLocation(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="field">
-                    <label htmlFor="applicant-phone">Nomor telepon</label>
+                  {isProfileSaved && !isEditingProfile ? (
+                    /* Mode Tersimpan: Box Informasi Pribadi (Jobstreet Style) */
                     <div
                       style={{
-                        display: "grid",
-                        gridTemplateColumns: "minmax(160px, auto) 1fr",
-                        gap: "0.5rem",
+                        position: "relative",
+                        borderRadius: "16px",
+                        background: "#0b1a30",
+                        color: "#ffffff",
+                        padding: "1.25rem 1.4rem",
+                        boxShadow: "0 6px 20px -4px rgba(11, 26, 48, 0.3)",
                       }}
                     >
-                      <select
-                        id="applicant-phone-code"
-                        value={phoneCountryCode}
-                        onChange={(e) => setPhoneCountryCode(e.target.value)}
-                        aria-label="Kode Negara"
+                      {/* Aksen Dekoratif Magenta di Pojok Kanan Bawah */}
+                      <div
                         style={{
-                          minHeight: "48px",
-                          padding: "0.75rem",
-                          border: "1px solid #8d908c",
-                          background: "white",
+                          position: "absolute",
+                          inset: 0,
+                          borderRadius: "16px",
+                          overflow: "hidden",
+                          pointerEvents: "none",
+                        }}
+                        aria-hidden="true"
+                      >
+                        <div
+                          style={{
+                            position: "absolute",
+                            bottom: "-35px",
+                            right: "-35px",
+                            width: "110px",
+                            height: "110px",
+                            borderRadius: "50%",
+                            background: "#e11d48",
+                          }}
+                        />
+                      </div>
+
+                      {/* Konten Box */}
+                      <div
+                        style={{
+                          position: "relative",
+                          zIndex: 1,
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          gap: "1.1rem",
+                          flexWrap: "wrap",
                         }}
                       >
-                        <option value="+62">Indonesia (+62)</option>
-                        <option value="+65">Singapura (+65)</option>
-                        <option value="+60">Malaysia (+60)</option>
-                        <option value="+61">Australia (+61)</option>
-                        <option value="+1">Amerika Serikat (+1)</option>
-                      </select>
-                      <input
-                        id="applicant-phone"
-                        type="tel"
-                        placeholder="Masukkan nomor telepon"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                      />
+                        {/* Kiri: Kotak Foto / Avatar (72px x 72px) */}
+                        <div
+                          style={{ position: "relative", flexShrink: 0 }}
+                          onMouseEnter={() => setPhotoHover(true)}
+                          onMouseLeave={() => setPhotoHover(false)}
+                        >
+                          {/* Tooltip melayang di atas foto */}
+                          {photoHover && (
+                            <div
+                              role="tooltip"
+                              style={{
+                                position: "absolute",
+                                bottom: "calc(100% + 8px)",
+                                left: "50%",
+                                transform: "translateX(-50%)",
+                                background: "#1f2937",
+                                color: "#ffffff",
+                                padding: "4px 9px",
+                                borderRadius: "6px",
+                                fontSize: "0.72rem",
+                                fontWeight: 500,
+                                whiteSpace: "nowrap",
+                                zIndex: 30,
+                                boxShadow: "0 4px 12px rgba(0,0,0,0.35)",
+                                pointerEvents: "none",
+                              }}
+                            >
+                              {avatarPhotoUrl ? "Ubah foto" : "Tambah foto"}
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  top: "100%",
+                                  left: "50%",
+                                  transform: "translateX(-50%)",
+                                  borderWidth: "4px",
+                                  borderStyle: "solid",
+                                  borderColor: "#1f2937 transparent transparent transparent",
+                                }}
+                              />
+                            </div>
+                          )}
+
+                          {/* Avatar Container */}
+                          <div
+                            onClick={() => photoFileInputRef.current?.click()}
+                            tabIndex={0}
+                            role="button"
+                            aria-label={avatarPhotoUrl ? "Ubah foto profil" : "Tambah foto profil"}
+                            onKeyDown={(e) => {
+                              if (e.key === "Enter" || e.key === " ") {
+                                e.preventDefault();
+                                photoFileInputRef.current?.click();
+                              }
+                            }}
+                            style={{
+                              width: "72px",
+                              height: "72px",
+                              borderRadius: "14px",
+                              overflow: "hidden",
+                              position: "relative",
+                              cursor: "pointer",
+                              boxShadow: "0 2px 8px rgba(0,0,0,0.25)",
+                              background: avatarPhotoUrl ? "transparent" : "#fbcfe8",
+                            }}
+                          >
+                            {avatarPhotoUrl ? (
+                              /* eslint-disable-next-line @next/next/no-img-element */
+                              <img
+                                src={avatarPhotoUrl}
+                                alt="Foto Profil"
+                                style={{
+                                  width: "100%",
+                                  height: "100%",
+                                  objectFit: "cover",
+                                  display: "block",
+                                }}
+                              />
+                            ) : (
+                              <div
+                                style={{
+                                  width: "100%",
+                                  height: "100%",
+                                  background: "#fbcfe8",
+                                  color: "#1e293b",
+                                  fontSize: "1.75rem",
+                                  fontWeight: 700,
+                                  display: "grid",
+                                  placeItems: "center",
+                                  userSelect: "none",
+                                }}
+                              >
+                                {applicantName.trim().charAt(0).toUpperCase() || "M"}
+                              </div>
+                            )}
+
+                            {/* Overlay saat hover: icon kamera */}
+                            {photoHover && (
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  inset: 0,
+                                  background: "rgba(0, 0, 0, 0.45)",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  color: "#ffffff",
+                                  transition: "background 0.15s ease",
+                                }}
+                              >
+                                <svg
+                                  width="22"
+                                  height="22"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  aria-hidden="true"
+                                >
+                                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" />
+                                  <circle cx="12" cy="13" r="4" />
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Tengah: Nama Lengkap & Informasi Kontak */}
+                        <div style={{ flex: 1, minWidth: "180px" }}>
+                          <h4
+                            style={{
+                              margin: "0 0 0.35rem",
+                              fontSize: "1.15rem",
+                              fontWeight: 700,
+                              color: "#ffffff",
+                              lineHeight: 1.3,
+                              wordBreak: "break-word",
+                            }}
+                          >
+                            {applicantName || "Kandidat Pelamar"}
+                          </h4>
+
+                          <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem" }}>
+                            {location ? (
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "0.45rem",
+                                  fontSize: "0.85rem",
+                                  color: "rgba(255, 255, 255, 0.9)",
+                                }}
+                              >
+                                <svg
+                                  width="14"
+                                  height="14"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  aria-hidden="true"
+                                  style={{ flexShrink: 0, opacity: 0.85 }}
+                                >
+                                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+                                  <circle cx="12" cy="10" r="3" />
+                                </svg>
+                                <span style={{ wordBreak: "break-word" }}>{location}</span>
+                              </div>
+                            ) : null}
+
+                            {phone ? (
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "0.45rem",
+                                  fontSize: "0.85rem",
+                                  color: "rgba(255, 255, 255, 0.9)",
+                                }}
+                              >
+                                <svg
+                                  width="14"
+                                  height="14"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  aria-hidden="true"
+                                  style={{ flexShrink: 0, opacity: 0.85 }}
+                                >
+                                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+                                </svg>
+                                <span>
+                                  {phone.startsWith("+")
+                                    ? phone
+                                    : `${phoneCountryCode} ${phone.replace(/^0+/, "")}`}
+                                </span>
+                              </div>
+                            ) : null}
+
+                            {applicantEmail ? (
+                              <div
+                                style={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: "0.45rem",
+                                  fontSize: "0.85rem",
+                                  color: "rgba(255, 255, 255, 0.9)",
+                                }}
+                              >
+                                <svg
+                                  width="14"
+                                  height="14"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  aria-hidden="true"
+                                  style={{ flexShrink: 0, opacity: 0.85 }}
+                                >
+                                  <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+                                  <polyline points="22,6 12,13 2,6" />
+                                </svg>
+                                <span style={{ wordBreak: "break-all" }}>{applicantEmail}</span>
+                              </div>
+                            ) : null}
+                          </div>
+                        </div>
+
+                        {/* Kanan: Tombol Edit (Pensil) */}
+                        <div style={{ position: "relative", flexShrink: 0 }}>
+                          {pencilHover && (
+                            <div
+                              role="tooltip"
+                              style={{
+                                position: "absolute",
+                                bottom: "calc(100% + 8px)",
+                                right: 0,
+                                background: "#1f2937",
+                                color: "#ffffff",
+                                padding: "4px 9px",
+                                borderRadius: "6px",
+                                fontSize: "0.72rem",
+                                fontWeight: 500,
+                                whiteSpace: "nowrap",
+                                zIndex: 30,
+                                boxShadow: "0 4px 12px rgba(0,0,0,0.35)",
+                                pointerEvents: "none",
+                              }}
+                            >
+                              Edit detail pribadi
+                              <div
+                                style={{
+                                  position: "absolute",
+                                  top: "100%",
+                                  right: "12px",
+                                  borderWidth: "4px",
+                                  borderStyle: "solid",
+                                  borderColor: "#1f2937 transparent transparent transparent",
+                                }}
+                              />
+                            </div>
+                          )}
+
+                          <button
+                            type="button"
+                            aria-label="Edit detail pribadi"
+                            onClick={() => {
+                              setProfileSaveError("");
+                              setIsEditingProfile(true);
+                            }}
+                            onMouseEnter={() => setPencilHover(true)}
+                            onMouseLeave={() => setPencilHover(false)}
+                            style={{
+                              width: "36px",
+                              height: "36px",
+                              borderRadius: "50%",
+                              background: pencilHover
+                                ? "rgba(255, 255, 255, 0.25)"
+                                : "rgba(255, 255, 255, 0.15)",
+                              border: "none",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              color: "#ffffff",
+                              cursor: "pointer",
+                              transition: "background 0.15s ease",
+                            }}
+                          >
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              aria-hidden="true"
+                            >
+                              <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  ) : (
+                    /* Mode Input / Edit */
+                    <div>
+                      <div className="field">
+                        <label htmlFor="applicant-name">Nama Lengkap</label>
+                        <input
+                          id="applicant-name"
+                          type="text"
+                          required
+                          value={applicantName}
+                          onChange={(e) => setApplicantName(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="field">
+                        <label htmlFor="applicant-email">Alamat Email</label>
+                        <input
+                          id="applicant-email"
+                          type="email"
+                          required
+                          value={applicantEmail}
+                          onChange={(e) => setApplicantEmail(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="field">
+                        <label htmlFor="applicant-location">Lokasi rumah</label>
+                        <input
+                          id="applicant-location"
+                          type="text"
+                          placeholder="Depok, Jawa Barat"
+                          value={location}
+                          onChange={(e) => setLocation(e.target.value)}
+                        />
+                      </div>
+
+                      <div className="field">
+                        <label htmlFor="applicant-phone">Nomor telepon</label>
+                        <div
+                          style={{
+                            display: "grid",
+                            gridTemplateColumns: "minmax(160px, auto) 1fr",
+                            gap: "0.5rem",
+                          }}
+                        >
+                          <select
+                            id="applicant-phone-code"
+                            value={phoneCountryCode}
+                            onChange={(e) => setPhoneCountryCode(e.target.value)}
+                            aria-label="Kode Negara"
+                            style={{
+                              minHeight: "48px",
+                              padding: "0.75rem",
+                              border: "1px solid #8d908c",
+                              background: "white",
+                            }}
+                          >
+                            <option value="+62">Indonesia (+62)</option>
+                            <option value="+65">Singapura (+65)</option>
+                            <option value="+60">Malaysia (+60)</option>
+                            <option value="+61">Australia (+61)</option>
+                            <option value="+1">Amerika Serikat (+1)</option>
+                          </select>
+                          <input
+                            id="applicant-phone"
+                            type="tel"
+                            placeholder="Masukkan nomor telepon"
+                            value={phone}
+                            onChange={(e) => setPhone(e.target.value)}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Pesan error simpan profil */}
+                      {profileSaveError && (
+                        <div
+                          role="alert"
+                          style={{
+                            marginTop: "0.75rem",
+                            padding: "0.5rem 0.75rem",
+                            background: "#fee2e2",
+                            border: "1px solid #fecaca",
+                            borderRadius: "6px",
+                            color: "#dc2626",
+                            fontSize: "0.85rem",
+                            fontWeight: 600,
+                          }}
+                        >
+                          {profileSaveError}
+                        </div>
+                      )}
+
+                      {/* Tombol Simpan & Batal (jika sedang edit profil tersimpan) */}
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: "0.75rem",
+                          alignItems: "center",
+                          flexWrap: "wrap",
+                          marginTop: "1rem",
+                        }}
+                      >
+                        <button
+                          type="button"
+                          onClick={handleSaveApplicantProfile}
+                          style={{
+                            minHeight: "44px",
+                            background: "var(--ink)",
+                            color: "#ffffff",
+                            borderRadius: "8px",
+                            border: "none",
+                            padding: "0.6rem 1.25rem",
+                            fontWeight: 600,
+                            fontSize: "0.92rem",
+                            cursor: "pointer",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            transition: "opacity 0.15s ease",
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.opacity = "0.9")}
+                          onMouseLeave={(e) => (e.currentTarget.style.opacity = "1")}
+                        >
+                          Simpan Informasi Pribadi
+                        </button>
+
+                        {isEditingProfile && isProfileSaved && (
+                          <button
+                            type="button"
+                            onClick={handleCancelEditProfile}
+                            style={{
+                              minHeight: "44px",
+                              background: "transparent",
+                              color: "var(--ink)",
+                              border: "1px solid var(--line)",
+                              borderRadius: "8px",
+                              padding: "0.6rem 1.25rem",
+                              fontWeight: 600,
+                              fontSize: "0.92rem",
+                              cursor: "pointer",
+                              display: "inline-flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              transition: "background 0.15s ease",
+                            }}
+                            onMouseEnter={(e) =>
+                              (e.currentTarget.style.background = "var(--paper)")
+                            }
+                            onMouseLeave={(e) =>
+                              (e.currentTarget.style.background = "transparent")
+                            }
+                          >
+                            Batal
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Headline [Resumé] */}
@@ -2472,7 +3125,7 @@ export default function JobsView() {
                     Batal
                   </button>
                   <button type="submit" className="button" disabled={isSubmitting}>
-                    {isSubmitting ? "Mengirimkan Lamaran..." : "Kirimkan Lamaran"}
+                    {isSubmitting ? "Mengirimkan Lamaran..." : "Kirim Lamaran Pekerjaan"}
                   </button>
                 </div>
               </form>
