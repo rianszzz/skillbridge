@@ -930,13 +930,13 @@ export default function JobsView() {
           style={{
             position: "fixed",
             inset: 0,
-            background: "rgba(20, 33, 61, 0.65)",
-            backdropFilter: "blur(2px)",
+            background: "rgba(20, 33, 61, 0.75)",
             zIndex: 100,
-            display: "grid",
-            placeItems: "center",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
             padding: "1rem",
-            overflowY: "auto",
+            overflow: "hidden",
           }}
           onClick={(e) => {
             if (e.target === e.currentTarget) setDetailJob(null);
@@ -951,6 +951,10 @@ export default function JobsView() {
               overflowY: "auto",
               position: "relative",
               padding: "clamp(1.5rem, 4vw, 2.5rem)",
+              overscrollBehavior: "contain",
+              WebkitOverflowScrolling: "touch",
+              transform: "translateZ(0)",
+              willChange: "scroll-position",
             }}
           >
             {/* Close Button */}
