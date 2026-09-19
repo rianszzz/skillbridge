@@ -103,6 +103,7 @@ export type PortfolioItem = {
   title: string;
   attachmentMode?: PortfolioAttachmentMode;
   url?: string;
+  storagePath?: string;
   fileName?: string;
   fileSize?: number;
   fileType?: string;

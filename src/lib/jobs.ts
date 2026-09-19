@@ -665,6 +665,242 @@ async function saveCustomJobToRecruiterMetadata(
   }
 }
 
+export function sanitizeApplicationForMetadata(app: JobApplication): JobApplication {
+  if (!app || typeof app !== "object") return app;
+
+  const sanitized: JobApplication = {
+    ...app,
+  };
+
+  if (Array.isArray(sanitized.portfolioItems)) {
+    sanitized.portfolioItems = sanitized.portfolioItems.map((item) => {
+      if (!item || typeof item !== "object") return item;
+      // Hapus payload fileData besar agar tidak melampaui batas 1MB Supabase GoTrue
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { fileData: _discarded, ...rest } = item;
+      return rest;
+    });
+  }
+
+  // Pangkas photoUrl jika berupa base64 besar (> 10KB = 10240 karakter)
+  if (
+    typeof sanitized.photoUrl === "string" &&
+    sanitized.photoUrl.length > 10 * 1024 &&
+    (sanitized.photoUrl.startsWith("data:") || !sanitized.photoUrl.startsWith("http"))
+  ) {
+    delete sanitized.photoUrl;
+  }
+
+  return sanitized;
+}
+
+export async function uploadApplicationFileToStorage(
+  applicationId: string,
+  itemIndex: number,
+  fileName: string,
+  fileType: string,
+  fileData: string,
+): Promise<{ storagePath: string; url: string } | null> {
+  if (!applicationId || !fileData || typeof fileData !== "string") {
+    return null;
+  }
+  try {
+    let base64Content = fileData;
+    let resolvedContentType = fileType || "application/octet-stream";
+
+    if (fileData.startsWith("data:")) {
+      const commaIndex = fileData.indexOf(",");
+      if (commaIndex !== -1) {
+        const meta = fileData.slice(5, commaIndex);
+        const semiIndex = meta.indexOf(";");
+        if (semiIndex !== -1) {
+          const mime = meta.slice(0, semiIndex).trim();
+          if (mime) resolvedContentType = mime;
+        }
+        base64Content = fileData.slice(commaIndex + 1);
+      }
+    }
+
+    const buffer = Buffer.from(base64Content.trim(), "base64");
+    if (!buffer || buffer.length === 0) {
+      return null;
+    }
+
+    const sanitizedFileName = (fileName || "attachment").replace(/[^a-zA-Z0-9._-]/g, "_");
+    const storagePath = `applications/${applicationId}/${itemIndex}_${sanitizedFileName}`;
+
+    const admin = createAdminSupabase();
+    const { error: uploadError } = await admin.storage
+      .from("evidence-private")
+      .upload(storagePath, buffer, {
+        contentType: resolvedContentType,
+        upsert: true,
+      });
+
+    if (uploadError) {
+      return null;
+    }
+
+    const { data: signData, error: signError } = await admin.storage
+      .from("evidence-private")
+      .createSignedUrl(storagePath, 604800); // 7 hari = 604800 detik
+
+    if (signError || !signData?.signedUrl) {
+      return null;
+    }
+
+    return {
+      storagePath,
+      url: signData.signedUrl,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export function isSignedUrlExpiring(urlStr: string | null | undefined): boolean {
+  if (!urlStr || typeof urlStr !== "string" || urlStr.trim().length === 0) {
+    return true;
+  }
+  try {
+    const parsed = new URL(urlStr, "https://placeholder.supabase.co");
+
+    // 1. Periksa parameter query exp / expires / expires_at eksplisit
+    const expParam =
+      parsed.searchParams.get("exp") ||
+      parsed.searchParams.get("expires") ||
+      parsed.searchParams.get("expires_at");
+    if (expParam) {
+      let expNum = Number(expParam);
+      if (!Number.isNaN(expNum) && expNum > 0) {
+        if (expNum < 1e11) {
+          expNum *= 1000;
+        }
+        return expNum - Date.now() < 60 * 60 * 1000;
+      }
+    }
+
+    // 2. Periksa parameter token JWT standar Supabase Storage
+    const token = parsed.searchParams.get("token");
+    if (token) {
+      const parts = token.split(".");
+      if (parts.length >= 2) {
+        const base64 = parts[1].replace(/-/g, "+").replace(/_/g, "/");
+        const jsonStr = Buffer.from(base64, "base64").toString("utf-8");
+        const payload = JSON.parse(jsonStr);
+        if (typeof payload.exp === "number") {
+          let expMs = payload.exp;
+          if (expMs < 1e11) {
+            expMs *= 1000;
+          }
+          return expMs - Date.now() < 60 * 60 * 1000;
+        }
+      }
+    }
+  } catch {
+    // Fail-safe: jangan anggap kedaluwarsa jika format tidak dikenal
+  }
+  return false;
+}
+
+export async function refreshPortfolioItemSignedUrl(item: PortfolioItem): Promise<PortfolioItem> {
+  if (item.storagePath && (!item.url || isSignedUrlExpiring(item.url))) {
+    try {
+      const admin = createAdminSupabase();
+      const { data: signData, error: signError } = await admin.storage
+        .from("evidence-private")
+        .createSignedUrl(item.storagePath, 604800);
+
+      if (!signError && signData?.signedUrl) {
+        return {
+          ...item,
+          url: signData.signedUrl,
+        };
+      }
+    } catch {
+      // Fail-safe
+    }
+  }
+  return item;
+}
+
+export async function refreshApplicationSignedUrls(app: JobApplication): Promise<JobApplication> {
+  if (!app.portfolioItems || !Array.isArray(app.portfolioItems) || app.portfolioItems.length === 0) {
+    return app;
+  }
+
+  const needsRefresh = app.portfolioItems.some(
+    (item) => item && item.storagePath && (!item.url || isSignedUrlExpiring(item.url)),
+  );
+  if (!needsRefresh) {
+    return app;
+  }
+
+  const updatedItems = await Promise.all(
+    app.portfolioItems.map((item) => refreshPortfolioItemSignedUrl(item)),
+  );
+
+  let updatedPortfolioUrl = app.portfolioUrl;
+  if (updatedItems[0]?.url && (!updatedPortfolioUrl || isSignedUrlExpiring(updatedPortfolioUrl))) {
+    updatedPortfolioUrl = updatedItems[0].url;
+  }
+
+  const updatedApp: JobApplication = {
+    ...app,
+    portfolioUrl: updatedPortfolioUrl,
+    portfolioItems: updatedItems,
+  };
+
+  inMemoryApplications.set(updatedApp.id, updatedApp);
+  return updatedApp;
+}
+
+export function mergeApplicationDetails(
+  primary: JobApplication,
+  fallback?: JobApplication | null,
+): JobApplication {
+  if (!fallback) return primary;
+
+  let mergedPortfolioItems = primary.portfolioItems;
+
+  if (primary.portfolioItems && fallback.portfolioItems) {
+    mergedPortfolioItems = primary.portfolioItems.map((pItem) => {
+      const fItem = fallback.portfolioItems?.find(
+        (f) =>
+          (f.id && pItem.id && f.id === pItem.id) ||
+          (f.fileName && pItem.fileName && f.fileName === pItem.fileName) ||
+          (f.title && pItem.title && f.title === pItem.title),
+      );
+      if (fItem) {
+        return {
+          ...fItem,
+          ...pItem,
+          fileData: pItem.fileData || fItem.fileData,
+          storagePath: pItem.storagePath || fItem.storagePath,
+          url: pItem.url || fItem.url,
+        };
+      }
+      return pItem;
+    });
+  } else if (!mergedPortfolioItems && fallback.portfolioItems) {
+    mergedPortfolioItems = fallback.portfolioItems;
+  }
+
+  return {
+    ...fallback,
+    ...primary,
+    phone: primary.phone || fallback.phone,
+    location: primary.location || fallback.location,
+    photoUrl: primary.photoUrl || fallback.photoUrl,
+    resumeFileName: primary.resumeFileName || fallback.resumeFileName,
+    resumeUrl: primary.resumeUrl || fallback.resumeUrl,
+    coverLetterFileName: primary.coverLetterFileName || fallback.coverLetterFileName,
+    coverLetter: primary.coverLetter || fallback.coverLetter,
+    portfolioUrl: primary.portfolioUrl || fallback.portfolioUrl,
+    portfolioItems: mergedPortfolioItems,
+  };
+}
+
 export async function saveApplicationToRecruiterMetadata(
   recruiterId: string,
   application: JobApplication,
@@ -678,9 +914,12 @@ export async function saveApplicationToRecruiterMetadata(
       const currentApps: JobApplication[] = Array.isArray(metadata.job_applications)
         ? (metadata.job_applications as JobApplication[])
         : [];
+      const sanitizedApp = sanitizeApplicationForMetadata(application);
       const updatedApps = [
-        ...currentApps.filter((a) => a && typeof a === "object" && a.id !== application.id),
-        application,
+        ...currentApps
+          .filter((a) => a && typeof a === "object" && a.id !== application.id)
+          .map((a) => sanitizeApplicationForMetadata(a)),
+        sanitizedApp,
       ];
 
       await admin.auth.admin.updateUserById(recruiterId, {
@@ -713,9 +952,9 @@ export async function updateApplicationStatusInRecruiterMetadata(
       const updatedApps = currentApps.map((a) => {
         if (a && typeof a === "object" && a.id === applicationId) {
           modified = true;
-          return { ...a, status: newStatus };
+          return sanitizeApplicationForMetadata({ ...a, status: newStatus });
         }
-        return a;
+        return sanitizeApplicationForMetadata(a);
       });
 
       if (modified) {
@@ -745,9 +984,12 @@ export async function saveApplicationToCandidateMetadata(
       const currentApps: JobApplication[] = Array.isArray(metadata.my_applications)
         ? (metadata.my_applications as JobApplication[])
         : [];
+      const sanitizedApp = sanitizeApplicationForMetadata(application);
       const updatedApps = [
-        ...currentApps.filter((a) => a && typeof a === "object" && a.id !== application.id),
-        application,
+        ...currentApps
+          .filter((a) => a && typeof a === "object" && a.id !== application.id)
+          .map((a) => sanitizeApplicationForMetadata(a)),
+        sanitizedApp,
       ];
 
       await admin.auth.admin.updateUserById(candidateId, {
@@ -780,9 +1022,9 @@ export async function updateApplicationStatusInCandidateMetadata(
       const updatedApps = currentApps.map((a) => {
         if (a && typeof a === "object" && a.id === applicationId) {
           modified = true;
-          return { ...a, status: newStatus };
+          return sanitizeApplicationForMetadata({ ...a, status: newStatus });
         }
-        return a;
+        return sanitizeApplicationForMetadata(a);
       });
 
       if (modified) {
@@ -1740,10 +1982,36 @@ export async function applyToJob(
     assessment = await findAssessment(data.assessmentId);
   }
 
+  const applicationId = crypto.randomUUID();
+
+  // Unggah berkas portofolio ke Supabase Storage jika terdapat fileData
+  let processedPortfolioItems = data.portfolioItems;
+  if (data.portfolioItems && data.portfolioItems.length > 0) {
+    processedPortfolioItems = await Promise.all(
+      data.portfolioItems.map(async (item, idx) => {
+        const itemCopy = { ...item };
+        if (itemCopy.fileData) {
+          const uploadRes = await uploadApplicationFileToStorage(
+            applicationId,
+            idx,
+            itemCopy.fileName || `portfolio_${idx}`,
+            itemCopy.fileType || "application/octet-stream",
+            itemCopy.fileData,
+          );
+          if (uploadRes) {
+            itemCopy.storagePath = uploadRes.storagePath;
+            itemCopy.url = uploadRes.url;
+          }
+        }
+        return itemCopy;
+      }),
+    );
+  }
+
   const effectivePortfolioUrl =
     data.portfolioUrl?.trim() ||
-    (data.portfolioItems && data.portfolioItems.length > 0
-      ? data.portfolioItems[0].url || data.portfolioItems[0].fileName
+    (processedPortfolioItems && processedPortfolioItems.length > 0
+      ? processedPortfolioItems[0].url || processedPortfolioItems[0].fileName
       : undefined);
 
   const fitEvaluation = await evaluateJobFit(job, {
@@ -1751,12 +2019,12 @@ export async function applyToJob(
     email: data.candidateEmail,
     assessment,
     portfolioUrl: effectivePortfolioUrl,
-    portfolioItems: data.portfolioItems,
+    portfolioItems: processedPortfolioItems,
     coverLetter: data.coverLetter,
   });
 
   const newApplication: JobApplication = {
-    id: crypto.randomUUID(),
+    id: applicationId,
     jobId: data.jobId,
     recruiterId: recruiterId ?? undefined,
     candidateId,
@@ -1772,7 +2040,7 @@ export async function applyToJob(
     assessmentId: data.assessmentId ?? null,
     skillbridgeScore: fitEvaluation.score,
     portfolioUrl: effectivePortfolioUrl,
-    portfolioItems: data.portfolioItems && data.portfolioItems.length > 0 ? data.portfolioItems : undefined,
+    portfolioItems: processedPortfolioItems && processedPortfolioItems.length > 0 ? processedPortfolioItems : undefined,
     coverLetter: data.coverLetter?.trim() ?? undefined,
     fitEvaluation,
     status: "pending",
@@ -1835,9 +2103,9 @@ export async function applyToJob(
     } else if (
       resWithFit.error &&
       (resWithFit.error.code === "42703" ||
-        resWithFit.error.message.includes("fit_evaluation") ||
-        resWithFit.error.message.includes("phone") ||
-        resWithFit.error.message.includes("column"))
+        resWithFit.error.message?.includes("fit_evaluation") ||
+        resWithFit.error.message?.includes("phone") ||
+        resWithFit.error.message?.includes("column"))
     ) {
       const resWithoutFit = await db
         .from("job_applications")
@@ -1858,8 +2126,8 @@ export async function applyToJob(
       } else if (
         resWithoutFit.error &&
         (resWithoutFit.error.code === "42703" ||
-          resWithoutFit.error.message.includes("phone") ||
-          resWithoutFit.error.message.includes("column"))
+          resWithoutFit.error.message?.includes("phone") ||
+          resWithoutFit.error.message?.includes("column"))
       ) {
         const legacyPayload = {
           id: newApplication.id,
@@ -1916,20 +2184,7 @@ export async function applyToJob(
   let finalApp = newApplication;
   if (inserted) {
     const mapped = mapDbApplication(inserted as DbApplicationRow);
-    finalApp = {
-      ...newApplication,
-      ...mapped,
-      phone: mapped.phone ?? newApplication.phone,
-      location: mapped.location ?? newApplication.location,
-      photoUrl: mapped.photoUrl ?? newApplication.photoUrl,
-      resumeFileName: mapped.resumeFileName ?? newApplication.resumeFileName,
-      resumeUrl: mapped.resumeUrl ?? newApplication.resumeUrl,
-      portfolioItems: mapped.portfolioItems ?? newApplication.portfolioItems,
-      coverLetterMode: mapped.coverLetterMode ?? newApplication.coverLetterMode,
-      coverLetterFileName: mapped.coverLetterFileName ?? newApplication.coverLetterFileName,
-      fitEvaluation: mapped.fitEvaluation ?? fitEvaluation,
-      recruiterId: recruiterId ?? mapped.recruiterId,
-    };
+    finalApp = mergeApplicationDetails(mapped, newApplication);
     inMemoryApplications.set(finalApp.id, finalApp);
     if (recruiterId) {
       applicationRecruiterMap.set(finalApp.id, recruiterId);
@@ -2089,38 +2344,41 @@ export async function getJobApplicationsForRecruiter(
   });
 
   // 9. Gabungkan tanpa duplikat berdasarkan ID (DB > Metadata > In-Memory > Demo)
-  const seenIds = new Set<string>();
-  const combined: JobApplication[] = [];
+  const combinedMap = new Map<string, JobApplication>();
 
   for (const app of filteredDb) {
-    if (!seenIds.has(app.id)) {
-      seenIds.add(app.id);
-      combined.push(app);
-    }
+    const memApp = inMemoryApplications.get(app.id);
+    const merged = mergeApplicationDetails(app, memApp);
+    combinedMap.set(merged.id, merged);
+    inMemoryApplications.set(merged.id, merged);
   }
 
   for (const app of filteredMeta) {
-    if (!seenIds.has(app.id)) {
-      seenIds.add(app.id);
-      inMemoryApplications.set(app.id, app);
-      applicationRecruiterMap.set(app.id, recruiterId);
-      combined.push(app);
+    if (!combinedMap.has(app.id)) {
+      const memApp = inMemoryApplications.get(app.id);
+      const merged = mergeApplicationDetails(app, memApp);
+      combinedMap.set(merged.id, merged);
+      inMemoryApplications.set(merged.id, merged);
+      applicationRecruiterMap.set(merged.id, recruiterId);
     }
   }
 
   for (const app of filteredInMem) {
-    if (!seenIds.has(app.id)) {
-      seenIds.add(app.id);
-      combined.push(app);
+    if (!combinedMap.has(app.id)) {
+      combinedMap.set(app.id, app);
     }
   }
 
   for (const app of filteredDemo) {
-    if (!seenIds.has(app.id)) {
-      seenIds.add(app.id);
-      combined.push(app);
+    if (!combinedMap.has(app.id)) {
+      combinedMap.set(app.id, app);
     }
   }
+
+  let combined = Array.from(combinedMap.values());
+  combined = await Promise.all(
+    combined.map((app) => refreshApplicationSignedUrls(app)),
+  );
 
   return combined.sort((a, b) => new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime());
 }
@@ -2174,37 +2432,40 @@ export async function getJobApplicationsForCandidate(
   const demoApps = DEMO_APPLICATIONS.filter((a) => a.candidateId === candidateId);
   const inMemApps = Array.from(inMemoryApplications.values()).filter((a) => a.candidateId === candidateId);
 
-  const seenIds = new Set<string>();
-  const combined: JobApplication[] = [];
+  const combinedMap = new Map<string, JobApplication>();
 
   for (const a of dbApps) {
-    if (!seenIds.has(a.id)) {
-      seenIds.add(a.id);
-      combined.push(a);
-    }
+    const memApp = inMemoryApplications.get(a.id);
+    const merged = mergeApplicationDetails(a, memApp);
+    combinedMap.set(merged.id, merged);
+    inMemoryApplications.set(merged.id, merged);
   }
 
   for (const a of metadataApps) {
-    if (!seenIds.has(a.id)) {
-      seenIds.add(a.id);
-      inMemoryApplications.set(a.id, a);
-      combined.push(a);
+    if (!combinedMap.has(a.id)) {
+      const memApp = inMemoryApplications.get(a.id);
+      const merged = mergeApplicationDetails(a, memApp);
+      combinedMap.set(merged.id, merged);
+      inMemoryApplications.set(merged.id, merged);
     }
   }
 
   for (const a of inMemApps) {
-    if (!seenIds.has(a.id)) {
-      seenIds.add(a.id);
-      combined.push(a);
+    if (!combinedMap.has(a.id)) {
+      combinedMap.set(a.id, a);
     }
   }
 
   for (const a of demoApps) {
-    if (!seenIds.has(a.id)) {
-      seenIds.add(a.id);
-      combined.push(a);
+    if (!combinedMap.has(a.id)) {
+      combinedMap.set(a.id, a);
     }
   }
+
+  let combined = Array.from(combinedMap.values());
+  combined = await Promise.all(
+    combined.map((app) => refreshApplicationSignedUrls(app)),
+  );
 
   return combined.sort((a, b) => new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime());
 }

@@ -23,6 +23,10 @@ import {
   saveApplicationToRecruiterMetadata,
   updateApplicationStatusInRecruiterMetadata,
   resetInMemoryApplicationsForTesting,
+  uploadApplicationFileToStorage,
+  sanitizeApplicationForMetadata,
+  isSignedUrlExpiring,
+  mergeApplicationDetails,
 } from "./jobs.ts";
 import type { JobPosting, JobApplication } from "./types.ts";
 
@@ -1393,6 +1397,380 @@ test("Helper fungsi persistensi: saveApplicationToRecruiterMetadata dan updateAp
     await updateApplicationStatusInRecruiterMetadata(dummyRecruiterId, "app-helper-001", "shortlisted");
     const updatedApps = (storedMeta.job_applications || []) as JobApplication[];
     assert.equal(updatedApps[0].status, "shortlisted");
+  } finally {
+    globalThis.fetch = origFetch;
+    process.env.NEXT_PUBLIC_SUPABASE_URL = origUrl;
+    process.env.SUPABASE_SERVICE_ROLE_KEY = origKey;
+  }
+});
+
+test("applyToJob dengan berkas lampiran besar (1.5MB) berhasil disimpan ke metadata tanpa error body too large (GoTrue 1MB limit)", async () => {
+  const origFetch = globalThis.fetch;
+  const origUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const origKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  process.env.NEXT_PUBLIC_SUPABASE_URL = "http://localhost:54321";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
+
+  const testRecruiterId = "10000000-0000-4000-8000-000000000888";
+  const testCandidateId = "20000000-0000-4000-8000-000000000888";
+  const testJobId = "30000000-0000-4000-8000-000000000888";
+
+  const userMetadataStore: Record<string, Record<string, unknown>> = {
+    [testRecruiterId]: {
+      custom_jobs: [
+        {
+          id: testJobId,
+          title: "Senior Full-Stack Engineer",
+          companyName: "Perusahaan Storage Cloud",
+          field: "informatics",
+          targetRole: "Senior Engineer",
+          recruiterId: testRecruiterId,
+          status: "active",
+        },
+      ],
+      job_applications: [],
+    },
+    [testCandidateId]: {
+      my_applications: [],
+    },
+  };
+
+  let storageUploadCalled = false;
+  let maxPutBodySize = 0;
+
+  globalThis.fetch = async (url, init) => {
+    const urlStr = typeof url === "string" ? url : url.toString();
+    const method = init?.method || "GET";
+
+    // 1. Mock Supabase Storage upload
+    if (urlStr.includes("/storage/v1/object/evidence-private/")) {
+      storageUploadCalled = true;
+      return new Response(
+        JSON.stringify({ Key: "evidence-private/applications/test.pdf" }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
+    // 2. Mock Supabase Storage signed URL
+    if (urlStr.includes("/storage/v1/object/sign/evidence-private/")) {
+      return new Response(
+        JSON.stringify({
+          signedURL: "/storage/v1/object/sign/evidence-private/applications/test.pdf?token=valid_token",
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
+    // 3. Mock Supabase Auth Admin users endpoint
+    if (urlStr.includes("/auth/v1/admin/users")) {
+      if (urlStr.endsWith("/auth/v1/admin/users") || urlStr.includes("/auth/v1/admin/users?")) {
+        return new Response(
+          JSON.stringify({
+            users: Object.entries(userMetadataStore).map(([id, meta]) => ({
+              id,
+              user_metadata: meta,
+            })),
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+      }
+
+      const parts = urlStr.split("/");
+      const targetUserId = parts[parts.length - 1]?.split("?")[0];
+
+      if (method === "PUT") {
+        const rawBody = typeof init?.body === "string" ? init.body : "";
+        const bodyLength = Buffer.byteLength(rawBody, "utf-8");
+        if (bodyLength > maxPutBodySize) {
+          maxPutBodySize = bodyLength;
+        }
+
+        // SIMULASI BATASAN KETAT GOTRUE: 1MB (1048576 bytes)
+        if (bodyLength > 1048576) {
+          return new Response(
+            JSON.stringify({
+              code: 413,
+              message: "Request body too large (max 1048576 bytes)",
+            }),
+            { status: 413, headers: { "Content-Type": "application/json" } },
+          );
+        }
+
+        const body = JSON.parse(rawBody);
+        if (body.user_metadata) {
+          userMetadataStore[targetUserId] = {
+            ...(userMetadataStore[targetUserId] || {}),
+            ...body.user_metadata,
+          };
+        }
+        return new Response(
+          JSON.stringify({
+            id: targetUserId,
+            user_metadata: userMetadataStore[targetUserId] || {},
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+      }
+
+      return new Response(
+        JSON.stringify({
+          id: targetUserId,
+          user_metadata: userMetadataStore[targetUserId] || {},
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
+    // DB PGRST204
+    return new Response(
+      JSON.stringify({ code: "PGRST204", message: "relation public.job_applications does not exist" }),
+      { status: 404, headers: { "Content-Type": "application/json" } },
+    );
+  };
+
+  try {
+    resetInMemoryApplicationsForTesting();
+
+    // Buat berkas base64 besar: 1.5MB (> 1MB batas GoTrue)
+    const largeBase64 = "data:application/pdf;base64," + "A".repeat(1500000);
+    const largePhoto = "data:image/jpeg;base64," + "B".repeat(50000); // 50KB
+
+    const application = await applyToJob(testCandidateId, {
+      jobId: testJobId,
+      candidateName: "Kandidat Portofolio Besar",
+      candidateEmail: "besar@example.com",
+      photoUrl: largePhoto,
+      portfolioItems: [
+        {
+          id: "item-large-1",
+          title: "Portofolio Raksasa",
+          attachmentMode: "file",
+          fileName: "portofolio_besar.pdf",
+          fileSize: 1500000,
+          fileType: "application/pdf",
+          fileData: largeBase64,
+          type: "case_study",
+          verifiedSkills: ["Architecture", "Next.js"],
+        },
+      ],
+    });
+
+    assert.ok(application.id);
+    assert.ok(storageUploadCalled, "Supabase Storage upload harus dipanggil");
+    assert.ok(application.portfolioItems);
+    assert.equal(application.portfolioItems.length, 1);
+    assert.ok(application.portfolioItems[0].storagePath?.includes("0_portofolio_besar.pdf"));
+    assert.ok(application.portfolioItems[0].url?.includes("valid_token"));
+    // Di in-memory, fileData tetap dipertahankan
+    assert.equal(application.portfolioItems[0].fileData, largeBase64);
+
+    // Di metadata Supabase GoTrue, ukuran request body PUT jauh di bawah 1MB
+    assert.ok(maxPutBodySize < 20000, `Ukuran request body PUT (${maxPutBodySize} bytes) harus jauh di bawah 1MB`);
+
+    // Periksa bahwa metadata recruiter dan kandidat benar-benar tersimpan (tidak terlempar error 413)
+    const recruiterSaved = (userMetadataStore[testRecruiterId].job_applications || []) as JobApplication[];
+    assert.equal(recruiterSaved.length, 1, "Lamaran harus tersimpan di user_metadata recruiter");
+    assert.equal(recruiterSaved[0].id, application.id);
+    // fileData harus dibuang dari metadata
+    assert.equal(recruiterSaved[0].portfolioItems?.[0].fileData, undefined);
+    assert.ok(recruiterSaved[0].portfolioItems?.[0].storagePath);
+    // photoUrl besar harus dipangkas dari metadata
+    assert.equal(recruiterSaved[0].photoUrl, undefined);
+
+    const candidateSaved = (userMetadataStore[testCandidateId].my_applications || []) as JobApplication[];
+    assert.equal(candidateSaved.length, 1, "Lamaran harus tersimpan di user_metadata kandidat");
+    assert.equal(candidateSaved[0].portfolioItems?.[0].fileData, undefined);
+
+    // SIMULASI COLD START / SERVERLESS RESTART
+    resetInMemoryApplicationsForTesting();
+
+    const recruiterApps = await getJobApplicationsForRecruiter(testRecruiterId);
+    assert.equal(recruiterApps.length, 1, "Lamaran tidak boleh hilang setelah cold start");
+    assert.equal(recruiterApps[0].id, application.id);
+    assert.ok(recruiterApps[0].portfolioItems?.[0].storagePath);
+    assert.ok(recruiterApps[0].portfolioItems?.[0].url);
+
+    const candidateApps = await getJobApplicationsForCandidate(testCandidateId);
+    assert.equal(candidateApps.length, 1, "Kandidat tetap dapat melihat lamaran");
+    assert.equal(candidateApps[0].id, application.id);
+  } finally {
+    globalThis.fetch = origFetch;
+    process.env.NEXT_PUBLIC_SUPABASE_URL = origUrl;
+    process.env.SUPABASE_SERVICE_ROLE_KEY = origKey;
+  }
+});
+
+test("sanitizeApplicationForMetadata membuang fileData dan memangkas photoUrl besar namun mempertahankan field lainnya", () => {
+  const sampleApp: JobApplication = {
+    id: "app-sanitize-01",
+    jobId: "job-sanitize-01",
+    candidateId: "cand-sanitize-01",
+    candidateName: "Sanitize Test",
+    candidateEmail: "sanitize@test.com",
+    photoUrl: "data:image/png;base64," + "X".repeat(20000), // > 10KB
+    status: "pending",
+    appliedAt: "2026-09-19T00:00:00Z",
+    portfolioItems: [
+      {
+        id: "p1",
+        title: "Proyek Keren",
+        storagePath: "applications/app-sanitize-01/0_proyek.pdf",
+        url: "https://example.com/signed.pdf",
+        fileName: "proyek.pdf",
+        fileSize: 102400,
+        fileType: "application/pdf",
+        fileData: "data:application/pdf;base64,JVBERi0xLjQK...",
+        type: "certificate",
+        verifiedSkills: ["React", "TypeScript"],
+      },
+    ],
+  };
+
+  const sanitized = sanitizeApplicationForMetadata(sampleApp);
+
+  // fileData harus dibuang
+  assert.equal(sanitized.portfolioItems?.[0].fileData, undefined);
+  // storagePath, url, fileName, fileSize, fileType, verifiedSkills harus tetap ada
+  assert.equal(sanitized.portfolioItems?.[0].storagePath, "applications/app-sanitize-01/0_proyek.pdf");
+  assert.equal(sanitized.portfolioItems?.[0].url, "https://example.com/signed.pdf");
+  assert.equal(sanitized.portfolioItems?.[0].fileName, "proyek.pdf");
+  assert.equal(sanitized.portfolioItems?.[0].fileSize, 102400);
+  assert.equal(sanitized.portfolioItems?.[0].fileType, "application/pdf");
+  assert.deepEqual(sanitized.portfolioItems?.[0].verifiedSkills, ["React", "TypeScript"]);
+  // photoUrl > 10KB harus dipangkas
+  assert.equal(sanitized.photoUrl, undefined);
+
+  // Jika photoUrl berupa URL biasa atau <10KB, harus dipertahankan
+  const normalPhotoApp = sanitizeApplicationForMetadata({
+    ...sampleApp,
+    photoUrl: "https://cdn.example.com/photo.jpg",
+  });
+  assert.equal(normalPhotoApp.photoUrl, "https://cdn.example.com/photo.jpg");
+});
+
+test("isSignedUrlExpiring mendeteksi URL kedaluwarsa atau mendekati kedaluwarsa secara akurat", () => {
+  assert.equal(isSignedUrlExpiring(undefined), true);
+  assert.equal(isSignedUrlExpiring(""), true);
+
+  // JWT kedaluwarsa di masa lalu
+  const pastExp = Math.floor(Date.now() / 1000) - 3600;
+  const tokenPast =
+    Buffer.from(JSON.stringify({ alg: "HS256" })).toString("base64url") +
+    "." +
+    Buffer.from(JSON.stringify({ exp: pastExp })).toString("base64url") +
+    ".sig";
+  assert.equal(isSignedUrlExpiring(`https://test.supabase.co/storage/v1/object/sign/ev/f.pdf?token=${tokenPast}`), true);
+
+  // JWT kedaluwarsa dalam 10 menit (< 60 menit)
+  const soonExp = Math.floor(Date.now() / 1000) + 600;
+  const tokenSoon =
+    Buffer.from(JSON.stringify({ alg: "HS256" })).toString("base64url") +
+    "." +
+    Buffer.from(JSON.stringify({ exp: soonExp })).toString("base64url") +
+    ".sig";
+  assert.equal(isSignedUrlExpiring(`https://test.supabase.co/storage/v1/object/sign/ev/f.pdf?token=${tokenSoon}`), true);
+
+  // JWT berlaku 6 hari ke depan (> 60 menit)
+  const futureExp = Math.floor(Date.now() / 1000) + 6 * 24 * 3600;
+  const tokenFuture =
+    Buffer.from(JSON.stringify({ alg: "HS256" })).toString("base64url") +
+    "." +
+    Buffer.from(JSON.stringify({ exp: futureExp })).toString("base64url") +
+    ".sig";
+  assert.equal(isSignedUrlExpiring(`https://test.supabase.co/storage/v1/object/sign/ev/f.pdf?token=${tokenFuture}`), false);
+
+  // Tautan publik biasa (bukan signed url bertoken)
+  assert.equal(isSignedUrlExpiring("https://github.com/skillbridge/portfolio"), false);
+});
+
+test("mergeApplicationDetails mempertahankan data paling lengkap (fileData dari in-memory)", () => {
+  const metadataApp: JobApplication = {
+    id: "merge-app-01",
+    jobId: "merge-job-01",
+    candidateId: "merge-cand-01",
+    candidateName: "Budi Merge",
+    candidateEmail: "budi@merge.com",
+    status: "shortlisted", // diperbarui di metadata
+    appliedAt: "2026-09-19T10:00:00Z",
+    portfolioItems: [
+      {
+        id: "p-01",
+        title: "Dokumen CV",
+        storagePath: "applications/merge-app-01/0_cv.pdf",
+        url: "https://storage.supabase.co/new-signed-url",
+        type: "certificate",
+      },
+    ],
+  };
+
+  const inMemApp: JobApplication = {
+    ...metadataApp,
+    status: "pending", // status lama di memori
+    portfolioItems: [
+      {
+        id: "p-01",
+        title: "Dokumen CV",
+        fileData: "data:application/pdf;base64,ORIGINAL_RAW_DATA",
+        type: "certificate",
+      },
+    ],
+  };
+
+  const merged = mergeApplicationDetails(metadataApp, inMemApp);
+
+  // Status baru dari metadata dipertahankan
+  assert.equal(merged.status, "shortlisted");
+  // storagePath dan url baru dari metadata dipertahankan
+  assert.equal(merged.portfolioItems?.[0].storagePath, "applications/merge-app-01/0_cv.pdf");
+  assert.equal(merged.portfolioItems?.[0].url, "https://storage.supabase.co/new-signed-url");
+  // fileData lengkap dari in-memory berhasil dipertahankan!
+  assert.equal(merged.portfolioItems?.[0].fileData, "data:application/pdf;base64,ORIGINAL_RAW_DATA");
+});
+
+test("uploadApplicationFileToStorage mengunggah berkas base64 dan fail-safe", async () => {
+  const origFetch = globalThis.fetch;
+  const origUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const origKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  process.env.NEXT_PUBLIC_SUPABASE_URL = "http://localhost:54321";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
+
+  let uploadedPath = "";
+  globalThis.fetch = async (url) => {
+    const urlStr = url.toString();
+    if (urlStr.includes("/storage/v1/object/evidence-private/")) {
+      uploadedPath = urlStr;
+      return new Response(JSON.stringify({ Key: "ok" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (urlStr.includes("/storage/v1/object/sign/evidence-private/")) {
+      return new Response(JSON.stringify({ signedURL: "/object/sign/evidence-private/item.pdf?token=123" }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    return new Response(JSON.stringify({}), { status: 200 });
+  };
+
+  try {
+    const res = await uploadApplicationFileToStorage(
+      "test-app-id",
+      0,
+      "my portfolio.pdf",
+      "application/pdf",
+      "data:application/pdf;base64,SGVsbG8gV29ybGQ=",
+    );
+    assert.ok(res);
+    assert.equal(res.storagePath, "applications/test-app-id/0_my_portfolio.pdf");
+    assert.ok(res.url.includes("/object/sign/evidence-private/item.pdf?token=123"));
+    assert.ok(uploadedPath.includes("0_my_portfolio.pdf"));
+
+    // Fail-safe ketika input tidak valid atau kosong
+    const emptyRes = await uploadApplicationFileToStorage("", 0, "", "", "");
+    assert.equal(emptyRes, null);
   } finally {
     globalThis.fetch = origFetch;
     process.env.NEXT_PUBLIC_SUPABASE_URL = origUrl;

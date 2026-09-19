@@ -13,6 +13,7 @@ import type {
   TalentCandidate,
   JobPosting,
   JobApplication,
+  PortfolioItem,
   Field,
   MinEducation,
   EmploymentType,
@@ -236,6 +237,15 @@ function IconDownload({ width = 14, height = 14, className = "" }: { width?: num
   );
 }
 
+function IconEye({ width = 14, height = 14, className = "" }: { width?: number; height?: number; className?: string }) {
+  return (
+    <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
 function IconSparkles({ width = 16, height = 16, className = "" }: { width?: number; height?: number; className?: string }) {
   return (
     <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
@@ -301,6 +311,518 @@ function getPortfolioTypeLabel(
   }
 }
 
+function FilePreviewModal({
+  item,
+  candidateName,
+  onClose,
+}: {
+  item: PortfolioItem;
+  candidateName?: string;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
+  useEffect(() => {
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, []);
+
+  const fileSource = item.fileData || item.url || "";
+  const rawFileName = item.fileName || item.title || "berkas-portofolio";
+  const hasFile =
+    Boolean(item.fileName) ||
+    Boolean(item.fileData) ||
+    item.attachmentMode === "file" ||
+    item.attachmentMode === "both";
+  const hasUrl = Boolean(item.url && !item.url.startsWith("data:"));
+  const safeExternalUrl = hasUrl
+    ? item.url!.startsWith("http")
+      ? item.url!
+      : `https://${item.url}`
+    : null;
+
+  const badge = getPortfolioTypeLabel(item.type, item.attachmentMode, item.fileName);
+  const formattedSize = item.fileSize ? `${(item.fileSize / 1024).toFixed(0)} KB` : null;
+
+  const fileKind = (() => {
+    const ft = (item.fileType || "").toLowerCase();
+    const fn = (item.fileName || item.title || "").toLowerCase();
+    const url = (item.url || "").toLowerCase();
+    const fd = (item.fileData || "").toLowerCase();
+
+    if (
+      ft.startsWith("image/") ||
+      /\.(png|jpe?g|webp|gif|svg|avif|bmp|ico)$/i.test(fn) ||
+      /\.(png|jpe?g|webp|gif|svg|avif|bmp|ico)$/i.test(url) ||
+      fd.startsWith("data:image/")
+    ) {
+      return "image" as const;
+    }
+
+    if (
+      ft === "application/pdf" ||
+      fn.endsWith(".pdf") ||
+      url.endsWith(".pdf") ||
+      fd.startsWith("data:application/pdf")
+    ) {
+      return "pdf" as const;
+    }
+
+    return "other" as const;
+  })();
+
+  const downloadFileName = (() => {
+    let name = rawFileName.replace(/[/\\?%*:|"<>]/g, "-").trim();
+    if (!name) name = "berkas-portofolio";
+    const hasExt = /\.[a-zA-Z0-9]{2,5}$/.test(name);
+    if (!hasExt) {
+      if (fileKind === "image") {
+        const sub = item.fileType?.split("/")[1] || "png";
+        name += `.${sub === "jpeg" ? "jpg" : sub}`;
+      } else if (fileKind === "pdf") {
+        name += ".pdf";
+      }
+    }
+    return name;
+  })();
+
+  const extension =
+    (item.fileName ? item.fileName.split(".").pop() : "")?.toUpperCase() ||
+    (item.fileType ? item.fileType.split("/").pop()?.toUpperCase() : "") ||
+    (fileKind === "pdf" ? "PDF" : fileKind === "image" ? "GAMBAR" : "DOKUMEN");
+
+  const handleDownload = () => {
+    if (!fileSource) return;
+    if (fileSource.startsWith("data:") || fileSource.startsWith("blob:")) {
+      const a = document.createElement("a");
+      a.href = fileSource;
+      a.download = downloadFileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      return;
+    }
+
+    fetch(fileSource, { mode: "cors" })
+      .then((res) => {
+        if (!res.ok) throw new Error("Gagal mengunduh");
+        return res.blob();
+      })
+      .then((blob) => {
+        const blobUrl = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = blobUrl;
+        a.download = downloadFileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+      })
+      .catch(() => {
+        const a = document.createElement("a");
+        a.href = fileSource;
+        a.download = downloadFileName;
+        a.target = "_blank";
+        a.rel = "noopener noreferrer";
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      });
+  };
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="preview-modal-title"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(15, 23, 42, 0.72)",
+        backdropFilter: "blur(4px)",
+        zIndex: 120,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "clamp(0.75rem, 3vw, 1.5rem)",
+        overflowY: "auto",
+      }}
+    >
+      <div
+        className="panel"
+        style={{
+          maxWidth: "880px",
+          width: "100%",
+          maxHeight: "92vh",
+          display: "flex",
+          flexDirection: "column",
+          borderRadius: "10px",
+          overflow: "hidden",
+          padding: 0,
+          background: "#ffffff",
+          boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+          border: "1px solid var(--line)",
+          position: "relative",
+        }}
+      >
+        {/* Header Modal */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            padding: "1rem 1.25rem",
+            borderBottom: "1px solid var(--line)",
+            background: "#ffffff",
+            gap: "1rem",
+          }}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: "0.25rem", minWidth: 0 }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+              <span
+                style={{
+                  fontSize: "0.72rem",
+                  fontWeight: 700,
+                  padding: "0.15rem 0.45rem",
+                  borderRadius: "4px",
+                  color: badge.color,
+                  background: badge.bg,
+                  border: `1px solid ${badge.border}`,
+                }}
+              >
+                {badge.label}
+              </span>
+              {formattedSize && (
+                <span style={{ fontSize: "0.75rem", color: "var(--muted)", fontWeight: 500 }}>
+                  ({formattedSize})
+                </span>
+              )}
+              {candidateName && (
+                <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
+                  • Pelamar: <strong style={{ color: "var(--ink)" }}>{candidateName}</strong>
+                </span>
+              )}
+            </div>
+            <h3
+              id="preview-modal-title"
+              style={{
+                margin: 0,
+                fontSize: "1.05rem",
+                fontWeight: 700,
+                color: "var(--ink)",
+                wordBreak: "break-word",
+              }}
+            >
+              {rawFileName}
+            </h3>
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Tutup pratinjau berkas"
+            style={{
+              background: "none",
+              border: "none",
+              padding: "0.35rem",
+              borderRadius: "4px",
+              cursor: "pointer",
+              color: "var(--muted)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              lineHeight: 1,
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.color = "var(--ink)")}
+            onMouseLeave={(e) => (e.currentTarget.style.color = "var(--muted)")}
+          >
+            <IconX width={20} height={20} />
+          </button>
+        </div>
+
+        {/* Konten Pratinjau */}
+        <div
+          style={{
+            padding: "1.25rem",
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: "0.75rem",
+            background: "#f8fafc",
+            minHeight: "280px",
+            justifyContent: "center",
+          }}
+        >
+          {fileKind === "image" && fileSource ? (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "#ffffff",
+                border: "1px solid var(--line)",
+                borderRadius: "8px",
+                padding: "1rem",
+                overflow: "auto",
+              }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={fileSource}
+                alt={rawFileName}
+                style={{
+                  maxWidth: "100%",
+                  maxHeight: "500px",
+                  objectFit: "contain",
+                  borderRadius: "6px",
+                  boxShadow: "0 2px 8px rgba(0, 0, 0, 0.06)",
+                }}
+              />
+            </div>
+          ) : fileKind === "pdf" && fileSource ? (
+            <div
+              style={{
+                width: "100%",
+                height: "550px",
+                border: "1px solid var(--line)",
+                borderRadius: "8px",
+                overflow: "hidden",
+                background: "#ffffff",
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              <object
+                data={fileSource}
+                type="application/pdf"
+                style={{ width: "100%", height: "100%", border: "none" }}
+              >
+                <iframe
+                  src={fileSource}
+                  title={rawFileName}
+                  style={{ width: "100%", height: "100%", border: "none" }}
+                >
+                  <div style={{ padding: "2rem", textAlign: "center", color: "var(--muted)" }}>
+                    Peramban tidak dapat memuat pratinjau PDF langsung. Silakan unduh berkas di bawah.
+                  </div>
+                </iframe>
+              </object>
+            </div>
+          ) : !hasFile && safeExternalUrl ? (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "#ffffff",
+                border: "1px dashed var(--line)",
+                borderRadius: "8px",
+                padding: "2.5rem 1.5rem",
+                textAlign: "center",
+                gap: "0.85rem",
+              }}
+            >
+              <div
+                style={{
+                  width: "68px",
+                  height: "68px",
+                  borderRadius: "12px",
+                  background: "#e0f2fe",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#0369a1",
+                }}
+              >
+                <IconExternalLink width={34} height={34} />
+              </div>
+              <div>
+                <div style={{ fontSize: "1rem", fontWeight: 700, color: "var(--ink)", wordBreak: "break-all" }}>
+                  {rawFileName}
+                </div>
+                <div style={{ fontSize: "0.82rem", color: "#0284c7", marginTop: "0.25rem", wordBreak: "break-all" }}>
+                  {safeExternalUrl}
+                </div>
+              </div>
+              <p style={{ fontSize: "0.84rem", color: "var(--muted)", maxWidth: "450px", margin: 0, lineHeight: 1.5 }}>
+                Portofolio ini berupa tautan situs web atau repositori eksternal. Anda dapat meninjau karya atau proyek kandidat secara langsung di peramban web.
+              </p>
+              <a
+                href={safeExternalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="button primary"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.4rem",
+                  fontSize: "0.84rem",
+                  fontWeight: 600,
+                  marginTop: "0.5rem",
+                  textDecoration: "none",
+                  color: "#ffffff",
+                }}
+              >
+                <span>Buka Tautan Asli</span>
+                <IconExternalLink width={14} height={14} />
+              </a>
+            </div>
+          ) : (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                background: "#ffffff",
+                border: "1px dashed var(--line)",
+                borderRadius: "8px",
+                padding: "2.5rem 1.5rem",
+                textAlign: "center",
+                gap: "0.85rem",
+              }}
+            >
+              <div
+                style={{
+                  width: "68px",
+                  height: "68px",
+                  borderRadius: "12px",
+                  background: "#f1f5f9",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#475569",
+                }}
+              >
+                <IconFileText width={36} height={36} />
+              </div>
+              <div>
+                <div style={{ fontSize: "1rem", fontWeight: 700, color: "var(--ink)", wordBreak: "break-all" }}>
+                  {rawFileName}
+                </div>
+                <div style={{ fontSize: "0.82rem", color: "var(--muted)", marginTop: "0.25rem" }}>
+                  Format Berkas: <strong>{extension}</strong> {formattedSize ? `• ${formattedSize}` : ""}
+                </div>
+              </div>
+              <p style={{ fontSize: "0.84rem", color: "var(--muted)", maxWidth: "450px", margin: 0, lineHeight: 1.5 }}>
+                Pratinjau langsung tidak tersedia untuk format berkas ini ({extension}). Silakan unduh atau simpan berkas ke perangkat Anda untuk melihat isinya secara lengkap.
+              </p>
+              {hasFile && (
+                <button
+                  type="button"
+                  onClick={handleDownload}
+                  className="button primary"
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "0.4rem",
+                    fontSize: "0.84rem",
+                    fontWeight: 600,
+                    marginTop: "0.5rem",
+                  }}
+                >
+                  <IconDownload width={14} height={14} />
+                  <span>Unduh Berkas Sekarang</span>
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Footer / Action Bar */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            padding: "0.85rem 1.25rem",
+            borderTop: "1px solid var(--line)",
+            background: "#ffffff",
+            gap: "0.75rem",
+            flexWrap: "wrap",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", flexWrap: "wrap" }}>
+            {hasFile && (
+              <a
+                href={fileSource || "#"}
+                download={downloadFileName}
+                onClick={(e) => {
+                  if (!fileSource.startsWith("data:") && !fileSource.startsWith("blob:")) {
+                    e.preventDefault();
+                    handleDownload();
+                  }
+                }}
+                className="button primary"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.4rem",
+                  fontSize: "0.84rem",
+                  fontWeight: 600,
+                  textDecoration: "none",
+                  color: "#ffffff",
+                  padding: "0.45rem 1rem",
+                }}
+              >
+                <IconDownload width={14} height={14} />
+                <span>Unduh / Simpan Berkas</span>
+              </a>
+            )}
+            {safeExternalUrl && (
+              <a
+                href={safeExternalUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="button secondary"
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.4rem",
+                  fontSize: "0.84rem",
+                  fontWeight: 600,
+                  textDecoration: "none",
+                  padding: "0.45rem 1rem",
+                }}
+              >
+                <span>Buka Tautan Asli</span>
+                <IconExternalLink width={13} height={13} />
+              </a>
+            )}
+          </div>
+
+          <button
+            type="button"
+            onClick={onClose}
+            className="button secondary"
+            style={{
+              fontSize: "0.84rem",
+              fontWeight: 600,
+              padding: "0.45rem 1rem",
+            }}
+          >
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function RecruiterView() {
   const [authState, setAuthState] = useState<AuthState>({ status: "loading" });
   const [activeTab, setActiveTab] = useState<"talent-pool" | "my-jobs">("talent-pool");
@@ -316,7 +838,23 @@ export default function RecruiterView() {
   const [jobs, setJobs] = useState<JobPosting[]>([]);
   const [jobsLoading, setJobsLoading] = useState(false);
   const [jobsError, setJobsError] = useState("");
-  const [applications, setApplications] = useState<JobApplication[]>([]);
+  const [applications, setApplications] = useState<JobApplication[]>(() => {
+    if (typeof window !== "undefined") {
+      try {
+        const cached = localStorage.getItem("skillbridge_recruiter_applications_cache");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed)) return parsed;
+        }
+      } catch {}
+    }
+    return [];
+  });
+  const [previewModalItem, setPreviewModalItem] = useState<{
+    isOpen: boolean;
+    item: PortfolioItem;
+    candidateName?: string;
+  } | null>(null);
 
   // Lowongan & Pelamar State (ATS Pipeline)
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -541,7 +1079,18 @@ export default function RecruiterView() {
       .then(([jobsData, appsData]: [JobPosting[], JobApplication[]]) => {
         if (active) {
           setJobs(filterOutDeletedJobs(jobsData));
-          setApplications(appsData);
+          setApplications((prev) => {
+            const map = new Map<string, JobApplication>();
+            for (const a of prev) map.set(a.id, a);
+            for (const a of appsData) map.set(a.id, a);
+            const merged = Array.from(map.values()).sort(
+              (a, b) => new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime()
+            );
+            try {
+              localStorage.setItem("skillbridge_recruiter_applications_cache", JSON.stringify(merged));
+            } catch {}
+            return merged;
+          });
           setJobsError("");
         }
       })
@@ -592,9 +1141,13 @@ export default function RecruiterView() {
   }, [authState.status]);
 
   async function handleUpdateApplicationStatus(applicationId: string, newStatus: ApplicationStatus) {
-    setApplications((prev) =>
-      prev.map((app) => (app.id === applicationId ? { ...app, status: newStatus } : app)),
-    );
+    setApplications((prev) => {
+      const updated = prev.map((app) => (app.id === applicationId ? { ...app, status: newStatus } : app));
+      try {
+        localStorage.setItem("skillbridge_recruiter_applications_cache", JSON.stringify(updated));
+      } catch {}
+      return updated;
+    });
     setCandidates((prev) =>
       prev.map((c) => (c.id === applicationId ? { ...c, status: newStatus } : c)),
     );
@@ -2126,16 +2679,69 @@ export default function RecruiterView() {
                                         >
                                           {badge.label}
                                         </span>
-                                        <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--ink)" }}>
-                                          {item.title || item.fileName || item.url}
-                                        </span>
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            setPreviewModalItem({
+                                              isOpen: true,
+                                              item,
+                                              candidateName: activeApp.candidateName,
+                                            })
+                                          }
+                                          style={{
+                                            background: "none",
+                                            border: "none",
+                                            padding: 0,
+                                            margin: 0,
+                                            fontSize: "0.85rem",
+                                            fontWeight: 600,
+                                            color: "var(--ink)",
+                                            cursor: "pointer",
+                                            textAlign: "left",
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            gap: "0.25rem",
+                                            textDecoration: "none",
+                                          }}
+                                          onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
+                                          onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
+                                          title="Klik untuk melihat pratinjau berkas"
+                                        >
+                                          <span>{item.title || item.fileName || item.url}</span>
+                                        </button>
                                         {hasFile && item.fileSize ? (
                                           <span style={{ fontSize: "0.72rem", color: "var(--muted)" }}>
                                             ({(item.fileSize / 1024).toFixed(0)} KB)
                                           </span>
                                         ) : null}
                                       </div>
-                                      <div style={{ display: "flex", alignItems: "center", gap: "0.65rem" }}>
+                                      <div style={{ display: "flex", alignItems: "center", gap: "0.65rem", flexWrap: "wrap" }}>
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            setPreviewModalItem({
+                                              isOpen: true,
+                                              item,
+                                              candidateName: activeApp.candidateName,
+                                            })
+                                          }
+                                          style={{
+                                            background: "none",
+                                            border: "none",
+                                            padding: 0,
+                                            cursor: "pointer",
+                                            fontSize: "0.78rem",
+                                            color: "#2563eb",
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            gap: "0.25rem",
+                                            textDecoration: "underline",
+                                            fontWeight: 600,
+                                          }}
+                                        >
+                                          <IconEye width={12} height={12} />
+                                          <span>Lihat Pratinjau</span>
+                                        </button>
                                         {hasFile && (
                                           <a
                                             href={item.fileData || item.url || "#"}
@@ -2213,9 +2819,11 @@ export default function RecruiterView() {
                                   display: "flex",
                                   justifyContent: "space-between",
                                   alignItems: "center",
+                                  flexWrap: "wrap",
+                                  gap: "0.5rem",
                                 }}
                               >
-                                <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: "0.45rem", flexWrap: "wrap" }}>
                                   <span
                                     style={{
                                       fontSize: "0.7rem",
@@ -2229,27 +2837,89 @@ export default function RecruiterView() {
                                   >
                                     Portofolio Utama
                                   </span>
-                                  <span style={{ fontSize: "0.85rem", color: "var(--ink)" }}>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setPreviewModalItem({
+                                        isOpen: true,
+                                        item: {
+                                          id: "main-portfolio",
+                                          title: "Portofolio Utama",
+                                          url: activeApp.portfolioUrl,
+                                          type: "other",
+                                        },
+                                        candidateName: activeApp.candidateName,
+                                      })
+                                    }
+                                    style={{
+                                      background: "none",
+                                      border: "none",
+                                      padding: 0,
+                                      margin: 0,
+                                      fontSize: "0.85rem",
+                                      fontWeight: 600,
+                                      color: "var(--ink)",
+                                      cursor: "pointer",
+                                      textAlign: "left",
+                                      textDecoration: "none",
+                                    }}
+                                    onMouseEnter={(e) => (e.currentTarget.style.textDecoration = "underline")}
+                                    onMouseLeave={(e) => (e.currentTarget.style.textDecoration = "none")}
+                                    title="Klik untuk melihat pratinjau"
+                                  >
                                     {activeApp.portfolioUrl}
-                                  </span>
+                                  </button>
                                 </div>
-                                <a
-                                  href={activeApp.portfolioUrl!.startsWith("http") ? activeApp.portfolioUrl! : `https://${activeApp.portfolioUrl}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  style={{
-                                    fontSize: "0.78rem",
-                                    color: "#0284c7",
-                                    display: "inline-flex",
-                                    alignItems: "center",
-                                    gap: "0.25rem",
-                                    textDecoration: "underline",
-                                    fontWeight: 600,
-                                  }}
-                                >
-                                  <span>Buka Tautan</span>
-                                  <IconExternalLink width={12} height={12} />
-                                </a>
+                                <div style={{ display: "flex", alignItems: "center", gap: "0.65rem", flexWrap: "wrap" }}>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setPreviewModalItem({
+                                        isOpen: true,
+                                        item: {
+                                          id: "main-portfolio",
+                                          title: "Portofolio Utama",
+                                          url: activeApp.portfolioUrl,
+                                          type: "other",
+                                        },
+                                        candidateName: activeApp.candidateName,
+                                      })
+                                    }
+                                    style={{
+                                      background: "none",
+                                      border: "none",
+                                      padding: 0,
+                                      cursor: "pointer",
+                                      fontSize: "0.78rem",
+                                      color: "#2563eb",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: "0.25rem",
+                                      textDecoration: "underline",
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    <IconEye width={12} height={12} />
+                                    <span>Lihat Pratinjau</span>
+                                  </button>
+                                  <a
+                                    href={activeApp.portfolioUrl!.startsWith("http") ? activeApp.portfolioUrl! : `https://${activeApp.portfolioUrl}`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    style={{
+                                      fontSize: "0.78rem",
+                                      color: "#0284c7",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: "0.25rem",
+                                      textDecoration: "underline",
+                                      fontWeight: 600,
+                                    }}
+                                  >
+                                    <span>Buka Tautan</span>
+                                    <IconExternalLink width={12} height={12} />
+                                  </a>
+                                </div>
                               </div>
                             )}
                           </div>
@@ -2368,6 +3038,28 @@ export default function RecruiterView() {
                               : "#";
                             return (
                               <div key={pi.id || idx} style={{ display: "inline-flex", gap: "0.35rem", flexWrap: "wrap" }}>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setPreviewModalItem({
+                                      isOpen: true,
+                                      item: pi,
+                                      candidateName: activeApp.candidateName,
+                                    })
+                                  }
+                                  className="button secondary"
+                                  style={{
+                                    fontSize: "0.82rem",
+                                    minHeight: "36px",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "0.35rem",
+                                    padding: "0 0.85rem",
+                                  }}
+                                >
+                                  <IconEye width={13} height={13} />
+                                  <span>Lihat Pratinjau</span>
+                                </button>
                                 {hasFile && (
                                   <a
                                     href={pi.fileData || pi.url || "#"}
@@ -2421,27 +3113,56 @@ export default function RecruiterView() {
                             );
                           })
                         ) : activeApp.portfolioUrl ? (
-                          <a
-                            href={
-                              activeApp.portfolioUrl.startsWith("http")
-                                ? activeApp.portfolioUrl
-                                : `https://${activeApp.portfolioUrl}`
-                            }
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="button secondary"
-                            style={{
-                              fontSize: "0.82rem",
-                              minHeight: "36px",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              gap: "0.35rem",
-                              padding: "0 0.85rem",
-                            }}
-                          >
-                            <IconExternalLink width={13} height={13} />
-                            <span>Buka Portofolio</span>
-                          </a>
+                          <div style={{ display: "inline-flex", gap: "0.35rem", flexWrap: "wrap" }}>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setPreviewModalItem({
+                                  isOpen: true,
+                                  item: {
+                                    id: "main-portfolio",
+                                    title: "Portofolio Utama",
+                                    url: activeApp.portfolioUrl,
+                                    type: "other",
+                                  },
+                                  candidateName: activeApp.candidateName,
+                                })
+                              }
+                              className="button secondary"
+                              style={{
+                                fontSize: "0.82rem",
+                                minHeight: "36px",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "0.35rem",
+                                padding: "0 0.85rem",
+                              }}
+                            >
+                              <IconEye width={13} height={13} />
+                              <span>Lihat Pratinjau</span>
+                            </button>
+                            <a
+                              href={
+                                activeApp.portfolioUrl.startsWith("http")
+                                  ? activeApp.portfolioUrl
+                                  : `https://${activeApp.portfolioUrl}`
+                              }
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="button secondary"
+                              style={{
+                                fontSize: "0.82rem",
+                                minHeight: "36px",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "0.35rem",
+                                padding: "0 0.85rem",
+                              }}
+                            >
+                              <IconExternalLink width={13} height={13} />
+                              <span>Buka Portofolio</span>
+                            </a>
+                          </div>
                         ) : null}
 
                         <a
@@ -3725,6 +4446,17 @@ export default function RecruiterView() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL: PRATINJAU BERKAS PORTOFOLIO */}
+      {/* ========================================================= */}
+      {previewModalItem?.isOpen && (
+        <FilePreviewModal
+          item={previewModalItem.item}
+          candidateName={previewModalItem.candidateName}
+          onClose={() => setPreviewModalItem(null)}
+        />
       )}
     </section>
   );
