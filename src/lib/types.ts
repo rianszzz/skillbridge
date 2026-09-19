@@ -83,6 +83,26 @@ export type TalentCandidate = {
   fitEvaluation?: JobFitEvaluation | null;
   status?: ApplicationStatus;
   coverLetter?: string;
+  portfolioItems?: PortfolioItem[];
+};
+
+export type PortfolioItemType =
+  | "github_repo"
+  | "github_profile"
+  | "live_demo"
+  | "design"
+  | "figma"
+  | "case_study"
+  | "certificate"
+  | "other";
+
+export type PortfolioItem = {
+  id: string;
+  title: string;
+  url: string;
+  type: PortfolioItemType;
+  verifiedSkills?: string[];
+  description?: string;
 };
 
 export type TalentPoolFilters = {
@@ -147,6 +167,7 @@ export type JobApplication = {
   assessmentId?: string | null;
   skillbridgeScore?: number | null;
   portfolioUrl?: string;
+  portfolioItems?: PortfolioItem[];
   coverLetter?: string;
   fitEvaluation?: JobFitEvaluation | null;
   status: ApplicationStatus;

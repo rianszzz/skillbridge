@@ -17,6 +17,8 @@ import type {
   JobFilters,
   JobFitEvaluation,
   AssessmentResult,
+  PortfolioItem,
+  PortfolioItemType,
 } from "./types.ts";
 
 export { isTableMissing };
@@ -33,6 +35,8 @@ export type {
   JobApplication,
   JobFilters,
   JobFitEvaluation,
+  PortfolioItem,
+  PortfolioItemType,
 };
 const inMemoryJobs = new Map<string, JobPosting>();
 const inMemoryApplications = new Map<string, JobApplication>();
@@ -204,9 +208,34 @@ export const MOCK_APPLICATIONS_FIXTURE: JobApplication[] = [
     candidateId: "00000000-0000-4000-8000-000000000002",
     candidateName: "Ahmad Fauzi (INF-02)",
     candidateEmail: "ahmad.fauzi@demo.skillbridge.id",
+    phone: "+62 812-3456-7890",
+    location: "Jakarta Selatan, DKI Jakarta",
     assessmentId: "00000000-0000-4000-8000-000000000002",
     skillbridgeScore: 75,
     portfolioUrl: "https://github.com/skillbridge-demo/portfolio-ahmad",
+    portfolioItems: [
+      {
+        id: "pi-inf-1",
+        title: "Repositori Web App E-Commerce (Next.js & Tailwind)",
+        url: "https://github.com/skillbridge-demo/portfolio-ahmad",
+        type: "github_repo",
+        verifiedSkills: ["Next.js", "React", "TypeScript", "Tailwind CSS"],
+      },
+      {
+        id: "pi-inf-2",
+        title: "Live Production Demo Vercel",
+        url: "https://shop-demo-ahmad.vercel.app",
+        type: "live_demo",
+        verifiedSkills: ["REST API", "Git"],
+      },
+      {
+        id: "pi-inf-3",
+        title: "Sertifikat Frontend Developer Dicoding",
+        url: "https://dicoding.com/certificates/DEMO-INF-02",
+        type: "certificate",
+        verifiedSkills: ["React"],
+      },
+    ],
     coverLetter:
       "Saya lulusan SMK dengan portofolio Next.js dan skor Skillbridge 75. Sangat berminat berkontribusi di PT Nusantara Cloud Solusindo.",
     status: "shortlisted",
@@ -220,7 +249,7 @@ export const MOCK_APPLICATIONS_FIXTURE: JobApplication[] = [
       matchingCriteria: [
         "Keahlian terverifikasi: Next.js, React, TypeScript, dan Tailwind CSS",
         "Kualitas struktur kode modul web rapi dan responsif",
-        "Tautan portofolio GitHub aktif terlampir untuk verifikasi karya nyata",
+        "3 bukti portofolio & karya nyata terlampir untuk verifikasi HR",
       ],
       missingCriteria: [
         "Automated unit testing dan integrasi pengujian CI/CD",
@@ -237,9 +266,34 @@ export const MOCK_APPLICATIONS_FIXTURE: JobApplication[] = [
     candidateId: "00000000-0000-4000-8000-000000000022",
     candidateName: "Siti Rahma (DKV-02)",
     candidateEmail: "siti.rahma@demo.skillbridge.id",
+    phone: "+62 813-9876-5432",
+    location: "Bandung, Jawa Barat",
     assessmentId: "00000000-0000-4000-8000-000000000022",
     skillbridgeScore: 75,
     portfolioUrl: "https://karyasitirahma.portfolio.id",
+    portfolioItems: [
+      {
+        id: "pi-dkv-1",
+        title: "Brand Identity Kopi Nusantara (Behance Case Study)",
+        url: "https://behance.net/gallery/karyasitirahma",
+        type: "design",
+        verifiedSkills: ["Identitas Visual", "Tipografi", "Figma"],
+      },
+      {
+        id: "pi-dkv-2",
+        title: "Design System & Interactive Prototype Figma",
+        url: "https://figma.com/@siti-rahma/design-system",
+        type: "figma",
+        verifiedSkills: ["Figma", "Tata Letak / Layout"],
+      },
+      {
+        id: "pi-dkv-3",
+        title: "Website Portofolio Desain Interaktif",
+        url: "https://karyasitirahma.portfolio.id",
+        type: "live_demo",
+        verifiedSkills: ["Teori Warna"],
+      },
+    ],
     coverLetter:
       "Portofolio brand identity saya telah dinilai Skillbridge dengan skor 75. Siap berkarya di Studio Karya Kreatif Visual.",
     status: "reviewed",
@@ -253,7 +307,7 @@ export const MOCK_APPLICATIONS_FIXTURE: JobApplication[] = [
       matchingCriteria: [
         "Perancangan identitas visual merek, logo guidelines, dan eksplorasi tipografi di Figma",
         "Keharmonisan teori warna (color harmony) dan hierarki tata letak visual",
-        "Portofolio digital aktif dengan studi kasus komprehensif",
+        "3 bukti portofolio & karya nyata terlampir untuk verifikasi HR",
       ],
       missingCriteria: [
         "Dokumentasi persiapan berkas cetak siap produksi (print production ready)",
@@ -270,9 +324,34 @@ export const MOCK_APPLICATIONS_FIXTURE: JobApplication[] = [
     candidateId: "00000000-0000-4000-8000-000000000032",
     candidateName: "Budi Santoso (MKT-02)",
     candidateEmail: "budi.santoso@demo.skillbridge.id",
+    phone: "+62 811-2233-4455",
+    location: "Surabaya, Jawa Timur",
     assessmentId: "00000000-0000-4000-8000-000000000032",
     skillbridgeScore: 75,
     portfolioUrl: "https://storage.demo.skillbridge.id/marketing/laporan-kampanye-budi.pdf",
+    portfolioItems: [
+      {
+        id: "pi-mkt-1",
+        title: "Case Study ROAS 4.2x Kampanye Ramadhan (Laporan PDF)",
+        url: "https://storage.demo.skillbridge.id/marketing/laporan-kampanye-budi.pdf",
+        type: "case_study",
+        verifiedSkills: ["Meta Ads", "Google Ads", "Analisis ROAS"],
+      },
+      {
+        id: "pi-mkt-2",
+        title: "Dashboard Kinerja Iklan & Metrik (Looker Studio)",
+        url: "https://datastudio.google.com/reporting/demo-mkt",
+        type: "case_study",
+        verifiedSkills: ["Google Analytics", "CTR & CPC"],
+      },
+      {
+        id: "pi-mkt-3",
+        title: "Google Ads Search Certification",
+        url: "https://skillshop.exceedlms.com/certificates/demo-mkt",
+        type: "certificate",
+        verifiedSkills: ["Google Ads"],
+      },
+    ],
     coverLetter:
       "Saya memiliki pengalaman mengelola kampanye multi-kanal dengan analisis performa berbasis data dan metrik ROAS.",
     status: "reviewed",
@@ -286,7 +365,7 @@ export const MOCK_APPLICATIONS_FIXTURE: JobApplication[] = [
       matchingCriteria: [
         "Perancangan dan eksekusi kampanye berbayar multi-kanal (Meta Ads & Google Ads)",
         "Analisis performa metrik kuantitatif (CTR, CPC, Conversion Rate, dan ROAS)",
-        "Pengujian variasi copy dan visual iklan (A/B testing)",
+        "3 bukti portofolio & karya nyata terlampir untuk verifikasi HR",
       ],
       missingCriteria: [
         "Penyajian data baseline historis jangka panjang untuk perbandingan pertumbuhan",
@@ -415,6 +494,7 @@ type DbApplicationRow = {
   assessment_id?: string | null;
   skillbridge_score?: number | string | null;
   portfolio_url?: string | null;
+  portfolio_items?: unknown;
   cover_letter?: string | null;
   fit_evaluation?: unknown;
   status: ApplicationStatus;
@@ -483,6 +563,22 @@ function mapDbApplication(row: DbApplicationRow): JobApplication {
     applicationRecruiterMap.set(row.id, recruiterId);
   }
 
+  const rawPortfolioItems = Array.isArray(row.portfolio_items)
+    ? (row.portfolio_items as PortfolioItem[])
+    : cachedMem?.portfolioItems;
+
+  const fallbackPortfolioItems =
+    !rawPortfolioItems && row.portfolio_url
+      ? [
+          {
+            id: `portfolio-${row.id}`,
+            title: "Tautan Portofolio Utama",
+            url: row.portfolio_url,
+            type: "other" as const,
+          },
+        ]
+      : rawPortfolioItems;
+
   return {
     id: row.id,
     jobId: row.job_id,
@@ -503,6 +599,7 @@ function mapDbApplication(row: DbApplicationRow): JobApplication {
         ? Number(row.skillbridge_score)
         : cachedMem?.skillbridgeScore ?? null,
     portfolioUrl: row.portfolio_url ?? cachedMem?.portfolioUrl ?? undefined,
+    portfolioItems: fallbackPortfolioItems,
     coverLetter: row.cover_letter ?? cachedMem?.coverLetter ?? undefined,
     fitEvaluation: dbFit ?? cachedFit ?? cachedMem?.fitEvaluation ?? null,
     status: row.status ?? cachedMem?.status ?? "pending",
@@ -1504,6 +1601,7 @@ export type ApplyJobInput = {
   assessmentId?: string | null;
   skillbridgeScore?: number | null;
   portfolioUrl?: string;
+  portfolioItems?: PortfolioItem[];
   coverLetter?: string;
 };
 
@@ -1642,11 +1740,18 @@ export async function applyToJob(
     assessment = await findAssessment(data.assessmentId);
   }
 
+  const effectivePortfolioUrl =
+    data.portfolioUrl?.trim() ||
+    (data.portfolioItems && data.portfolioItems.length > 0
+      ? data.portfolioItems[0].url
+      : undefined);
+
   const fitEvaluation = await evaluateJobFit(job, {
     name: data.candidateName,
     email: data.candidateEmail,
     assessment,
-    portfolioUrl: data.portfolioUrl,
+    portfolioUrl: effectivePortfolioUrl,
+    portfolioItems: data.portfolioItems,
     coverLetter: data.coverLetter,
   });
 
@@ -1666,7 +1771,8 @@ export async function applyToJob(
     coverLetterFileName: data.coverLetterFileName?.trim() || undefined,
     assessmentId: data.assessmentId ?? null,
     skillbridgeScore: fitEvaluation.score,
-    portfolioUrl: data.portfolioUrl?.trim() ?? undefined,
+    portfolioUrl: effectivePortfolioUrl,
+    portfolioItems: data.portfolioItems && data.portfolioItems.length > 0 ? data.portfolioItems : undefined,
     coverLetter: data.coverLetter?.trim() ?? undefined,
     fitEvaluation,
     status: "pending",
@@ -1701,6 +1807,7 @@ export async function applyToJob(
       assessment_id: newApplication.assessmentId,
       skillbridge_score: newApplication.skillbridgeScore,
       portfolio_url: newApplication.portfolioUrl ?? null,
+      portfolio_items: newApplication.portfolioItems ?? null,
       cover_letter: newApplication.coverLetter ?? null,
       status: newApplication.status,
       is_demo: false,
@@ -1817,6 +1924,7 @@ export async function applyToJob(
       photoUrl: mapped.photoUrl ?? newApplication.photoUrl,
       resumeFileName: mapped.resumeFileName ?? newApplication.resumeFileName,
       resumeUrl: mapped.resumeUrl ?? newApplication.resumeUrl,
+      portfolioItems: mapped.portfolioItems ?? newApplication.portfolioItems,
       coverLetterMode: mapped.coverLetterMode ?? newApplication.coverLetterMode,
       coverLetterFileName: mapped.coverLetterFileName ?? newApplication.coverLetterFileName,
       fitEvaluation: mapped.fitEvaluation ?? fitEvaluation,

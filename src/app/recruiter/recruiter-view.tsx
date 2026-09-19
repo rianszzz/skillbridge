@@ -289,6 +289,27 @@ function getCandidateInitials(name: string): string {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
+function getPortfolioTypeLabel(type?: string): { label: string; color: string; bg: string; border: string } {
+  switch (type) {
+    case "github_repo":
+      return { label: "GitHub Repo", color: "#1e293b", bg: "#f1f5f9", border: "#cbd5e1" };
+    case "github_profile":
+      return { label: "GitHub Profil", color: "#1e293b", bg: "#f1f5f9", border: "#cbd5e1" };
+    case "live_demo":
+      return { label: "Live Demo Web", color: "#0369a1", bg: "#f0f9ff", border: "#bae6fd" };
+    case "design":
+      return { label: "Portofolio Desain", color: "#9333ea", bg: "#faf5ff", border: "#e9d5ff" };
+    case "figma":
+      return { label: "Figma Prototype", color: "#c026d3", bg: "#fdf4ff", border: "#f5d0fe" };
+    case "case_study":
+      return { label: "Case Study & Metrik", color: "#b45309", bg: "#fffbeb", border: "#fde68a" };
+    case "certificate":
+      return { label: "Sertifikasi", color: "#047857", bg: "#ecfdf5", border: "#a7f3d0" };
+    default:
+      return { label: "Tautan Karya", color: "#475569", bg: "#f8fafc", border: "#e2e8f0" };
+  }
+}
+
 export default function RecruiterView() {
   const [authState, setAuthState] = useState<AuthState>({ status: "loading" });
   const [activeTab, setActiveTab] = useState<"talent-pool" | "my-jobs">("talent-pool");
@@ -2050,6 +2071,169 @@ export default function RecruiterView() {
                         </div>
                       )}
 
+                      {/* Bukti Portofolio, Karya & Sertifikasi Card */}
+                      {((activeApp.portfolioItems && activeApp.portfolioItems.length > 0) || activeApp.portfolioUrl) && (
+                        <div style={{ background: "white", border: "1px solid var(--line)", borderRadius: "6px", padding: "1rem" }}>
+                          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.65rem", flexWrap: "wrap", gap: "0.4rem" }}>
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                              <IconBriefcase width={15} height={15} />
+                              <h4 style={{ margin: 0, fontSize: "0.92rem", fontWeight: 700, color: "var(--ink)" }}>
+                                Bukti Portofolio, Karya & Sertifikasi ({activeApp.portfolioItems?.length || 1})
+                              </h4>
+                            </div>
+                            {activeApp.skillbridgeScore !== null && activeApp.skillbridgeScore !== undefined && (
+                              <span
+                                style={{
+                                  fontSize: "0.72rem",
+                                  padding: "0.15rem 0.5rem",
+                                  borderRadius: "4px",
+                                  background: "#f0fdf4",
+                                  color: "#166534",
+                                  border: "1px solid #bbf7d0",
+                                  fontWeight: 600,
+                                }}
+                              >
+                                Terverifikasi Skillbridge ({activeApp.skillbridgeScore}/100)
+                              </span>
+                            )}
+                          </div>
+
+                          <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>
+                            {activeApp.portfolioItems && activeApp.portfolioItems.length > 0 ? (
+                              activeApp.portfolioItems.map((item, idx) => {
+                                const badge = getPortfolioTypeLabel(item.type);
+                                const safeUrl = item.url.startsWith("http") ? item.url : `https://${item.url}`;
+                                return (
+                                  <div
+                                    key={item.id || idx}
+                                    style={{
+                                      border: "1px solid var(--line)",
+                                      borderRadius: "6px",
+                                      padding: "0.65rem 0.85rem",
+                                      background: "#fafafa",
+                                      display: "flex",
+                                      flexDirection: "column",
+                                      gap: "0.35rem",
+                                    }}
+                                  >
+                                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                                      <div style={{ display: "flex", alignItems: "center", gap: "0.45rem", flexWrap: "wrap" }}>
+                                        <span
+                                          style={{
+                                            fontSize: "0.7rem",
+                                            fontWeight: 700,
+                                            padding: "0.12rem 0.4rem",
+                                            borderRadius: "3px",
+                                            color: badge.color,
+                                            background: badge.bg,
+                                            border: `1px solid ${badge.border}`,
+                                          }}
+                                        >
+                                          {badge.label}
+                                        </span>
+                                        <span style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--ink)" }}>
+                                          {item.title || item.url}
+                                        </span>
+                                      </div>
+                                      <a
+                                        href={safeUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        style={{
+                                          fontSize: "0.78rem",
+                                          color: "#0284c7",
+                                          display: "inline-flex",
+                                          alignItems: "center",
+                                          gap: "0.25rem",
+                                          textDecoration: "underline",
+                                          fontWeight: 600,
+                                        }}
+                                      >
+                                        <span>Buka Tautan</span>
+                                        <IconExternalLink width={12} height={12} />
+                                      </a>
+                                    </div>
+
+                                    {/* Tag Keahlian yang Dibuktikan */}
+                                    {item.verifiedSkills && item.verifiedSkills.length > 0 && (
+                                      <div style={{ display: "flex", alignItems: "center", gap: "0.35rem", flexWrap: "wrap", paddingTop: "0.25rem" }}>
+                                        <span style={{ fontSize: "0.7rem", color: "var(--muted)" }}>
+                                          Membuktikan keahlian:
+                                        </span>
+                                        {item.verifiedSkills.map((sk) => (
+                                          <span
+                                            key={sk}
+                                            style={{
+                                              fontSize: "0.7rem",
+                                              padding: "0.1rem 0.35rem",
+                                              borderRadius: "3px",
+                                              background: "#e0f2fe",
+                                              color: "#0369a1",
+                                              border: "1px solid #bae6fd",
+                                              fontWeight: 500,
+                                            }}
+                                          >
+                                            ✓ {sk}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })
+                            ) : (
+                              <div
+                                style={{
+                                  border: "1px solid var(--line)",
+                                  borderRadius: "6px",
+                                  padding: "0.65rem 0.85rem",
+                                  background: "#fafafa",
+                                  display: "flex",
+                                  justifyContent: "space-between",
+                                  alignItems: "center",
+                                }}
+                              >
+                                <div style={{ display: "flex", alignItems: "center", gap: "0.45rem" }}>
+                                  <span
+                                    style={{
+                                      fontSize: "0.7rem",
+                                      fontWeight: 700,
+                                      padding: "0.12rem 0.4rem",
+                                      borderRadius: "3px",
+                                      color: "#1e293b",
+                                      background: "#f1f5f9",
+                                      border: "1px solid #cbd5e1",
+                                    }}
+                                  >
+                                    Portofolio Utama
+                                  </span>
+                                  <span style={{ fontSize: "0.85rem", color: "var(--ink)" }}>
+                                    {activeApp.portfolioUrl}
+                                  </span>
+                                </div>
+                                <a
+                                  href={activeApp.portfolioUrl!.startsWith("http") ? activeApp.portfolioUrl! : `https://${activeApp.portfolioUrl}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{
+                                    fontSize: "0.78rem",
+                                    color: "#0284c7",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "0.25rem",
+                                    textDecoration: "underline",
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  <span>Buka Tautan</span>
+                                  <IconExternalLink width={12} height={12} />
+                                </a>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
                       {/* AI Evaluation & Gap Notes */}
                       <div style={{ background: "white", border: "1px solid var(--line)", borderRadius: "6px", padding: "1rem" }}>
                         <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", marginBottom: "0.65rem" }}>
@@ -2153,9 +2337,40 @@ export default function RecruiterView() {
                           borderTop: "1px solid var(--line)",
                         }}
                       >
-                        {activeApp.portfolioUrl && (
+                        {activeApp.portfolioItems && activeApp.portfolioItems.length > 0 ? (
+                          activeApp.portfolioItems.map((pi, idx) => (
+                            <a
+                              key={pi.id || idx}
+                              href={pi.url.startsWith("http") ? pi.url : `https://${pi.url}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="button secondary"
+                              style={{
+                                fontSize: "0.82rem",
+                                minHeight: "36px",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "0.35rem",
+                                padding: "0 0.85rem",
+                              }}
+                            >
+                              <IconExternalLink width={13} height={13} />
+                              <span>
+                                {pi.title
+                                  ? pi.title.length > 25
+                                    ? `${pi.title.slice(0, 23)}...`
+                                    : pi.title
+                                  : `Buka Portofolio #${idx + 1}`}
+                              </span>
+                            </a>
+                          ))
+                        ) : activeApp.portfolioUrl ? (
                           <a
-                            href={activeApp.portfolioUrl.startsWith("http") ? activeApp.portfolioUrl : `https://${activeApp.portfolioUrl}`}
+                            href={
+                              activeApp.portfolioUrl.startsWith("http")
+                                ? activeApp.portfolioUrl
+                                : `https://${activeApp.portfolioUrl}`
+                            }
                             target="_blank"
                             rel="noopener noreferrer"
                             className="button secondary"
@@ -2171,7 +2386,7 @@ export default function RecruiterView() {
                             <IconExternalLink width={13} height={13} />
                             <span>Buka Portofolio</span>
                           </a>
-                        )}
+                        ) : null}
 
                         <a
                           href={`mailto:${activeApp.candidateEmail}?subject=${encodeURIComponent(

@@ -1,5 +1,5 @@
 import Groq from "groq-sdk";
-import type { AssessmentResult, JobPosting, JobFitEvaluation } from "./types.ts";
+import type { AssessmentResult, JobPosting, JobFitEvaluation, PortfolioItem } from "./types.ts";
 
 export type { JobFitEvaluation };
 
@@ -24,6 +24,7 @@ export type JobApplicantInput = {
   email?: string;
   assessment?: AssessmentResult | null;
   portfolioUrl?: string;
+  portfolioItems?: PortfolioItem[];
   coverLetter?: string;
 };
 
@@ -35,11 +36,23 @@ export function fallbackJobFitEvaluation(
   job: JobPosting,
   applicant: JobApplicantInput,
 ): JobFitEvaluation {
+  const portfolioVerifiedSkills = new Set<string>();
+  if (applicant.portfolioItems && applicant.portfolioItems.length > 0) {
+    for (const item of applicant.portfolioItems) {
+      if (item.verifiedSkills) {
+        for (const s of item.verifiedSkills) {
+          portfolioVerifiedSkills.add(s.toLowerCase().trim());
+        }
+      }
+    }
+  }
+
   const applicantText = [
     applicant.assessment?.role ?? "",
     ...(applicant.assessment?.strengths ?? []),
     ...(applicant.assessment?.criteria?.map((c) => c.reason) ?? []),
     applicant.portfolioUrl ?? "",
+    ...(applicant.portfolioItems?.map((p) => `${p.title} ${p.url} ${p.type} ${p.verifiedSkills?.join(" ") ?? ""}`) ?? []),
     applicant.coverLetter ?? "",
   ]
     .join(" ")
@@ -53,9 +66,14 @@ export function fallbackJobFitEvaluation(
 
   for (const skill of requiredSkills) {
     const cleanSkill = skill.toLowerCase().trim();
-    if (cleanSkill && applicantText.includes(cleanSkill)) {
+    const verifiedByTag = portfolioVerifiedSkills.has(cleanSkill);
+    if (cleanSkill && (applicantText.includes(cleanSkill) || verifiedByTag)) {
       matchedSkillCount++;
-      matchingCriteria.push(`Keahlian terverifikasi sesuai kebutuhan: ${skill}`);
+      if (verifiedByTag) {
+        matchingCriteria.push(`Keahlian dibuktikan lewat portofolio: ${skill}`);
+      } else {
+        matchingCriteria.push(`Keahlian terverifikasi sesuai kebutuhan: ${skill}`);
+      }
     } else {
       missingCriteria.push(`Keahlian belum terverifikasi secara eksplisit: ${skill}`);
     }
@@ -82,7 +100,14 @@ export function fallbackJobFitEvaluation(
   }
 
   // Evaluasi bukti portofolio / cover letter
-  if (applicant.portfolioUrl && applicant.portfolioUrl.trim().length > 0) {
+  const hasPortfolioItems = Boolean(applicant.portfolioItems && applicant.portfolioItems.length > 0);
+  const hasPortfolioUrl = Boolean(applicant.portfolioUrl && applicant.portfolioUrl.trim().length > 0);
+  const hasPortfolio = hasPortfolioItems || hasPortfolioUrl;
+
+  if (hasPortfolioItems && applicant.portfolioItems) {
+    const count = applicant.portfolioItems.length;
+    matchingCriteria.push(`${count} bukti portofolio & karya nyata terlampir untuk verifikasi HR`);
+  } else if (hasPortfolioUrl) {
     matchingCriteria.push("Tautan portofolio aktif terlampir untuk verifikasi karya nyata");
   } else {
     missingCriteria.push("Tautan portofolio proyek spesifik belum disertakan");
@@ -98,11 +123,11 @@ export function fallbackJobFitEvaluation(
     const skillRatio =
       requiredSkills.length > 0 ? matchedSkillCount / requiredSkills.length : 0.6;
     rawScore = assessmentScore * 0.65 + skillRatio * 35;
-  } else if (applicant.portfolioUrl && applicant.coverLetter) {
+  } else if (hasPortfolio && applicant.coverLetter) {
     const skillRatio =
       requiredSkills.length > 0 ? matchedSkillCount / requiredSkills.length : 0.4;
     rawScore = skillRatio >= 0.4 ? 50 : 25;
-  } else if (applicant.portfolioUrl || applicant.coverLetter) {
+  } else if (hasPortfolio || applicant.coverLetter) {
     rawScore = 25;
   } else {
     rawScore = 0;
@@ -221,6 +246,13 @@ export async function evaluateJobFit(
       name: applicant.name,
       email: applicant.email,
       portfolioUrl: applicant.portfolioUrl ?? "",
+      portfolioItems:
+        applicant.portfolioItems?.map((p) => ({
+          title: p.title,
+          type: p.type,
+          url: p.url,
+          verifiedSkills: p.verifiedSkills,
+        })) ?? [],
       coverLetter: applicant.coverLetter ?? "",
       assessment: applicant.assessment
         ? {

@@ -18,7 +18,28 @@ import type {
   WorkplaceType,
   CompensationType,
   AssessmentResult,
+  PortfolioItem,
+  PortfolioItemType,
 } from "@/lib/types";
+
+export type CandidatePortfolioFormItem = {
+  id: string;
+  type: PortfolioItemType;
+  title: string;
+  url: string;
+  verifiedSkills: string[];
+};
+
+const PORTFOLIO_TYPE_OPTIONS: { id: PortfolioItemType; label: string; placeholder: string }[] = [
+  { id: "github_repo", label: "Repositori GitHub (Proyek/Kode)", placeholder: "https://github.com/username/project" },
+  { id: "github_profile", label: "Profil GitHub Lengkap", placeholder: "https://github.com/username" },
+  { id: "live_demo", label: "Demo Aplikasi / Web Live", placeholder: "https://my-project.vercel.app" },
+  { id: "design", label: "Portofolio Desain (Behance / Dribbble)", placeholder: "https://behance.net/gallery/..." },
+  { id: "figma", label: "Prototype / File Figma", placeholder: "https://figma.com/file/... atau @username" },
+  { id: "case_study", label: "Case Study / Laporan Kampanye", placeholder: "https://drive.google.com/... atau https://notion.so/..." },
+  { id: "certificate", label: "Sertifikasi Profesional", placeholder: "https://dicoding.com/certificates/... atau URL sertifikat" },
+  { id: "other", label: "Tautan Portofolio / Dokumen Lainnya", placeholder: "https://..." },
+];
 
 const FIELDS: { id: Field | "all"; label: string }[] = [
   { id: "all", label: "Semua Bidang" },
@@ -157,6 +178,7 @@ export default function JobsView() {
 
   const [selectedAssessmentId, setSelectedAssessmentId] = useState<string>("");
   const [portfolioUrl, setPortfolioUrl] = useState("");
+  const [portfolioItems, setPortfolioItems] = useState<CandidatePortfolioFormItem[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [submitSuccess, setSubmitSuccess] = useState(false);
@@ -407,6 +429,84 @@ export default function JobsView() {
     } else {
       setSelectedAssessmentId("");
     }
+
+    const initialType: PortfolioItemType =
+      job.field === "informatics"
+        ? "github_repo"
+        : job.field === "design"
+          ? "design"
+          : "case_study";
+
+    setPortfolioItems([
+      {
+        id: crypto.randomUUID(),
+        type: initialType,
+        title: "",
+        url: "",
+        verifiedSkills: [],
+      },
+    ]);
+    setPortfolioUrl("");
+  }
+
+  function handleAddPortfolioItem() {
+    const defaultType: PortfolioItemType =
+      applyJob?.field === "informatics"
+        ? "live_demo"
+        : applyJob?.field === "design"
+          ? "figma"
+          : "certificate";
+
+    setPortfolioItems((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        type: defaultType,
+        title: "",
+        url: "",
+        verifiedSkills: [],
+      },
+    ]);
+  }
+
+  function handleUpdatePortfolioItem(
+    id: string,
+    field: "type" | "title" | "url",
+    value: string,
+  ) {
+    setPortfolioItems((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, [field]: value } : item)),
+    );
+  }
+
+  function handleTogglePortfolioSkill(itemId: string, skill: string) {
+    setPortfolioItems((prev) =>
+      prev.map((item) => {
+        if (item.id !== itemId) return item;
+        const exists = item.verifiedSkills.includes(skill);
+        const updatedSkills = exists
+          ? item.verifiedSkills.filter((s) => s !== skill)
+          : [...item.verifiedSkills, skill];
+        return { ...item, verifiedSkills: updatedSkills };
+      }),
+    );
+  }
+
+  function handleRemovePortfolioItem(id: string) {
+    setPortfolioItems((prev) => {
+      if (prev.length <= 1) {
+        return [
+          {
+            id: crypto.randomUUID(),
+            type: applyJob?.field === "informatics" ? "github_repo" : "other",
+            title: "",
+            url: "",
+            verifiedSkills: [],
+          },
+        ];
+      }
+      return prev.filter((item) => item.id !== id);
+    });
   }
 
   function handleResumeFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -606,6 +706,18 @@ export default function JobsView() {
           : `${phoneCountryCode} ${cleanPhone.replace(/^0+/, "")}`
         : undefined;
 
+      const validPortfolioItems = portfolioItems
+        .filter((item) => item.url.trim().length > 0)
+        .map((item) => ({
+          id: item.id,
+          title: item.title.trim() || item.url.trim(),
+          url: item.url.trim(),
+          type: item.type,
+          verifiedSkills: item.verifiedSkills,
+        }));
+
+      const primaryPortfolioUrl = validPortfolioItems[0]?.url || portfolioUrl.trim() || undefined;
+
       const payload = {
         candidateName: applicantName.trim(),
         candidateEmail: applicantEmail.trim(),
@@ -621,7 +733,8 @@ export default function JobsView() {
           coverLetterMode === "upload" ? coverLetterFileName.trim() || undefined : undefined,
         assessmentId: selectedAssessment ? selectedAssessment.id : null,
         skillbridgeScore: selectedAssessment?.finalScore ?? null,
-        portfolioUrl: portfolioUrl.trim() || undefined,
+        portfolioUrl: primaryPortfolioUrl,
+        portfolioItems: validPortfolioItems.length > 0 ? validPortfolioItems : undefined,
       };
 
       const res = await fetch(`/api/jobs/${applyJob.id}/apply`, {
@@ -2736,21 +2849,210 @@ export default function JobsView() {
                     )}
                   </div>
 
-                  {/* URL Bukti Portofolio Tambahan */}
-                  <div className="field">
-                    <label htmlFor="applicant-portfolio">
-                      Tautan Bukti Portofolio (Opsional)
-                    </label>
-                    <input
-                      id="applicant-portfolio"
-                      type="url"
-                      placeholder="https://github.com/... atau https://behance.net/..."
-                      value={portfolioUrl}
-                      onChange={(e) => setPortfolioUrl(e.target.value)}
-                    />
-                    <p className="hint">
-                      Repositori GitHub, profil Behance/Dribbble, Figma, atau dokumen pendukung.
+                  {/* Bukti Portofolio & Sertifikasi Tambahan */}
+                  <div style={{ marginTop: "1.25rem" }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.35rem" }}>
+                      <label style={{ fontWeight: 600, fontSize: "0.92rem", color: "var(--ink)", margin: 0 }}>
+                        Bukti Portofolio, Karya & Sertifikasi (Opsional)
+                      </label>
+                      <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>
+                        {portfolioItems.filter((p) => p.url.trim().length > 0).length} tautan aktif
+                      </span>
+                    </div>
+                    <p className="hint" style={{ marginTop: 0, marginBottom: "0.75rem", fontSize: "0.8rem", lineHeight: 1.45 }}>
+                      Lampirkan repositori kode proyek, live demo, desain, case study kampanye, atau sertifikat untuk membuktikan keahlian Anda secara nyata.
                     </p>
+
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem", marginBottom: "0.75rem" }}>
+                      {portfolioItems.map((item, idx) => {
+                        const typeConfig =
+                          PORTFOLIO_TYPE_OPTIONS.find((opt) => opt.id === item.type) ||
+                          PORTFOLIO_TYPE_OPTIONS[0];
+                        return (
+                          <div
+                            key={item.id}
+                            style={{
+                              border: "1px solid var(--line)",
+                              borderRadius: "8px",
+                              padding: "0.85rem",
+                              background: "#fcfcfc",
+                              display: "flex",
+                              flexDirection: "column",
+                              gap: "0.6rem",
+                            }}
+                          >
+                            <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+                              <span
+                                style={{
+                                  fontSize: "0.72rem",
+                                  fontWeight: 700,
+                                  color: "var(--muted)",
+                                  background: "#f1f5f9",
+                                  padding: "0.15rem 0.45rem",
+                                  borderRadius: "4px",
+                                  flexShrink: 0,
+                                }}
+                              >
+                                #{idx + 1}
+                              </span>
+                              <div style={{ flex: "1 1 45%" }}>
+                                <select
+                                  aria-label="Kategori Bukti Portofolio"
+                                  value={item.type}
+                                  onChange={(e) =>
+                                    handleUpdatePortfolioItem(
+                                      item.id,
+                                      "type",
+                                      e.target.value as PortfolioItemType,
+                                    )
+                                  }
+                                  style={{
+                                    width: "100%",
+                                    fontSize: "0.82rem",
+                                    padding: "0.35rem 0.5rem",
+                                    borderRadius: "4px",
+                                    border: "1px solid var(--line)",
+                                    background: "white",
+                                  }}
+                                >
+                                  {PORTFOLIO_TYPE_OPTIONS.map((opt) => (
+                                    <option key={opt.id} value={opt.id}>
+                                      {opt.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                              <div style={{ flex: "1 1 50%" }}>
+                                <input
+                                  type="text"
+                                  placeholder="Nama / Judul Karya (cth: E-Commerce Web App)"
+                                  value={item.title}
+                                  onChange={(e) =>
+                                    handleUpdatePortfolioItem(item.id, "title", e.target.value)
+                                  }
+                                  style={{
+                                    width: "100%",
+                                    fontSize: "0.82rem",
+                                    padding: "0.35rem 0.5rem",
+                                    borderRadius: "4px",
+                                    border: "1px solid var(--line)",
+                                  }}
+                                />
+                              </div>
+                              {portfolioItems.length > 1 && (
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemovePortfolioItem(item.id)}
+                                  title="Hapus bukti ini"
+                                  style={{
+                                    border: "none",
+                                    background: "transparent",
+                                    color: "#94a3b8",
+                                    cursor: "pointer",
+                                    padding: "0.25rem",
+                                    fontSize: "1rem",
+                                    lineHeight: 1,
+                                    flexShrink: 0,
+                                  }}
+                                >
+                                  ✕
+                                </button>
+                              )}
+                            </div>
+
+                            {/* URL Input */}
+                            <div>
+                              <input
+                                type="url"
+                                placeholder={typeConfig.placeholder}
+                                value={item.url}
+                                onChange={(e) =>
+                                  handleUpdatePortfolioItem(item.id, "url", e.target.value)
+                                }
+                                style={{
+                                  width: "100%",
+                                  fontSize: "0.82rem",
+                                  padding: "0.4rem 0.55rem",
+                                  borderRadius: "4px",
+                                  border: "1px solid var(--line)",
+                                }}
+                              />
+                            </div>
+
+                            {/* Skill Tagging for this project */}
+                            {applyJob.requiredSkills && applyJob.requiredSkills.length > 0 && (
+                              <div
+                                style={{
+                                  paddingTop: "0.35rem",
+                                  borderTop: "1px dashed var(--line)",
+                                }}
+                              >
+                                <span
+                                  style={{
+                                    fontSize: "0.73rem",
+                                    color: "var(--muted)",
+                                    display: "block",
+                                    marginBottom: "0.3rem",
+                                  }}
+                                >
+                                  Centang keahlian lowongan yang dibuktikan oleh karya/sertifikat ini:
+                                </span>
+                                <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
+                                  {applyJob.requiredSkills.map((skill) => {
+                                    const isTagged = item.verifiedSkills.includes(skill);
+                                    return (
+                                      <button
+                                        key={skill}
+                                        type="button"
+                                        onClick={() =>
+                                          handleTogglePortfolioSkill(item.id, skill)
+                                        }
+                                        style={{
+                                          fontSize: "0.72rem",
+                                          padding: "0.2rem 0.5rem",
+                                          borderRadius: "12px",
+                                          border: isTagged
+                                            ? "1px solid #38bdf8"
+                                            : "1px solid var(--line)",
+                                          background: isTagged ? "#f0f9ff" : "white",
+                                          color: isTagged ? "#0369a1" : "var(--ink)",
+                                          cursor: "pointer",
+                                          display: "inline-flex",
+                                          alignItems: "center",
+                                          gap: "0.25rem",
+                                          fontWeight: isTagged ? 600 : 400,
+                                          transition: "all 0.15s ease",
+                                        }}
+                                      >
+                                        <span>{isTagged ? "✓" : "+"}</span>
+                                        <span>{skill}</span>
+                                      </button>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleAddPortfolioItem}
+                      className="button secondary"
+                      style={{
+                        fontSize: "0.8rem",
+                        padding: "0.35rem 0.75rem",
+                        minHeight: "34px",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: "0.35rem",
+                      }}
+                    >
+                      <span>+</span>
+                      <span>Tambah Tautan Portofolio / Sertifikat Lainnya</span>
+                    </button>
                   </div>
                 </div>
 

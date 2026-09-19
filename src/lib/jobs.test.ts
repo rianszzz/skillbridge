@@ -400,6 +400,40 @@ test("applyToJob menerima dan menyimpan data pelamar tambahan (phone, location, 
   assert.ok(app.fitEvaluation);
 });
 
+test("applyToJob menerima dan menyimpan portfolioItems dinamis dengan skill tagging", async () => {
+  const applicationInput = {
+    jobId: MOCK_JOBS_FIXTURE[0].id,
+    candidateName: "Rian Multi Portfolio",
+    candidateEmail: "rian.multi@example.com",
+    portfolioItems: [
+      {
+        id: "p1",
+        title: "Proyek Next.js E-Commerce",
+        url: "https://github.com/rian/nextjs-ecommerce",
+        type: "github_repo" as const,
+        verifiedSkills: ["Next.js", "React"],
+      },
+      {
+        id: "p2",
+        title: "Live Production Demo",
+        url: "https://rian-ecommerce.vercel.app",
+        type: "live_demo" as const,
+        verifiedSkills: ["Tailwind CSS"],
+      },
+    ],
+  };
+
+  const app = await applyToJob("candidate-test-multi-portfolio", applicationInput);
+
+  assert.ok(app.id);
+  assert.equal(app.portfolioUrl, "https://github.com/rian/nextjs-ecommerce");
+  assert.ok(app.portfolioItems);
+  assert.equal(app.portfolioItems.length, 2);
+  assert.equal(app.portfolioItems[0].title, "Proyek Next.js E-Commerce");
+  assert.equal(app.portfolioItems[1].type, "live_demo");
+  assert.deepEqual(app.portfolioItems[0].verifiedSkills, ["Next.js", "React"]);
+});
+
 test("DEMO_APPLICATIONS kosong di produksi dan MOCK_APPLICATIONS_FIXTURE memuat 3 pelamar realistis dengan fitEvaluation terstruktur", () => {
   assert.equal(DEMO_APPLICATIONS.length, 0, "DEMO_APPLICATIONS harus kosong di produksi");
   assert.equal(MOCK_APPLICATIONS_FIXTURE.length, 3, "Harus memuat tepat 3 pelamar demo di fixture (Ahmad, Siti, Budi)");

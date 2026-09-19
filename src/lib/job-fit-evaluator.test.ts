@@ -115,3 +115,35 @@ test("evaluateJobFit bekerja fail-safe tanpa GROQ_API_KEY", async () => {
     }
   }
 });
+
+test("fallbackJobFitEvaluation mengakui bukti dari portfolioItems dan verifiedSkills", () => {
+  const job = MOCK_JOBS_FIXTURE[0]; // Junior Front-End Web Developer
+  const applicant = {
+    name: "Triandra Andantyo",
+    email: "triandra@example.com",
+    portfolioItems: [
+      {
+        id: "p1",
+        title: "Repositori Web App Modern",
+        url: "https://github.com/triandra/nextjs-app",
+        type: "github_repo" as const,
+        verifiedSkills: ["Next.js", "Tailwind CSS"],
+      },
+      {
+        id: "p2",
+        title: "Sertifikat Frontend Developer",
+        url: "https://dicoding.com/cert/123",
+        type: "certificate" as const,
+        verifiedSkills: ["React", "TypeScript"],
+      },
+    ],
+    coverLetter: "Berikut karya dan sertifikasi saya.",
+  };
+
+  const result = fallbackJobFitEvaluation(job, applicant);
+
+  assert.ok(result.matchingCriteria.some((c) => c.includes("Keahlian dibuktikan lewat portofolio: Next.js")));
+  assert.ok(result.matchingCriteria.some((c) => c.includes("Keahlian dibuktikan lewat portofolio: React")));
+  assert.ok(result.matchingCriteria.some((c) => c.includes("2 bukti portofolio & karya nyata terlampir")));
+  assert.ok(result.score >= 50, "Kandidat dengan 2 portofolio dan skill verified harus mencapai minimal skor 50");
+});

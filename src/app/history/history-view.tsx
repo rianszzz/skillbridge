@@ -347,17 +347,30 @@ export default function HistoryView() {
                           Lihat Bukti Terlampir
                         </Link>
                       )}
-                      {app.portfolioUrl && (
+                      {app.portfolioItems && app.portfolioItems.length > 0 ? (
+                        app.portfolioItems.map((pi, idx) => (
+                          <a
+                            key={pi.id || idx}
+                            className="button secondary"
+                            href={pi.url.startsWith("http") ? pi.url : `https://${pi.url}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ fontSize: "0.85rem", minHeight: "38px" }}
+                          >
+                            {pi.title || `Buka Portofolio #${idx + 1}`}
+                          </a>
+                        ))
+                      ) : app.portfolioUrl ? (
                         <a
                           className="button secondary"
-                          href={app.portfolioUrl}
+                          href={app.portfolioUrl.startsWith("http") ? app.portfolioUrl : `https://${app.portfolioUrl}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           style={{ fontSize: "0.85rem", minHeight: "38px" }}
                         >
                           Buka Portofolio
                         </a>
-                      )}
+                      ) : null}
                       <Link
                         className="button secondary"
                         href="/jobs"

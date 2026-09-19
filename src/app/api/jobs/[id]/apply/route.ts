@@ -52,6 +52,7 @@ export async function POST(
           ? Number(body.skillbridgeScore)
           : null,
       portfolioUrl: body.portfolioUrl?.trim() || undefined,
+      portfolioItems: Array.isArray(body.portfolioItems) ? body.portfolioItems : undefined,
       coverLetter: body.coverLetter?.trim() || undefined,
     };
 
