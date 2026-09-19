@@ -1,4 +1,4 @@
-import test from "node:test";
+import test, { before, after } from "node:test";
 import assert from "node:assert/strict";
 import {
   getTalentPool,
@@ -7,8 +7,21 @@ import {
   isTableMissing,
   type TalentCandidate,
 } from "./talent-pool.ts";
-import { createJobPosting, deleteJobPosting, DEMO_APPLICATIONS } from "./jobs.ts";
+import {
+  createJobPosting,
+  deleteJobPosting,
+  DEMO_APPLICATIONS,
+  MOCK_APPLICATIONS_FIXTURE,
+} from "./jobs.ts";
 import type { JobApplication } from "./types.ts";
+
+before(() => {
+  DEMO_APPLICATIONS.push(...MOCK_APPLICATIONS_FIXTURE);
+});
+
+after(() => {
+  DEMO_APPLICATIONS.length = 0;
+});
 
 test("getDemoTalentCandidates menggabungkan demo seeds valid dan membuang yang insufficient", () => {
   const demoCandidates = getDemoTalentCandidates();

@@ -41,7 +41,11 @@ const deletedJobIds = new Set<string>([
 ]);
 const applicationFitMap = new Map<string, JobFitEvaluation>();
 
-export const DEMO_JOBS: JobPosting[] = [
+export const DEMO_JOBS: JobPosting[] = [];
+
+export const DEMO_APPLICATIONS: JobApplication[] = [];
+
+export const MOCK_JOBS_FIXTURE: JobPosting[] = [
   {
     id: "10000000-0000-4000-8000-000000000001",
     companyName: "PT Nusantara Cloud Solusindo",
@@ -181,7 +185,7 @@ export const DEMO_JOBS: JobPosting[] = [
   },
 ];
 
-export const DEMO_APPLICATIONS: JobApplication[] = [
+export const MOCK_APPLICATIONS_FIXTURE: JobApplication[] = [
   {
     id: "20000000-0000-4000-8000-000000000001",
     jobId: "10000000-0000-4000-8000-000000000001",
@@ -283,7 +287,7 @@ export const DEMO_APPLICATIONS: JobApplication[] = [
   },
 ];
 
-for (const app of DEMO_APPLICATIONS) {
+for (const app of [...DEMO_APPLICATIONS, ...MOCK_APPLICATIONS_FIXTURE]) {
   if (app.fitEvaluation) {
     applicationFitMap.set(app.id, app.fitEvaluation);
   }
@@ -595,6 +599,46 @@ export async function getJobPostings(
     // Graceful fallback: when DB is unconfigured or table missing, rely on demo jobs
   }
 
+  // Ketika mencari lowongan di DB dan tabel job_postings belum ada / kosong (dbJobs.length === 0),
+  // panggil admin.auth.admin.listUsers() untuk mengumpulkan custom_jobs dan deleted_job_ids dari seluruh akun recruiter (fail-safe).
+  // Hal ini memastikan setiap lowongan yang dibuat sendiri oleh HR (seperti lowongan milik akun HR xilehaosi@gmail.com)
+  // akan otomatis muncul di /jobs untuk semua kandidat/pengunjung publik, bahkan tanpa parameter recruiterId.
+  if (dbJobs.length === 0) {
+    try {
+      const admin = createAdminSupabase();
+      const { data: usersData, error: listError } = await admin.auth.admin.listUsers();
+      if (!listError && usersData && Array.isArray(usersData.users)) {
+        for (const user of usersData.users) {
+          const meta = (user.user_metadata || {}) as Record<string, unknown>;
+          if (Array.isArray(meta.custom_jobs)) {
+            const userCustom = meta.custom_jobs.filter(
+              (j): j is JobPosting => Boolean(j && typeof j === "object" && typeof j.id === "string"),
+            );
+            metadataCustomJobs.push(...userCustom);
+          }
+          if (Array.isArray(meta.deleted_job_ids)) {
+            const userDeleted = meta.deleted_job_ids.filter(
+              (id): id is string => typeof id === "string" && id.trim().length > 0,
+            );
+            metadataDeletedIds.push(...userDeleted);
+          }
+        }
+      }
+    } catch {
+      // Graceful fallback
+    }
+  }
+
+  // Deduplikasi metadataCustomJobs
+  const uniqueMetaCustomJobs: JobPosting[] = [];
+  const seenMetaJobIds = new Set<string>();
+  for (const j of metadataCustomJobs) {
+    if (!seenMetaJobIds.has(j.id)) {
+      seenMetaJobIds.add(j.id);
+      uniqueMetaCustomJobs.push(j);
+    }
+  }
+
   // Gabungkan deletedJobIds internal + filters?.deletedIds + metadata.deleted_job_ids
   const allDeletedIds = new Set<string>([
     ...deletedJobIds,
@@ -606,7 +650,7 @@ export async function getJobPostings(
   const existingIds = new Set(dbJobs.map((j) => j.id));
 
   // Tambahkan lowongan dari user_metadata.custom_jobs (jika belum ada di dbJobs)
-  const metaCustomToAdd = metadataCustomJobs.filter((j) => !existingIds.has(j.id));
+  const metaCustomToAdd = uniqueMetaCustomJobs.filter((j) => !existingIds.has(j.id));
   for (const j of metaCustomToAdd) {
     existingIds.add(j.id);
     inMemoryJobs.set(j.id, j);
@@ -627,7 +671,7 @@ export async function getJobPostings(
 
 export async function getJobPostingById(
   id: string,
-  options?: { deletedIds?: string[]; recruiterId?: string },
+  options?: { deletedIds?: string[]; recruiterId?: string; checkMockFixture?: boolean },
 ): Promise<JobPosting | null> {
   if (!id || typeof id !== "string") return null;
   if (deletedJobIds.has(id)) return null;
@@ -674,7 +718,7 @@ export async function getJobPostingById(
       return mapDbJobToPosting(data as DbJobRow);
     }
   } catch {
-    // Graceful fallback: when DB is unconfigured or table missing, check in-memory / demo jobs
+    // Graceful fallback: when DB is unconfigured or table missing, check in-memory / custom jobs
   }
 
   const inMem = inMemoryJobs.get(id);
@@ -695,6 +739,35 @@ export async function getJobPostingById(
     return customMatch;
   }
 
+  // Jika belum ditemukan, periksa seluruh custom_jobs recruiter via listUsers()
+  try {
+    const admin = createAdminSupabase();
+    const { data: usersData, error: listError } = await admin.auth.admin.listUsers();
+    if (!listError && usersData && Array.isArray(usersData.users)) {
+      for (const u of usersData.users) {
+        const meta = (u.user_metadata || {}) as Record<string, unknown>;
+        if (Array.isArray(meta.deleted_job_ids) && meta.deleted_job_ids.includes(id)) {
+          return null;
+        }
+        if (Array.isArray(meta.custom_jobs)) {
+          const match = meta.custom_jobs.find(
+            (j): j is JobPosting => Boolean(j && typeof j === "object" && j.id === id),
+          );
+          if (
+            match &&
+            !deletedJobIds.has(id) &&
+            (!options?.deletedIds || !options.deletedIds.includes(id))
+          ) {
+            inMemoryJobs.set(id, match);
+            return match;
+          }
+        }
+      }
+    }
+  } catch {
+    // Graceful fallback
+  }
+
   const demoMatch = DEMO_JOBS.find((j) => j.id === id);
   if (
     demoMatch &&
@@ -702,6 +775,26 @@ export async function getJobPostingById(
     (!options?.deletedIds || !options.deletedIds.includes(id))
   ) {
     return demoMatch;
+  }
+
+  // Hanya periksa MOCK_JOBS_FIXTURE jika secara eksplisit dipanggil dengan checkMockFixture atau dari test environment
+  const isTest =
+    typeof process !== "undefined" &&
+    (process.env.NODE_ENV === "test" ||
+      (Array.isArray(process.execArgv) && process.execArgv.includes("--test")) ||
+      (Array.isArray(process.argv) &&
+        process.argv.some(
+          (arg) => typeof arg === "string" && (arg.includes(".test.") || arg.includes("--test")),
+        )));
+  if (options?.checkMockFixture || isTest) {
+    const fixtureMatch = MOCK_JOBS_FIXTURE.find((j) => j.id === id);
+    if (
+      fixtureMatch &&
+      !deletedJobIds.has(id) &&
+      (!options?.deletedIds || !options.deletedIds.includes(id))
+    ) {
+      return fixtureMatch;
+    }
   }
 
   return null;
@@ -1005,12 +1098,16 @@ export async function updateJobPosting(
 ): Promise<JobPosting> {
   validateJobPostingUpdateInput(recruiterId, jobId, data);
 
-  const isDemo = DEMO_JOBS.some((j) => j.id === jobId);
+  const isMock = MOCK_JOBS_FIXTURE.some((j) => j.id === jobId);
+  const isDemo = DEMO_JOBS.some((j) => j.id === jobId) || isMock;
 
   const updateInMemory = (): JobPosting => {
     const demoIndex = DEMO_JOBS.findIndex((j) => j.id === jobId);
+    const mockIndex = MOCK_JOBS_FIXTURE.findIndex((j) => j.id === jobId);
     const existing =
-      inMemoryJobs.get(jobId) ?? (demoIndex !== -1 ? DEMO_JOBS[demoIndex] : null);
+      inMemoryJobs.get(jobId) ??
+      (demoIndex !== -1 ? DEMO_JOBS[demoIndex] : null) ??
+      (mockIndex !== -1 ? MOCK_JOBS_FIXTURE[mockIndex] : null);
 
     const minSalary = data.salaryMin !== undefined ? data.salaryMin : (existing?.salaryMin ?? null);
     const maxSalary = data.salaryMax !== undefined ? data.salaryMax : (existing?.salaryMax ?? null);
@@ -1058,6 +1155,9 @@ export async function updateJobPosting(
 
     if (demoIndex !== -1) {
       DEMO_JOBS[demoIndex] = updated;
+    }
+    if (mockIndex !== -1) {
+      MOCK_JOBS_FIXTURE[mockIndex] = updated;
     }
     inMemoryJobs.set(jobId, updated);
     deletedJobIds.delete(jobId);

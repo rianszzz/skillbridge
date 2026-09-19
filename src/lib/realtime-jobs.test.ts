@@ -6,14 +6,14 @@ import {
   setupJobRealtimeSync,
   type JobSyncEvent,
 } from "./realtime-jobs.ts";
-import { DEMO_JOBS } from "./jobs.ts";
+import { MOCK_JOBS_FIXTURE } from "./jobs.ts";
 
 test("JOB_SYNC_CHANNEL memiliki identifier yang sesuai", () => {
   assert.equal(JOB_SYNC_CHANNEL, "skillbridge_jobs_channel");
 });
 
 test("broadcastJobSync dan BroadcastChannel mengirim dan menerima pesan sinkronisasi antar-tab", async () => {
-  const sampleJob = DEMO_JOBS[0];
+  const sampleJob = MOCK_JOBS_FIXTURE[0];
   let receivedEvent: JobSyncEvent | null = null;
 
   const bcReceiver = new BroadcastChannel(JOB_SYNC_CHANNEL);
@@ -34,7 +34,7 @@ test("broadcastJobSync dan BroadcastChannel mengirim dan menerima pesan sinkroni
 });
 
 test("setupJobRealtimeSync mendispatch pesan BroadcastChannel ke handler spesifik", async () => {
-  const sampleJob = DEMO_JOBS[1];
+  const sampleJob = MOCK_JOBS_FIXTURE[1] || MOCK_JOBS_FIXTURE[0];
   let createdJobId = "";
   let updatedJobId = "";
   let deletedJobId = "";

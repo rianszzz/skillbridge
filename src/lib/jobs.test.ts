@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 import {
   DEMO_JOBS,
   DEMO_APPLICATIONS,
+  MOCK_JOBS_FIXTURE,
+  MOCK_APPLICATIONS_FIXTURE,
   filterJobs,
   getJobPostings,
   getJobPostingById,
@@ -20,18 +22,19 @@ import {
 } from "./jobs.ts";
 import type { JobPosting, JobApplication } from "./types.ts";
 
-test("DEMO_JOBS mematuhi skema data dan kriteria Proposal Kompres 16", () => {
-  assert.ok(DEMO_JOBS.length >= 3, "Harus menyediakan minimal 3 lowongan demo");
-  assert.ok(DEMO_APPLICATIONS.length >= 2, "Harus menyediakan minimal 2 lamaran demo");
+test("DEMO_JOBS kosong di produksi dan MOCK_JOBS_FIXTURE mematuhi skema data dan kriteria Proposal Kompres 16", () => {
+  assert.equal(DEMO_JOBS.length, 0, "DEMO_JOBS harus kosong di produksi");
+  assert.equal(DEMO_APPLICATIONS.length, 0, "DEMO_APPLICATIONS harus kosong di produksi");
+  assert.ok(MOCK_JOBS_FIXTURE.length >= 3, "Harus menyediakan minimal 3 lowongan mock di fixture");
+  assert.ok(MOCK_APPLICATIONS_FIXTURE.length >= 2, "Harus menyediakan minimal 2 lamaran mock di fixture");
 
   // Memastikan ketiga bidang terwakili
-
-  const fields = DEMO_JOBS.map((j) => j.field);
+  const fields = MOCK_JOBS_FIXTURE.map((j) => j.field);
   assert.ok(fields.includes("informatics"), "Bidang informatika harus tersedia");
   assert.ok(fields.includes("design"), "Bidang desain (DKV) harus tersedia");
   assert.ok(fields.includes("marketing"), "Bidang pemasaran digital harus tersedia");
 
-  for (const job of DEMO_JOBS) {
+  for (const job of MOCK_JOBS_FIXTURE) {
     assert.ok(job.id.length > 0, "ID lowongan harus terisi");
     assert.ok(job.title.length > 0, "Judul lowongan harus terisi");
     assert.ok(job.companyName.length > 0, "Nama perusahaan harus terisi");
@@ -72,19 +75,19 @@ test("DEMO_JOBS mematuhi skema data dan kriteria Proposal Kompres 16", () => {
   }
 
   // Khusus lowongan Web Dev, DKV, dan Pemasaran harus memiliki label Ramah SMK / Fresh Grad
-  const webDev = DEMO_JOBS.find((j) => j.field === "informatics" && j.employmentType === "fulltime");
+  const webDev = MOCK_JOBS_FIXTURE.find((j) => j.field === "informatics" && j.employmentType === "fulltime");
   assert.ok(webDev);
   assert.equal(webDev.minEducation, "smk");
   assert.equal(webDev.experienceLevel, "fresh_graduate");
   assert.ok(webDev.highlights[0].toLowerCase().includes("smk"));
 
-  const graphicDev = DEMO_JOBS.find((j) => j.field === "design" && j.employmentType === "fulltime");
+  const graphicDev = MOCK_JOBS_FIXTURE.find((j) => j.field === "design" && j.employmentType === "fulltime");
   assert.ok(graphicDev);
   assert.equal(graphicDev.minEducation, "smk");
   assert.equal(graphicDev.experienceLevel, "fresh_graduate");
   assert.ok(graphicDev.highlights[0].toLowerCase().includes("smk"));
 
-  const marketingDev = DEMO_JOBS.find((j) => j.field === "marketing");
+  const marketingDev = MOCK_JOBS_FIXTURE.find((j) => j.field === "marketing");
   assert.ok(marketingDev);
   assert.equal(marketingDev.minEducation, "smk");
   assert.equal(marketingDev.experienceLevel, "fresh_graduate");
@@ -92,24 +95,24 @@ test("DEMO_JOBS mematuhi skema data dan kriteria Proposal Kompres 16", () => {
 });
 
 test("filterJobs menyaring berdasarkan bidang (field)", () => {
-  const infoJobs = filterJobs(DEMO_JOBS, { field: "informatics" });
+  const infoJobs = filterJobs(MOCK_JOBS_FIXTURE, { field: "informatics" });
   assert.ok(infoJobs.length > 0);
   assert.ok(infoJobs.every((j) => j.field === "informatics"));
 
-  const designJobs = filterJobs(DEMO_JOBS, { field: "design" });
+  const designJobs = filterJobs(MOCK_JOBS_FIXTURE, { field: "design" });
   assert.ok(designJobs.length > 0);
   assert.ok(designJobs.every((j) => j.field === "design"));
 
-  const marketingJobs = filterJobs(DEMO_JOBS, { field: "marketing" });
+  const marketingJobs = filterJobs(MOCK_JOBS_FIXTURE, { field: "marketing" });
   assert.ok(marketingJobs.length > 0);
   assert.ok(marketingJobs.every((j) => j.field === "marketing"));
 
-  const allJobs = filterJobs(DEMO_JOBS, { field: "all" });
-  assert.equal(allJobs.length, DEMO_JOBS.length);
+  const allJobs = filterJobs(MOCK_JOBS_FIXTURE, { field: "all" });
+  assert.equal(allJobs.length, MOCK_JOBS_FIXTURE.length);
 });
 
 const mockDiplomaInternshipJob: JobPosting = {
-  ...DEMO_JOBS[0],
+  ...MOCK_JOBS_FIXTURE[0],
   id: "mock-diploma-internship-job",
   minEducation: "diploma",
   compensationType: "unpaid",
@@ -117,65 +120,65 @@ const mockDiplomaInternshipJob: JobPosting = {
 };
 
 const mockContractJob: JobPosting = {
-  ...DEMO_JOBS[0],
+  ...MOCK_JOBS_FIXTURE[0],
   id: "mock-contract-job",
   employmentType: "contract",
 };
 
 test("filterJobs menyaring berdasarkan pendidikan minimal (minEducation)", () => {
-  const smkJobs = filterJobs(DEMO_JOBS, { minEducation: "smk" });
+  const smkJobs = filterJobs(MOCK_JOBS_FIXTURE, { minEducation: "smk" });
   assert.ok(smkJobs.length >= 3);
   assert.ok(smkJobs.every((j) => j.minEducation === "smk"));
 
-  const diplomaJobs = filterJobs([...DEMO_JOBS, mockDiplomaInternshipJob], { minEducation: "diploma" });
+  const diplomaJobs = filterJobs([...MOCK_JOBS_FIXTURE, mockDiplomaInternshipJob], { minEducation: "diploma" });
   assert.ok(diplomaJobs.length >= 1);
   assert.ok(diplomaJobs.every((j) => j.minEducation === "diploma"));
 
-  const bachelorJobs = filterJobs(DEMO_JOBS, { minEducation: "bachelor" });
+  const bachelorJobs = filterJobs(MOCK_JOBS_FIXTURE, { minEducation: "bachelor" });
   assert.equal(bachelorJobs.length, 0);
 });
 
 test("filterJobs menyaring berdasarkan kompensasi paid dan unpaid", () => {
-  const paidJobs = filterJobs(DEMO_JOBS, { compensationType: "paid" });
+  const paidJobs = filterJobs(MOCK_JOBS_FIXTURE, { compensationType: "paid" });
   assert.ok(paidJobs.length >= 3);
   assert.ok(paidJobs.every((j) => j.compensationType === "paid"));
 
-  const unpaidJobs = filterJobs([...DEMO_JOBS, mockDiplomaInternshipJob], { compensationType: "unpaid" });
+  const unpaidJobs = filterJobs([...MOCK_JOBS_FIXTURE, mockDiplomaInternshipJob], { compensationType: "unpaid" });
   assert.ok(unpaidJobs.length >= 1);
   assert.ok(unpaidJobs.every((j) => j.compensationType === "unpaid"));
 });
 
 test("filterJobs menyaring berdasarkan tipe kerja (employmentType)", () => {
-  const fulltimeJobs = filterJobs(DEMO_JOBS, { employmentType: "fulltime" });
+  const fulltimeJobs = filterJobs(MOCK_JOBS_FIXTURE, { employmentType: "fulltime" });
   assert.ok(fulltimeJobs.length >= 3);
   assert.ok(fulltimeJobs.every((j) => j.employmentType === "fulltime"));
 
-  const internshipJobs = filterJobs([...DEMO_JOBS, mockDiplomaInternshipJob], { employmentType: "internship" });
+  const internshipJobs = filterJobs([...MOCK_JOBS_FIXTURE, mockDiplomaInternshipJob], { employmentType: "internship" });
   assert.ok(internshipJobs.length >= 1);
   assert.ok(internshipJobs.every((j) => j.employmentType === "internship"));
 
-  const contractJobs = filterJobs([...DEMO_JOBS, mockContractJob], { employmentType: "contract" });
+  const contractJobs = filterJobs([...MOCK_JOBS_FIXTURE, mockContractJob], { employmentType: "contract" });
   assert.ok(contractJobs.length >= 1);
   assert.ok(contractJobs.every((j) => j.employmentType === "contract"));
 });
 
 test("filterJobs menyaring berdasarkan workplaceType, candidateScore, dan searchQuery", () => {
   // Workplace filter
-  const remoteJobs = filterJobs(DEMO_JOBS, { workplaceType: "remote" });
+  const remoteJobs = filterJobs(MOCK_JOBS_FIXTURE, { workplaceType: "remote" });
   assert.ok(remoteJobs.length >= 1);
   assert.ok(remoteJobs.every((j) => j.workplaceType === "remote"));
 
   // Candidate score filter (kandidat dengan skor 60 bisa melihat lowongan dengan minSkillbridgeScore <= 60)
-  const accessibleForScore60 = filterJobs(DEMO_JOBS, { candidateScore: 60 });
+  const accessibleForScore60 = filterJobs(MOCK_JOBS_FIXTURE, { candidateScore: 60 });
   assert.ok(accessibleForScore60.length > 0);
   assert.ok(accessibleForScore60.every((j) => j.minSkillbridgeScore <= 60));
 
   // Search query
-  const searchNext = filterJobs(DEMO_JOBS, { searchQuery: "Next.js" });
+  const searchNext = filterJobs(MOCK_JOBS_FIXTURE, { searchQuery: "Next.js" });
   assert.ok(searchNext.length >= 1);
   assert.ok(searchNext.some((j) => j.title.includes("Web") || j.requiredSkills.includes("Next.js")));
 
-  const searchBandung = filterJobs(DEMO_JOBS, { searchQuery: "Bandung" });
+  const searchBandung = filterJobs(MOCK_JOBS_FIXTURE, { searchQuery: "Bandung" });
   assert.ok(searchBandung.length >= 1);
   assert.equal(searchBandung[0].location, "Bandung, Jawa Barat");
 });
@@ -183,19 +186,18 @@ test("filterJobs menyaring berdasarkan workplaceType, candidateScore, dan search
 test("Ketahanan fail-safe getJobPostings dan getJobPostingById saat database belum termigrasi", async () => {
   const jobs = await getJobPostings();
   assert.ok(Array.isArray(jobs), "Harus mengembalikan array");
-  assert.ok(jobs.length >= 3, "Harus memuat data DEMO_JOBS secara fail-safe");
+  // Pastikan lowongan dummy lama tidak merembes secara default di produksi
+  assert.ok(
+    !jobs.some((j) => j.companyName === "PT Nusantara Cloud Solusindo"),
+    "Lowongan dummy tidak boleh merembes ke getJobPostings",
+  );
 
-  // Filter bidang saat fail-safe
-  const filtered = await getJobPostings({ field: "informatics" });
-  assert.ok(filtered.length > 0);
-  assert.ok(filtered.every((j) => j.field === "informatics"));
-
-  // getJobPostingById dengan id demo yang valid
-  const firstDemoId = DEMO_JOBS[0].id;
+  // getJobPostingById dengan id fixture
+  const firstDemoId = MOCK_JOBS_FIXTURE[0].id;
   const found = await getJobPostingById(firstDemoId);
   assert.ok(found !== null);
   assert.equal(found?.id, firstDemoId);
-  assert.equal(found?.companyName, DEMO_JOBS[0].companyName);
+  assert.equal(found?.companyName, MOCK_JOBS_FIXTURE[0].companyName);
 
   // getJobPostingById dengan id acak tidak ada
   const notFound = await getJobPostingById("00000000-0000-0000-0000-000000000000");
@@ -310,7 +312,7 @@ test("Validasi input createJobPosting menolak data yang tidak lengkap atau tidak
 
 test("Validasi input applyToJob menolak data lamaran yang tidak lengkap atau tidak valid", async () => {
   const baseValidApp = {
-    jobId: DEMO_JOBS[0].id,
+    jobId: MOCK_JOBS_FIXTURE[0].id,
     candidateName: "Rian Pratama",
     candidateEmail: "rian@example.com",
     skillbridgeScore: 75,
@@ -351,7 +353,7 @@ test("Validasi input applyToJob menolak data lamaran yang tidak lengkap atau tid
   // applyToJob berhasil secara fail-safe saat input valid
   const application = await applyToJob("candidate-test-1", baseValidApp);
   assert.ok(application.id);
-  assert.equal(application.jobId, DEMO_JOBS[0].id);
+  assert.equal(application.jobId, MOCK_JOBS_FIXTURE[0].id);
   assert.equal(application.candidateName, "Rian Pratama");
   assert.equal(application.status, "pending");
   assert.ok(application.fitEvaluation, "applyToJob harus memuat fitEvaluation");
@@ -359,15 +361,16 @@ test("Validasi input applyToJob menolak data lamaran yang tidak lengkap atau tid
   assert.equal(application.skillbridgeScore, application.fitEvaluation.score);
 });
 
-test("DEMO_APPLICATIONS memuat 3 pelamar realistis dengan fitEvaluation terstruktur", () => {
-  assert.equal(DEMO_APPLICATIONS.length, 3, "Harus memuat tepat 3 pelamar demo (Ahmad, Siti, Budi)");
+test("DEMO_APPLICATIONS kosong di produksi dan MOCK_APPLICATIONS_FIXTURE memuat 3 pelamar realistis dengan fitEvaluation terstruktur", () => {
+  assert.equal(DEMO_APPLICATIONS.length, 0, "DEMO_APPLICATIONS harus kosong di produksi");
+  assert.equal(MOCK_APPLICATIONS_FIXTURE.length, 3, "Harus memuat tepat 3 pelamar demo di fixture (Ahmad, Siti, Budi)");
 
-  const names = DEMO_APPLICATIONS.map((a) => a.candidateName);
+  const names = MOCK_APPLICATIONS_FIXTURE.map((a) => a.candidateName);
   assert.ok(names.some((n) => n.includes("Ahmad Fauzi")));
   assert.ok(names.some((n) => n.includes("Siti Rahma")));
   assert.ok(names.some((n) => n.includes("Budi Santoso")));
 
-  for (const app of DEMO_APPLICATIONS) {
+  for (const app of MOCK_APPLICATIONS_FIXTURE) {
     assert.ok(app.fitEvaluation, `Pelamar ${app.candidateName} harus memiliki fitEvaluation`);
     assert.ok([0, 25, 50, 75, 100].includes(app.fitEvaluation!.score));
     assert.ok(["high", "medium", "low"].includes(app.fitEvaluation!.fitLevel));
@@ -380,26 +383,31 @@ test("DEMO_APPLICATIONS memuat 3 pelamar realistis dengan fitEvaluation terstruk
 
 
 test("getJobApplicationsForRecruiter dan getJobApplicationsForCandidate bekerja fail-safe", async () => {
-  // Recruiter queries applications
-  const recruiterApps = await getJobApplicationsForRecruiter("recruiter-dummy-id");
-  assert.ok(Array.isArray(recruiterApps));
-  assert.ok(recruiterApps.length >= 1, "Harus memuat data demo lamaran");
+  DEMO_APPLICATIONS.push(...MOCK_APPLICATIONS_FIXTURE);
+  try {
+    // Recruiter queries applications
+    const recruiterApps = await getJobApplicationsForRecruiter("recruiter-dummy-id");
+    assert.ok(Array.isArray(recruiterApps));
+    assert.ok(recruiterApps.length >= 1, "Harus memuat data demo lamaran");
 
-  // Recruiter queries specific job applications
-  const jobSpecificApps = await getJobApplicationsForRecruiter(
-    "recruiter-dummy-id",
-    DEMO_JOBS[0].id,
-  );
-  assert.ok(Array.isArray(jobSpecificApps));
-  assert.ok(jobSpecificApps.every((a) => a.jobId === DEMO_JOBS[0].id));
+    // Recruiter queries specific job applications
+    const jobSpecificApps = await getJobApplicationsForRecruiter(
+      "recruiter-dummy-id",
+      MOCK_JOBS_FIXTURE[0].id,
+    );
+    assert.ok(Array.isArray(jobSpecificApps));
+    assert.ok(jobSpecificApps.every((a) => a.jobId === MOCK_JOBS_FIXTURE[0].id));
 
-  // Candidate queries own applications
-  const candidateApps = await getJobApplicationsForCandidate(
-    "00000000-0000-4000-8000-000000000002",
-  );
-  assert.ok(Array.isArray(candidateApps));
-  assert.ok(candidateApps.length >= 1);
-  assert.equal(candidateApps[0].candidateId, "00000000-0000-4000-8000-000000000002");
+    // Candidate queries own applications
+    const candidateApps = await getJobApplicationsForCandidate(
+      "00000000-0000-4000-8000-000000000002",
+    );
+    assert.ok(Array.isArray(candidateApps));
+    assert.ok(candidateApps.length >= 1);
+    assert.equal(candidateApps[0].candidateId, "00000000-0000-4000-8000-000000000002");
+  } finally {
+    DEMO_APPLICATIONS.length = 0;
+  }
 });
 
 test("Validasi input updateJobPosting menolak data yang tidak valid", () => {
@@ -596,10 +604,10 @@ test("updateJobPosting memperbarui data lowongan (judul, status, gaji) secara fa
 
 test("updateJobPosting memperbarui demo job secara fail-safe", async () => {
   // Demo job ke-2 (Desain)
-  const demoTargetId = DEMO_JOBS[1].id;
-  const originalTitle = DEMO_JOBS[1].title;
-  const originalSalaryMin = DEMO_JOBS[1].salaryMin;
-  const originalSalaryMax = DEMO_JOBS[1].salaryMax;
+  const demoTargetId = MOCK_JOBS_FIXTURE[1].id;
+  const originalTitle = MOCK_JOBS_FIXTURE[1].title;
+  const originalSalaryMin = MOCK_JOBS_FIXTURE[1].salaryMin;
+  const originalSalaryMax = MOCK_JOBS_FIXTURE[1].salaryMax;
 
   const updatedDemo = await updateJobPosting("any-recruiter-id", demoTargetId, {
     title: "Senior Graphic & Brand Identity Designer",
@@ -717,11 +725,44 @@ test("parseDeletedJobsCookie mem-parse cookie skillbridge_deleted_jobs secara ak
 });
 
 test("getJobPostings dan getJobPostingById menghormati filter deletedIds", async () => {
+  const job1 = await createJobPosting("recruiter-del-test-1", "PT Alpha Filter", {
+    title: "Job Alpha Filter",
+    field: "informatics",
+    targetRole: "Junior Web Developer",
+    employmentType: "fulltime",
+    workplaceType: "hybrid",
+    location: "Jakarta",
+    minEducation: "smk",
+    experienceLevel: "fresh_graduate",
+    compensationType: "paid",
+    salaryMin: 5000000,
+    salaryMax: 7000000,
+    highlights: ["H1", "H2", "H3"],
+    responsibilities: ["R1"],
+    requiredSkills: ["S1"],
+  });
+  const job2 = await createJobPosting("recruiter-del-test-2", "PT Beta Filter", {
+    title: "Job Beta Filter",
+    field: "design",
+    targetRole: "Junior Graphic Designer",
+    employmentType: "fulltime",
+    workplaceType: "onsite",
+    location: "Bandung",
+    minEducation: "smk",
+    experienceLevel: "fresh_graduate",
+    compensationType: "paid",
+    salaryMin: 4000000,
+    salaryMax: 6000000,
+    highlights: ["H1", "H2", "H3"],
+    responsibilities: ["R1"],
+    requiredSkills: ["S1"],
+  });
+
   const jobsBefore = await getJobPostings();
   assert.ok(jobsBefore.length >= 2, "Harus ada lowongan awal");
 
-  const targetJobId = jobsBefore[0].id;
-  const otherJobId = jobsBefore[1].id;
+  const targetJobId = job1.id;
+  const otherJobId = job2.id;
 
   // getJobPostings dengan deletedIds menyaring targetJobId
   const jobsFiltered = await getJobPostings({ deletedIds: [targetJobId] });
@@ -736,7 +777,6 @@ test("getJobPostings dan getJobPostingById menghormati filter deletedIds", async
 
   // getJobPostingById dengan deletedIds mengembalikan null jika id ada di deletedIds
   const jobFoundWithoutFilter = await getJobPostingById(targetJobId);
-  // targetJobId mungkin ada di list jika belum dihapus global
   if (jobFoundWithoutFilter) {
     const jobFoundWithFilter = await getJobPostingById(targetJobId, {
       deletedIds: [targetJobId],
@@ -762,7 +802,6 @@ test("getJobPostings bekerja fail-safe dengan recruiterId dan deletedIds", async
     deletedIds: ["dummy-deleted-uuid-999"],
   });
   assert.ok(Array.isArray(jobs));
-  assert.ok(jobs.length >= 1);
   assert.ok(!jobs.some((j) => j.id === "dummy-deleted-uuid-999"));
 });
 

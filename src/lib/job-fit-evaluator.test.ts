@@ -6,7 +6,7 @@ import {
   snapToAnchor,
   getFitLevel,
 } from "./job-fit-evaluator.ts";
-import { DEMO_JOBS } from "./jobs.ts";
+import { MOCK_JOBS_FIXTURE } from "./jobs.ts";
 import { DEMO_SEEDS } from "./demo-seed.ts";
 
 test("snapToAnchor membatasi skor secara ketat pada anchor 0, 25, 50, 75, 100", () => {
@@ -34,7 +34,7 @@ test("getFitLevel memetakan anchor skor ke high, medium, low secara akurat", () 
 });
 
 test("fallbackJobFitEvaluation menghasilkan evaluasi deterministik dan valid untuk kandidat berkualifikasi tinggi", () => {
-  const job = DEMO_JOBS[0]; // Junior Front-End Web Developer
+  const job = MOCK_JOBS_FIXTURE[0]; // Junior Front-End Web Developer
   const assessment = DEMO_SEEDS[1]; // INF-02 (Junior Web Developer, score: 50)
 
   const applicant = {
@@ -68,7 +68,7 @@ test("fallbackJobFitEvaluation menghasilkan evaluasi deterministik dan valid unt
 });
 
 test("fallbackJobFitEvaluation menangani pelamar tanpa asesmen dan tanpa bukti secara fail-safe", () => {
-  const job = DEMO_JOBS[1]; // Studio Kreatif Visual
+  const job = MOCK_JOBS_FIXTURE[1]; // Studio Kreatif Visual
 
   const applicant = {
     name: "Pelamar Kosong",
@@ -89,7 +89,7 @@ test("evaluateJobFit bekerja fail-safe tanpa GROQ_API_KEY", async () => {
   delete process.env.GROQ_API_KEY;
 
   try {
-    const job = DEMO_JOBS[2]; // Artha Digital Growth
+    const job = MOCK_JOBS_FIXTURE[2]; // Artha Digital Growth
     const assessment = DEMO_SEEDS[3]; // MKT-02
 
     const applicant = {

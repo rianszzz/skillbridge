@@ -528,23 +528,34 @@ export default function JobsView() {
       {/* Empty State */}
       {!loading && jobs.length === 0 && !error && (
         <div className="panel" style={{ textAlign: "center", padding: "3.5rem 1.5rem" }}>
-          <h2>Tidak Ada Lowongan yang Cocok</h2>
-          <p className="hint" style={{ maxWidth: "560px", margin: "0.5rem auto 1.5rem" }}>
-            Tidak ditemukan lowongan dengan kriteria filter yang Anda pilih. Coba sesuaikan kata kunci pencarian atau setel kembali filter.
-          </p>
-          <button
-            type="button"
-            className="button secondary"
-            onClick={() => {
-              setField("all");
-              setMinEducation("all");
-              setCompensationType("all");
-              setWorkplaceType("all");
-              setSearch("");
-            }}
-          >
-            Reset Semua Filter
-          </button>
+          {field !== "all" || minEducation !== "all" || compensationType !== "all" || workplaceType !== "all" || search.trim().length > 0 ? (
+            <>
+              <h2>Tidak Ada Lowongan yang Cocok</h2>
+              <p className="hint" style={{ maxWidth: "560px", margin: "0.5rem auto 1.5rem" }}>
+                Tidak ditemukan lowongan dengan kriteria filter yang Anda pilih. Coba sesuaikan kata kunci pencarian atau setel kembali filter.
+              </p>
+              <button
+                type="button"
+                className="button secondary"
+                onClick={() => {
+                  setField("all");
+                  setMinEducation("all");
+                  setCompensationType("all");
+                  setWorkplaceType("all");
+                  setSearch("");
+                }}
+              >
+                Reset Semua Filter
+              </button>
+            </>
+          ) : (
+            <>
+              <h2>Belum Ada Lowongan Terdaftar</h2>
+              <p className="hint" style={{ maxWidth: "560px", margin: "0.5rem auto 1.5rem" }}>
+                Saat ini belum ada lowongan pekerjaan yang dibuka oleh mitra perusahaan. Silakan cek kembali secara berkala atau pantau pembaharuan dari kami.
+              </p>
+            </>
+          )}
         </div>
       )}
 
