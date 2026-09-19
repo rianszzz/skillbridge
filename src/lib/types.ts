@@ -133,6 +133,7 @@ export type JobPosting = {
 export type JobApplication = {
   id: string;
   jobId: string;
+  recruiterId?: string;
   candidateId: string;
   candidateName: string;
   candidateEmail: string;

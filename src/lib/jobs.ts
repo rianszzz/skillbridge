@@ -36,11 +36,22 @@ export type {
 };
 const inMemoryJobs = new Map<string, JobPosting>();
 const inMemoryApplications = new Map<string, JobApplication>();
+const applicationRecruiterMap = new Map<string, string>();
 const deletedJobIds = new Set<string>([
   "10000000-0000-4000-8000-000000000004",
   "10000000-0000-4000-8000-000000000005",
 ]);
 const applicationFitMap = new Map<string, JobFitEvaluation>();
+
+export function resetInMemoryApplicationsForTesting(): void {
+  inMemoryApplications.clear();
+  applicationRecruiterMap.clear();
+}
+
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+export function isValidUuid(id: string | null | undefined): boolean {
+  return typeof id === "string" && UUID_REGEX.test(id.trim());
+}
 
 export const DEMO_JOBS: JobPosting[] = [];
 
@@ -410,8 +421,10 @@ type DbApplicationRow = {
   is_demo?: boolean | null;
   created_at: string;
   job_postings?: {
+    id?: string;
     title?: string;
     company_name?: string;
+    recruiter_id?: string;
   } | null;
 };
 
@@ -460,9 +473,20 @@ function mapDbApplication(row: DbApplicationRow): JobApplication {
       ? (row.fit_evaluation as JobFitEvaluation)
       : null;
 
+  const recruiterId =
+    row.job_postings?.recruiter_id ??
+    cachedMem?.recruiterId ??
+    applicationRecruiterMap.get(row.id) ??
+    undefined;
+
+  if (recruiterId) {
+    applicationRecruiterMap.set(row.id, recruiterId);
+  }
+
   return {
     id: row.id,
     jobId: row.job_id,
+    recruiterId,
     candidateId: row.candidate_id,
     candidateName: row.candidate_name,
     candidateEmail: row.candidate_email,
@@ -516,7 +540,7 @@ async function saveCustomJobToRecruiterMetadata(
   recruiterId: string,
   posting: JobPosting,
 ): Promise<void> {
-  if (!recruiterId) return;
+  if (!recruiterId || !isValidUuid(recruiterId)) return;
   try {
     const admin = createAdminSupabase();
     const { data: userData, error: userError } = await admin.auth.admin.getUserById(recruiterId);
@@ -538,6 +562,140 @@ async function saveCustomJobToRecruiterMetadata(
           deleted_job_ids: updatedDeleted,
         },
       });
+    }
+  } catch {
+    // Fail-safe: abaikan jika Supabase auth admin tidak tersedia
+  }
+}
+
+export async function saveApplicationToRecruiterMetadata(
+  recruiterId: string,
+  application: JobApplication,
+): Promise<void> {
+  if (!recruiterId || !isValidUuid(recruiterId)) return;
+  try {
+    const admin = createAdminSupabase();
+    const { data: userData, error: userError } = await admin.auth.admin.getUserById(recruiterId);
+    if (!userError && userData?.user) {
+      const metadata = (userData.user.user_metadata || {}) as Record<string, unknown>;
+      const currentApps: JobApplication[] = Array.isArray(metadata.job_applications)
+        ? (metadata.job_applications as JobApplication[])
+        : [];
+      const updatedApps = [
+        ...currentApps.filter((a) => a && typeof a === "object" && a.id !== application.id),
+        application,
+      ];
+
+      await admin.auth.admin.updateUserById(recruiterId, {
+        user_metadata: {
+          ...metadata,
+          job_applications: updatedApps,
+        },
+      });
+    }
+  } catch {
+    // Fail-safe: abaikan jika Supabase auth admin tidak tersedia
+  }
+}
+
+export async function updateApplicationStatusInRecruiterMetadata(
+  recruiterId: string,
+  applicationId: string,
+  newStatus: ApplicationStatus,
+): Promise<void> {
+  if (!recruiterId || !isValidUuid(recruiterId) || !applicationId) return;
+  try {
+    const admin = createAdminSupabase();
+    const { data: userData, error: userError } = await admin.auth.admin.getUserById(recruiterId);
+    if (!userError && userData?.user) {
+      const metadata = (userData.user.user_metadata || {}) as Record<string, unknown>;
+      const currentApps: JobApplication[] = Array.isArray(metadata.job_applications)
+        ? (metadata.job_applications as JobApplication[])
+        : [];
+      let modified = false;
+      const updatedApps = currentApps.map((a) => {
+        if (a && typeof a === "object" && a.id === applicationId) {
+          modified = true;
+          return { ...a, status: newStatus };
+        }
+        return a;
+      });
+
+      if (modified) {
+        await admin.auth.admin.updateUserById(recruiterId, {
+          user_metadata: {
+            ...metadata,
+            job_applications: updatedApps,
+          },
+        });
+      }
+    }
+  } catch {
+    // Fail-safe: abaikan jika Supabase auth admin tidak tersedia
+  }
+}
+
+export async function saveApplicationToCandidateMetadata(
+  candidateId: string,
+  application: JobApplication,
+): Promise<void> {
+  if (!candidateId || !isValidUuid(candidateId)) return;
+  try {
+    const admin = createAdminSupabase();
+    const { data: userData, error: userError } = await admin.auth.admin.getUserById(candidateId);
+    if (!userError && userData?.user) {
+      const metadata = (userData.user.user_metadata || {}) as Record<string, unknown>;
+      const currentApps: JobApplication[] = Array.isArray(metadata.my_applications)
+        ? (metadata.my_applications as JobApplication[])
+        : [];
+      const updatedApps = [
+        ...currentApps.filter((a) => a && typeof a === "object" && a.id !== application.id),
+        application,
+      ];
+
+      await admin.auth.admin.updateUserById(candidateId, {
+        user_metadata: {
+          ...metadata,
+          my_applications: updatedApps,
+        },
+      });
+    }
+  } catch {
+    // Fail-safe: abaikan jika Supabase auth admin tidak tersedia
+  }
+}
+
+export async function updateApplicationStatusInCandidateMetadata(
+  candidateId: string,
+  applicationId: string,
+  newStatus: ApplicationStatus,
+): Promise<void> {
+  if (!candidateId || !isValidUuid(candidateId) || !applicationId) return;
+  try {
+    const admin = createAdminSupabase();
+    const { data: userData, error: userError } = await admin.auth.admin.getUserById(candidateId);
+    if (!userError && userData?.user) {
+      const metadata = (userData.user.user_metadata || {}) as Record<string, unknown>;
+      const currentApps: JobApplication[] = Array.isArray(metadata.my_applications)
+        ? (metadata.my_applications as JobApplication[])
+        : [];
+      let modified = false;
+      const updatedApps = currentApps.map((a) => {
+        if (a && typeof a === "object" && a.id === applicationId) {
+          modified = true;
+          return { ...a, status: newStatus };
+        }
+        return a;
+      });
+
+      if (modified) {
+        await admin.auth.admin.updateUserById(candidateId, {
+          user_metadata: {
+            ...metadata,
+            my_applications: updatedApps,
+          },
+        });
+      }
     }
   } catch {
     // Fail-safe: abaikan jika Supabase auth admin tidak tersedia
@@ -1446,9 +1604,37 @@ export async function applyToJob(
 ): Promise<JobApplication> {
   validateApplicationInput(candidateId, data);
 
-  const job = await getJobPostingById(data.jobId);
+  const job = await getJobPostingById(data.jobId, { checkMockFixture: true });
   if (!job) {
     throw new Error("Lowongan pekerjaan tidak ditemukan.");
+  }
+
+  // Cari recruiterId dari job.recruiterId atau dari metadata pemilik lowongan / in-memory
+  let recruiterId = job.recruiterId;
+  if (!recruiterId && inMemoryJobs.has(job.id)) {
+    recruiterId = inMemoryJobs.get(job.id)?.recruiterId;
+  }
+  if (!recruiterId) {
+    try {
+      const admin = createAdminSupabase();
+      const { data: usersData, error: listError } = await admin.auth.admin.listUsers();
+      if (!listError && usersData && Array.isArray(usersData.users)) {
+        for (const u of usersData.users) {
+          const meta = (u.user_metadata || {}) as Record<string, unknown>;
+          if (Array.isArray(meta.custom_jobs)) {
+            const found = meta.custom_jobs.some(
+              (cj) => cj && typeof cj === "object" && cj.id === job.id,
+            );
+            if (found) {
+              recruiterId = u.id;
+              break;
+            }
+          }
+        }
+      }
+    } catch {
+      // Graceful fallback
+    }
   }
 
   let assessment: AssessmentResult | null = null;
@@ -1467,6 +1653,7 @@ export async function applyToJob(
   const newApplication: JobApplication = {
     id: crypto.randomUUID(),
     jobId: data.jobId,
+    recruiterId: recruiterId ?? undefined,
     candidateId,
     candidateName: data.candidateName.trim(),
     candidateEmail: data.candidateEmail.trim(),
@@ -1484,14 +1671,18 @@ export async function applyToJob(
     fitEvaluation,
     status: "pending",
     appliedAt: new Date().toISOString(),
-    isDemo: false,
+    isDemo: Boolean(job.isDemo),
     jobTitle: job.title,
     companyName: job.companyName,
   };
 
   applicationFitMap.set(newApplication.id, fitEvaluation);
   inMemoryApplications.set(newApplication.id, newApplication);
+  if (recruiterId) {
+    applicationRecruiterMap.set(newApplication.id, recruiterId);
+  }
 
+  let inserted: unknown = null;
   try {
     const db = createAdminSupabase();
     const basePayload = {
@@ -1515,8 +1706,6 @@ export async function applyToJob(
       is_demo: false,
     };
 
-    let inserted: unknown = null;
-
     const resWithFit = await db
       .from("job_applications")
       .insert({
@@ -1526,8 +1715,10 @@ export async function applyToJob(
       .select(`
         *,
         job_postings (
+          id,
           title,
-          company_name
+          company_name,
+          recruiter_id
         )
       `)
       .single();
@@ -1547,8 +1738,10 @@ export async function applyToJob(
         .select(`
           *,
           job_postings (
+            id,
             title,
-            company_name
+            company_name,
+            recruiter_id
           )
         `)
         .single();
@@ -1580,92 +1773,124 @@ export async function applyToJob(
           .select(`
             *,
             job_postings (
+              id,
               title,
-              company_name
+              company_name,
+              recruiter_id
             )
           `)
           .single();
 
-        if (resLegacy.error) {
-          if (isTableMissing(resLegacy.error)) {
-            return newApplication;
-          }
+        if (!resLegacy.error && resLegacy.data) {
+          inserted = resLegacy.data;
+        } else if (resLegacy.error && !isTableMissing(resLegacy.error)) {
           throw new Error(`Gagal mengirimkan lamaran: ${resLegacy.error.message}`);
         }
-        inserted = resLegacy.data;
-      } else if (resWithoutFit.error) {
-        if (isTableMissing(resWithoutFit.error)) {
-          return newApplication;
-        }
+      } else if (resWithoutFit.error && !isTableMissing(resWithoutFit.error)) {
         throw new Error(`Gagal mengirimkan lamaran: ${resWithoutFit.error.message}`);
       }
-    } else if (resWithFit.error) {
-      if (isTableMissing(resWithFit.error)) {
-        return newApplication;
-      }
+    } else if (resWithFit.error && !isTableMissing(resWithFit.error)) {
       throw new Error(`Gagal mengirimkan lamaran: ${resWithFit.error.message}`);
     }
-
-    if (inserted) {
-      const mapped = mapDbApplication(inserted as DbApplicationRow);
-      const finalApp: JobApplication = {
-        ...newApplication,
-        ...mapped,
-        phone: mapped.phone ?? newApplication.phone,
-        location: mapped.location ?? newApplication.location,
-        photoUrl: mapped.photoUrl ?? newApplication.photoUrl,
-        resumeFileName: mapped.resumeFileName ?? newApplication.resumeFileName,
-        resumeUrl: mapped.resumeUrl ?? newApplication.resumeUrl,
-        coverLetterMode: mapped.coverLetterMode ?? newApplication.coverLetterMode,
-        coverLetterFileName: mapped.coverLetterFileName ?? newApplication.coverLetterFileName,
-        fitEvaluation: mapped.fitEvaluation ?? fitEvaluation,
-      };
-      inMemoryApplications.set(finalApp.id, finalApp);
-      return finalApp;
-    }
-
-    return newApplication;
   } catch (cause) {
     if (
-      isTableMissing(cause) ||
-      (cause instanceof Error &&
+      !isTableMissing(cause) &&
+      !(
+        cause instanceof Error &&
         (cause.message.includes("Konfigurasi Supabase") ||
           cause.message.toLowerCase().includes("supabase") ||
-          cause.message.toLowerCase().includes("fetch failed")))
+          cause.message.toLowerCase().includes("fetch failed"))
+      )
     ) {
-      return newApplication;
+      throw cause;
     }
-    throw cause;
   }
+
+  let finalApp = newApplication;
+  if (inserted) {
+    const mapped = mapDbApplication(inserted as DbApplicationRow);
+    finalApp = {
+      ...newApplication,
+      ...mapped,
+      phone: mapped.phone ?? newApplication.phone,
+      location: mapped.location ?? newApplication.location,
+      photoUrl: mapped.photoUrl ?? newApplication.photoUrl,
+      resumeFileName: mapped.resumeFileName ?? newApplication.resumeFileName,
+      resumeUrl: mapped.resumeUrl ?? newApplication.resumeUrl,
+      coverLetterMode: mapped.coverLetterMode ?? newApplication.coverLetterMode,
+      coverLetterFileName: mapped.coverLetterFileName ?? newApplication.coverLetterFileName,
+      fitEvaluation: mapped.fitEvaluation ?? fitEvaluation,
+      recruiterId: recruiterId ?? mapped.recruiterId,
+    };
+    inMemoryApplications.set(finalApp.id, finalApp);
+    if (recruiterId) {
+      applicationRecruiterMap.set(finalApp.id, recruiterId);
+    }
+  }
+
+  // Persistensi ke Supabase Auth Metadata:
+  // 1. Simpan ke metadata recruiter agar HR dapat melihat lamaran secara persisten di cloud Supabase
+  if (recruiterId) {
+    await saveApplicationToRecruiterMetadata(recruiterId, finalApp);
+  }
+  // 2. Simpan ke metadata kandidat agar kandidat dapat melihat riwayat lamaran secara persisten
+  await saveApplicationToCandidateMetadata(candidateId, finalApp);
+
+  return finalApp;
 }
 
 export async function getJobApplicationsForRecruiter(
   recruiterId: string,
   jobId?: string,
 ): Promise<JobApplication[]> {
+  if (!recruiterId || typeof recruiterId !== "string") return [];
+
   let dbApps: JobApplication[] = [];
+  let metadataApps: JobApplication[] = [];
   let metadataDeletedJobIds: string[] = [];
   let metadataDeletedAppIds: string[] = [];
+  const recruiterJobIds = new Set<string>();
 
-  if (recruiterId) {
-    try {
-      const admin = createAdminSupabase();
-      const { data: userData, error: userError } = await admin.auth.admin.getUserById(recruiterId);
-      if (!userError && userData?.user) {
-        const metadata = (userData.user.user_metadata || {}) as Record<string, unknown>;
-        if (Array.isArray(metadata.deleted_job_ids)) {
-          metadataDeletedJobIds = metadata.deleted_job_ids.filter(
-            (id): id is string => typeof id === "string" && id.trim().length > 0,
-          );
-        }
-        if (Array.isArray(metadata.deleted_application_ids)) {
-          metadataDeletedAppIds = metadata.deleted_application_ids.filter(
-            (id): id is string => typeof id === "string" && id.trim().length > 0,
-          );
+  // 1. Ambil data recruiter dari user_metadata
+  try {
+    const admin = createAdminSupabase();
+    const { data: userData, error: userError } = await admin.auth.admin.getUserById(recruiterId);
+    if (!userError && userData?.user) {
+      const metadata = (userData.user.user_metadata || {}) as Record<string, unknown>;
+      if (Array.isArray(metadata.deleted_job_ids)) {
+        metadataDeletedJobIds = metadata.deleted_job_ids.filter(
+          (id): id is string => typeof id === "string" && id.trim().length > 0,
+        );
+      }
+      if (Array.isArray(metadata.deleted_application_ids)) {
+        metadataDeletedAppIds = metadata.deleted_application_ids.filter(
+          (id): id is string => typeof id === "string" && id.trim().length > 0,
+        );
+      }
+      if (Array.isArray(metadata.custom_jobs)) {
+        for (const j of metadata.custom_jobs) {
+          if (j && typeof j === "object" && typeof j.id === "string") {
+            recruiterJobIds.add(j.id);
+          }
         }
       }
-    } catch {
-      // Graceful fallback
+      if (Array.isArray(metadata.job_applications)) {
+        metadataApps = metadata.job_applications.filter(
+          (a): a is JobApplication => Boolean(a && typeof a === "object" && typeof a.id === "string"),
+        );
+        for (const a of metadataApps) {
+          if (a.jobId) recruiterJobIds.add(a.jobId);
+        }
+      }
+    }
+  } catch {
+    // Graceful fallback
+  }
+
+  // 2. Tambahkan lowongan milik recruiter dari memori
+  for (const [id, j] of inMemoryJobs.entries()) {
+    if (j.recruiterId === recruiterId) {
+      recruiterJobIds.add(id);
     }
   }
 
@@ -1675,6 +1900,7 @@ export async function getJobApplicationsForRecruiter(
   ]);
   const deletedAppIds = new Set<string>(metadataDeletedAppIds);
 
+  // 3. Query DB jika ada tabel job_applications
   try {
     const db = createAdminSupabase();
     let query = db
@@ -1695,44 +1921,98 @@ export async function getJobApplicationsForRecruiter(
     }
 
     const { data, error } = await query.order("created_at", { ascending: false });
-
     if (!error && data) {
       dbApps = data.map((d) => mapDbApplication(d as DbApplicationRow));
+      for (const d of data) {
+        const row = d as DbApplicationRow;
+        if (row.job_id) recruiterJobIds.add(row.job_id);
+      }
     }
   } catch {
     // Graceful fallback
   }
 
-  // Saring dbApps agar mengabaikan lamaran yang allDeletedJobIds.has(a.jobId) atau deletedAppIds.has(a.id)
-  dbApps = dbApps.filter(
-    (a) => !allDeletedJobIds.has(a.jobId) && !deletedAppIds.has(a.id),
-  );
-
-  // Filter demo applications
-  let demoApps = DEMO_APPLICATIONS;
+  // 4. Jika jobId spesifik diminta, verifikasi bahwa lowongan tersebut milik recruiter
   if (jobId) {
-    demoApps = demoApps.filter((a) => a.jobId === jobId);
+    if (!recruiterJobIds.has(jobId)) {
+      const job = await getJobPostingById(jobId, { recruiterId, checkMockFixture: true });
+      if (job) {
+        if (job.recruiterId && job.recruiterId !== recruiterId) {
+          // Lowongan ini milik recruiter lain -> kembalikan array kosong (isolasi data ketat)
+          return [];
+        }
+        if (job.recruiterId === recruiterId || job.isDemo) {
+          recruiterJobIds.add(jobId);
+        }
+      } else {
+        // Lowongan tidak ditemukan atau dihapus
+        return [];
+      }
+    }
   }
 
-  let inMemApps = Array.from(inMemoryApplications.values());
-  if (jobId) {
-    inMemApps = inMemApps.filter((a) => a.jobId === jobId);
+  // 5. Filter dbApps
+  const filteredDb = dbApps.filter(
+    (a) => !allDeletedJobIds.has(a.jobId) && !deletedAppIds.has(a.id) && (!jobId || a.jobId === jobId),
+  );
+
+  // 6. Filter metadataApps (dari user_metadata.job_applications)
+  const filteredMeta = metadataApps.filter(
+    (a) => !allDeletedJobIds.has(a.jobId) && !deletedAppIds.has(a.id) && (!jobId || a.jobId === jobId),
+  );
+
+  // 7. Filter in-memory applications: HANYA yang terkait dengan recruiterId atau lowongan milik recruiter ini
+  const filteredInMem = Array.from(inMemoryApplications.values()).filter((a) => {
+    if (allDeletedJobIds.has(a.jobId) || deletedAppIds.has(a.id)) return false;
+    if (jobId && a.jobId !== jobId) return false;
+    if (a.isDemo) return false; // Demo apps ditangani tersendiri lewat demoApps
+    const appRecruiter = a.recruiterId || applicationRecruiterMap.get(a.id);
+    if (appRecruiter) {
+      return appRecruiter === recruiterId;
+    }
+    return recruiterJobIds.has(a.jobId) || inMemoryJobs.get(a.jobId)?.recruiterId === recruiterId;
+  });
+
+  // 8. Demo applications (jika ada di DEMO_APPLICATIONS)
+  const filteredDemo = DEMO_APPLICATIONS.filter((a) => {
+    if (allDeletedJobIds.has(a.jobId) || deletedAppIds.has(a.id)) return false;
+    if (jobId && a.jobId !== jobId) return false;
+    return true;
+  });
+
+  // 9. Gabungkan tanpa duplikat berdasarkan ID (DB > Metadata > In-Memory > Demo)
+  const seenIds = new Set<string>();
+  const combined: JobApplication[] = [];
+
+  for (const app of filteredDb) {
+    if (!seenIds.has(app.id)) {
+      seenIds.add(app.id);
+      combined.push(app);
+    }
   }
 
-  // Saring demoApps dan inMemApps agar mengabaikan lamaran yang allDeletedJobIds.has(a.jobId) atau deletedAppIds.has(a.id)
-  demoApps = demoApps.filter(
-    (a) => !allDeletedJobIds.has(a.jobId) && !deletedAppIds.has(a.id),
-  );
-  inMemApps = inMemApps.filter(
-    (a) => !allDeletedJobIds.has(a.jobId) && !deletedAppIds.has(a.id),
-  );
+  for (const app of filteredMeta) {
+    if (!seenIds.has(app.id)) {
+      seenIds.add(app.id);
+      inMemoryApplications.set(app.id, app);
+      applicationRecruiterMap.set(app.id, recruiterId);
+      combined.push(app);
+    }
+  }
 
-  const existingIds = new Set(dbApps.map((a) => a.id));
-  const combined = [
-    ...dbApps,
-    ...inMemApps.filter((a) => !existingIds.has(a.id)),
-    ...demoApps.filter((a) => !existingIds.has(a.id)),
-  ];
+  for (const app of filteredInMem) {
+    if (!seenIds.has(app.id)) {
+      seenIds.add(app.id);
+      combined.push(app);
+    }
+  }
+
+  for (const app of filteredDemo) {
+    if (!seenIds.has(app.id)) {
+      seenIds.add(app.id);
+      combined.push(app);
+    }
+  }
 
   return combined.sort((a, b) => new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime());
 }
@@ -1740,8 +2020,28 @@ export async function getJobApplicationsForRecruiter(
 export async function getJobApplicationsForCandidate(
   candidateId: string,
 ): Promise<JobApplication[]> {
-  let dbApps: JobApplication[] = [];
+  if (!candidateId || typeof candidateId !== "string") return [];
 
+  let dbApps: JobApplication[] = [];
+  let metadataApps: JobApplication[] = [];
+
+  // 1. Baca dari candidate user_metadata.my_applications
+  try {
+    const admin = createAdminSupabase();
+    const { data: userData, error: userError } = await admin.auth.admin.getUserById(candidateId);
+    if (!userError && userData?.user) {
+      const metadata = (userData.user.user_metadata || {}) as Record<string, unknown>;
+      if (Array.isArray(metadata.my_applications)) {
+        metadataApps = metadata.my_applications.filter(
+          (a): a is JobApplication => Boolean(a && typeof a === "object" && typeof a.id === "string"),
+        );
+      }
+    }
+  } catch {
+    // Graceful fallback
+  }
+
+  // 2. Baca dari DB jika ada
   try {
     const db = createAdminSupabase();
     const { data, error } = await db
@@ -1765,12 +2065,38 @@ export async function getJobApplicationsForCandidate(
 
   const demoApps = DEMO_APPLICATIONS.filter((a) => a.candidateId === candidateId);
   const inMemApps = Array.from(inMemoryApplications.values()).filter((a) => a.candidateId === candidateId);
-  const existingIds = new Set(dbApps.map((a) => a.id));
-  const combined = [
-    ...dbApps,
-    ...inMemApps.filter((a) => !existingIds.has(a.id)),
-    ...demoApps.filter((a) => !existingIds.has(a.id)),
-  ];
+
+  const seenIds = new Set<string>();
+  const combined: JobApplication[] = [];
+
+  for (const a of dbApps) {
+    if (!seenIds.has(a.id)) {
+      seenIds.add(a.id);
+      combined.push(a);
+    }
+  }
+
+  for (const a of metadataApps) {
+    if (!seenIds.has(a.id)) {
+      seenIds.add(a.id);
+      inMemoryApplications.set(a.id, a);
+      combined.push(a);
+    }
+  }
+
+  for (const a of inMemApps) {
+    if (!seenIds.has(a.id)) {
+      seenIds.add(a.id);
+      combined.push(a);
+    }
+  }
+
+  for (const a of demoApps) {
+    if (!seenIds.has(a.id)) {
+      seenIds.add(a.id);
+      combined.push(a);
+    }
+  }
 
   return combined.sort((a, b) => new Date(b.appliedAt).getTime() - new Date(a.appliedAt).getTime());
 }
@@ -1784,15 +2110,14 @@ export async function updateApplicationStatus(
   if (!validStatuses.includes(status)) {
     throw new Error("Status lamaran tidak valid.");
   }
-
-  // 1. Update in-memory
-  const memApp = inMemoryApplications.get(applicationId);
-  if (memApp) {
-    memApp.status = status;
-    inMemoryApplications.set(applicationId, memApp);
+  if (!recruiterId || typeof recruiterId !== "string" || recruiterId.trim().length === 0) {
+    throw new Error("ID perekrut wajib diisi.");
+  }
+  if (!applicationId || typeof applicationId !== "string" || applicationId.trim().length === 0) {
+    throw new Error("ID lamaran wajib diisi.");
   }
 
-  // 2. Update demo applications
+  // 1. Update demo applications (jika sedang dalam skenario pengujian fixture)
   const demoIdx = DEMO_APPLICATIONS.findIndex((a) => a.id === applicationId);
   if (demoIdx !== -1) {
     DEMO_APPLICATIONS[demoIdx] = {
@@ -1802,7 +2127,11 @@ export async function updateApplicationStatus(
     return DEMO_APPLICATIONS[demoIdx];
   }
 
-  // 3. Database update
+  let dbApp: JobApplication | null = null;
+  let metaApp: JobApplication | null = null;
+  let candidateIdToUpdate: string | undefined;
+
+  // 2. Update status di database (jika tabel job_applications ada dan lowongan milik recruiterId)
   try {
     const db = createAdminSupabase();
     const { data, error } = await db
@@ -1811,26 +2140,85 @@ export async function updateApplicationStatus(
       .eq("id", applicationId)
       .select(`
         *,
-        job_postings (
+        job_postings!inner (
           id,
           title,
           company_name,
           recruiter_id
         )
       `)
-      .single();
+      .eq("job_postings.recruiter_id", recruiterId)
+      .maybeSingle();
 
     if (!error && data) {
-      const mapped = mapDbApplication(data as DbApplicationRow);
-      inMemoryApplications.set(mapped.id, mapped);
-      return mapped;
+      dbApp = mapDbApplication(data as DbApplicationRow);
+      inMemoryApplications.set(dbApp.id, dbApp);
+      candidateIdToUpdate = dbApp.candidateId;
     }
   } catch {
     // Graceful fail-safe fallback
   }
 
+  // 3. Update status di user_metadata.job_applications milik recruiter
+  try {
+    const admin = createAdminSupabase();
+    const { data: userData, error: userError } = await admin.auth.admin.getUserById(recruiterId);
+    if (!userError && userData?.user) {
+      const metadata = (userData.user.user_metadata || {}) as Record<string, unknown>;
+      const currentApps: JobApplication[] = Array.isArray(metadata.job_applications)
+        ? (metadata.job_applications as JobApplication[])
+        : [];
+      const targetIdx = currentApps.findIndex(
+        (a) => a && typeof a === "object" && a.id === applicationId,
+      );
+      if (targetIdx !== -1) {
+        metaApp = { ...currentApps[targetIdx], status };
+        currentApps[targetIdx] = metaApp;
+        candidateIdToUpdate = metaApp.candidateId;
+        await admin.auth.admin.updateUserById(recruiterId, {
+          user_metadata: {
+            ...metadata,
+            job_applications: currentApps,
+          },
+        });
+      }
+    }
+  } catch {
+    // Fail-safe
+  }
+
+  // 4. Update status in memory (jika ada di memori dan diverifikasi milik recruiter ini)
+  const memApp = inMemoryApplications.get(applicationId);
+  let updatedMemApp: JobApplication | null = null;
   if (memApp) {
-    return memApp;
+    const appRecruiter = memApp.recruiterId || applicationRecruiterMap.get(memApp.id);
+    const jobRecruiter = inMemoryJobs.get(memApp.jobId)?.recruiterId;
+    const isOwner =
+      appRecruiter === recruiterId ||
+      jobRecruiter === recruiterId ||
+      Boolean(metaApp) ||
+      Boolean(dbApp);
+
+    if (isOwner) {
+      memApp.status = status;
+      inMemoryApplications.set(applicationId, memApp);
+      updatedMemApp = memApp;
+      if (!candidateIdToUpdate) {
+        candidateIdToUpdate = memApp.candidateId;
+      }
+    } else if (!metaApp && !dbApp) {
+      // Ada di memori tapi milik recruiter lain -> tolak akses!
+      throw new Error("Lamaran tidak ditemukan atau Anda tidak memiliki akses.");
+    }
+  }
+
+  const finalResult = dbApp || metaApp || updatedMemApp;
+  if (finalResult) {
+    inMemoryApplications.set(finalResult.id, finalResult);
+    if (candidateIdToUpdate) {
+      await updateApplicationStatusInCandidateMetadata(candidateIdToUpdate, applicationId, status);
+    }
+    return finalResult;
   }
 
   throw new Error("Lamaran tidak ditemukan atau Anda tidak memiliki akses.");

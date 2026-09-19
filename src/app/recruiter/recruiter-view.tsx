@@ -144,6 +144,143 @@ function downloadCandidateResume(app: {
   URL.revokeObjectURL(url);
 }
 
+// Clean inline SVG Icons (Heroicons / Lucide style)
+function IconMail({ width = 16, height = 16, className = "" }: { width?: number; height?: number; className?: string }) {
+  return (
+    <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <rect width="20" height="16" x="2" y="4" rx="2" />
+      <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
+    </svg>
+  );
+}
+
+function IconPhone({ width = 16, height = 16, className = "" }: { width?: number; height?: number; className?: string }) {
+  return (
+    <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
+    </svg>
+  );
+}
+
+function IconMapPin({ width = 16, height = 16, className = "" }: { width?: number; height?: number; className?: string }) {
+  return (
+    <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0" />
+      <circle cx="12" cy="10" r="3" />
+    </svg>
+  );
+}
+
+function IconFileText({ width = 16, height = 16, className = "" }: { width?: number; height?: number; className?: string }) {
+  return (
+    <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+      <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+      <path d="M10 9H8" />
+      <path d="M16 13H8" />
+      <path d="M16 17H8" />
+    </svg>
+  );
+}
+
+function IconPaperclip({ width = 16, height = 16, className = "" }: { width?: number; height?: number; className?: string }) {
+  return (
+    <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l8.57-8.57A4 4 0 1 1 18 8.84l-8.59 8.57a2 2 0 0 1-2.83-2.83l8.49-8.48" />
+    </svg>
+  );
+}
+
+function IconCheck({ width = 16, height = 16, className = "" }: { width?: number; height?: number; className?: string }) {
+  return (
+    <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  );
+}
+
+function IconX({ width = 16, height = 16, className = "" }: { width?: number; height?: number; className?: string }) {
+  return (
+    <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M18 6 6 18" />
+      <path d="m6 6 12 12" />
+    </svg>
+  );
+}
+
+function IconExternalLink({ width = 16, height = 16, className = "" }: { width?: number; height?: number; className?: string }) {
+  return (
+    <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M15 3h6v6" />
+      <path d="M10 14 21 3" />
+      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
+    </svg>
+  );
+}
+
+function IconMessageCircle({ width = 16, height = 16, className = "" }: { width?: number; height?: number; className?: string }) {
+  return (
+    <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
+    </svg>
+  );
+}
+
+function IconCalendar({ width = 16, height = 16, className = "" }: { width?: number; height?: number; className?: string }) {
+  return (
+    <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <rect width="18" height="18" x="3" y="4" rx="2" />
+      <path d="M8 2v4" />
+      <path d="M16 2v4" />
+      <path d="M3 10h18" />
+      <path d="m9 16 2 2 4-4" />
+    </svg>
+  );
+}
+
+function IconDownload({ width = 14, height = 14, className = "" }: { width?: number; height?: number; className?: string }) {
+  return (
+    <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <polyline points="7 10 12 15 17 10" />
+      <line x1="12" x2="12" y1="15" y2="3" />
+    </svg>
+  );
+}
+
+function IconSparkles({ width = 16, height = 16, className = "" }: { width?: number; height?: number; className?: string }) {
+  return (
+    <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3Z" />
+    </svg>
+  );
+}
+
+function IconBriefcase({ width = 16, height = 16, className = "" }: { width?: number; height?: number; className?: string }) {
+  return (
+    <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <rect width="20" height="14" x="2" y="7" rx="2" ry="2" />
+      <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
+    </svg>
+  );
+}
+
+function IconClipboard({ width = 24, height = 24, className = "" }: { width?: number; height?: number; className?: string }) {
+  return (
+    <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+    </svg>
+  );
+}
+
+function getCandidateInitials(name: string): string {
+  if (!name) return "KD";
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 export default function RecruiterView() {
   const [authState, setAuthState] = useState<AuthState>({ status: "loading" });
   const [activeTab, setActiveTab] = useState<"talent-pool" | "my-jobs">("talent-pool");
@@ -164,6 +301,7 @@ export default function RecruiterView() {
   // Modals
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedJobForApplicants, setSelectedJobForApplicants] = useState<JobPosting | null>(null);
+  const [selectedApplicantId, setSelectedApplicantId] = useState<string | "all">("all");
 
   // Form IDs
   const titleInputId = useId();
@@ -1093,10 +1231,10 @@ export default function RecruiterView() {
                   borderRadius: "50%",
                   display: "grid",
                   placeItems: "center",
-                  fontSize: "1.5rem",
+                  color: "var(--ink)",
                 }}
               >
-                📋
+                <IconClipboard width={26} height={26} />
               </div>
               <h2 style={{ fontSize: "1.35rem", marginBottom: "0.5rem" }}>
                 {selectedJobId !== "all"
@@ -1204,11 +1342,11 @@ export default function RecruiterView() {
                                 cursor: "pointer",
                               }}
                             >
-                              <option value="pending">⏳ Terkirim</option>
-                              <option value="reviewed">👁️ Ditinjau HR</option>
-                              <option value="shortlisted">⭐ Shortlisted</option>
-                              <option value="accepted">✅ Diterima</option>
-                              <option value="rejected">❌ Tidak Lolos</option>
+                              <option value="pending">Menunggu Peninjauan</option>
+                              <option value="reviewed">Sedang Ditinjau</option>
+                              <option value="shortlisted">Siap Wawancara (Shortlist)</option>
+                              <option value="accepted">Diterima Bekerja</option>
+                              <option value="rejected">Tidak Memenuhi Kriteria</option>
                             </select>
                           </div>
                         ) : badge ? (
@@ -1257,7 +1395,7 @@ export default function RecruiterView() {
                             maxWidth: "100%",
                           }}
                         >
-                          <span>💼</span>
+                          <IconBriefcase width={14} height={14} />
                           <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                             {targetJobTitle}
                           </span>
@@ -1286,7 +1424,7 @@ export default function RecruiterView() {
                         >
                           {candidate.phone && (
                             <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem" }}>
-                              <span>📱</span>
+                              <IconPhone width={13} height={13} />
                               <a href={`tel:${candidate.phone}`} style={{ color: "var(--ink)", fontWeight: 600 }}>
                                 {candidate.phone}
                               </a>
@@ -1294,13 +1432,13 @@ export default function RecruiterView() {
                           )}
                           {candidate.location && (
                             <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem", color: "var(--muted)" }}>
-                              <span>📍</span>
+                              <IconMapPin width={13} height={13} />
                               <span>{candidate.location}</span>
                             </span>
                           )}
                           {candidate.resumeFileName && (
                             <span style={{ display: "inline-flex", alignItems: "center", gap: "0.25rem" }}>
-                              <span>📄</span>
+                              <IconFileText width={13} height={13} />
                               <button
                                 type="button"
                                 onClick={() =>
@@ -1818,7 +1956,10 @@ export default function RecruiterView() {
                           type="button"
                           className="button secondary"
                           style={{ fontSize: "0.88rem", minHeight: "40px" }}
-                          onClick={() => setSelectedJobForApplicants(job)}
+                          onClick={() => {
+                            setSelectedApplicantId("all");
+                            setSelectedJobForApplicants(job);
+                          }}
                         >
                           Lihat Pelamar ({jobApplicants.length})
                         </button>
@@ -1883,7 +2024,7 @@ export default function RecruiterView() {
           <div
             className="panel"
             style={{
-              maxWidth: "840px",
+              maxWidth: "920px",
               width: "100%",
               maxHeight: "90vh",
               overflowY: "auto",
@@ -1897,441 +2038,886 @@ export default function RecruiterView() {
           >
             <button
               type="button"
-              aria-label="Tutup"
-              onClick={() => setSelectedJobForApplicants(null)}
+              aria-label="Tutup modal"
+              onClick={() => {
+                setSelectedJobForApplicants(null);
+                setSelectedApplicantId("all");
+              }}
               style={{
                 position: "absolute",
                 top: "1.25rem",
                 right: "1.25rem",
                 background: "transparent",
                 border: "none",
-                fontSize: "1.5rem",
+                padding: "0.35rem",
                 cursor: "pointer",
-                lineHeight: 1,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "var(--muted)",
+                borderRadius: "4px",
               }}
             >
-              ×
+              <IconX width={20} height={20} />
             </button>
 
-            <div style={{ marginBottom: "1.5rem" }}>
-              <p className="eyebrow" style={{ margin: 0 }}>
-                Pelamar Masuk
-              </p>
-              <h2 id="applicants-modal-title" style={{ fontSize: "1.45rem", margin: "0.25rem 0" }}>
-                {selectedJobForApplicants.title}
-              </h2>
-              <p style={{ margin: 0, color: "var(--muted)", fontSize: "0.95rem" }}>
-                {selectedJobForApplicants.companyName} · Syarat Minimal: Skor ≥ {selectedJobForApplicants.minSkillbridgeScore}/100
-              </p>
-            </div>
-
-            {/* List Pelamar */}
+            {/* Header Modal Pelamar */}
             {(() => {
               const jobApps = applications.filter((a) => a.jobId === selectedJobForApplicants.id);
-
-              if (jobApps.length === 0) {
-                return (
-                  <div style={{ textAlign: "center", padding: "2.5rem 1rem", background: "var(--paper)", border: "1px dashed var(--line)" }}>
-                    <p style={{ margin: "0 0 0.5rem", fontWeight: 700 }}>Belum Ada Pelamar Masuk</p>
-                    <p className="hint" style={{ margin: 0 }}>
-                      Kandidat yang melamar posisi ini akan muncul di sini beserta bukti portofolio dan skor Skillbridge mereka.
-                    </p>
-                  </div>
-                );
-              }
+              const displayedApps =
+                selectedApplicantId === "all"
+                  ? jobApps
+                  : jobApps.filter((a) => a.id === selectedApplicantId);
+              const appsToRender = displayedApps.length > 0 ? displayedApps : jobApps;
 
               return (
-                <div style={{ display: "grid", gap: "1.25rem" }}>
-                  {jobApps.map((app) => {
-                    const badge = getApplicationBadge(app.status);
-                    return (
-                      <article
-                        key={app.id}
+                <>
+                  <div style={{ marginBottom: "1.25rem", paddingBottom: "1rem", borderBottom: "1px solid var(--line)" }}>
+                    <p className="eyebrow" style={{ margin: 0 }}>
+                      Portal Rekruter · Pelamar Masuk
+                    </p>
+                    <h2 id="applicants-modal-title" style={{ fontSize: "1.45rem", margin: "0.25rem 0", fontFamily: "var(--font-display)", color: "var(--ink)" }}>
+                      Daftar Pelamar Masuk ({jobApps.length} Kandidat)
+                    </h2>
+                    <p style={{ margin: 0, color: "var(--muted)", fontSize: "0.92rem" }}>
+                      <strong>{selectedJobForApplicants.title}</strong> · {selectedJobForApplicants.companyName} · Syarat Minimal: Skor ≥ {selectedJobForApplicants.minSkillbridgeScore}/100
+                    </p>
+                  </div>
+
+                  {/* Tab Pemilih Kandidat jika lebih dari 1 pelamar */}
+                  {jobApps.length > 1 && (
+                    <div
+                      style={{
+                        marginBottom: "1.25rem",
+                        display: "flex",
+                        gap: "0.5rem",
+                        overflowX: "auto",
+                        paddingBottom: "0.5rem",
+                        borderBottom: "1px solid var(--line)",
+                        WebkitOverflowScrolling: "touch",
+                      }}
+                      role="tablist"
+                      aria-label="Pilih Kandidat"
+                    >
+                      <button
+                        type="button"
+                        role="tab"
+                        aria-selected={selectedApplicantId === "all"}
+                        onClick={() => setSelectedApplicantId("all")}
+                        className="chip"
                         style={{
-                          background: "white",
-                          border: "1px solid var(--line)",
-                          borderRadius: "10px",
-                          padding: "1.25rem 1.5rem",
-                          display: "grid",
-                          gap: "1rem",
+                          background: selectedApplicantId === "all" ? "var(--chalk)" : "white",
+                          borderColor: selectedApplicantId === "all" ? "var(--ink)" : "var(--line)",
+                          fontWeight: selectedApplicantId === "all" ? 700 : 500,
+                          fontSize: "0.82rem",
+                          cursor: "pointer",
+                          whiteSpace: "nowrap",
+                          flexShrink: 0,
                         }}
                       >
-                        {/* Header: Status, Nama, Tanggal, & Skor */}
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "flex-start",
-                            flexWrap: "wrap",
-                            gap: "1rem",
-                          }}
-                        >
-                          <div style={{ flex: "1 1 320px" }}>
-                            <div style={{ display: "flex", alignItems: "center", gap: "0.6rem", marginBottom: "0.4rem", flexWrap: "wrap" }}>
+                        Semua Pelamar ({jobApps.length})
+                      </button>
+                      {jobApps.map((app, idx) => {
+                        const isSelected = selectedApplicantId === app.id;
+                        const scoreStr =
+                          app.skillbridgeScore !== null && app.skillbridgeScore !== undefined
+                            ? `${app.skillbridgeScore}/100`
+                            : "—";
+                        return (
+                          <button
+                            key={app.id}
+                            type="button"
+                            role="tab"
+                            aria-selected={isSelected}
+                            onClick={() => setSelectedApplicantId(app.id)}
+                            className="chip"
+                            style={{
+                              background: isSelected ? "var(--chalk)" : "white",
+                              borderColor: isSelected ? "var(--ink)" : "var(--line)",
+                              fontWeight: isSelected ? 700 : 500,
+                              fontSize: "0.82rem",
+                              cursor: "pointer",
+                              whiteSpace: "nowrap",
+                              flexShrink: 0,
+                            }}
+                          >
+                            #{idx + 1} {app.candidateName} · {scoreStr}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* List Pelamar */}
+                  {jobApps.length === 0 ? (
+                    <div style={{ textAlign: "center", padding: "3rem 1.5rem", background: "var(--paper)", border: "1px dashed var(--line)", borderRadius: "8px" }}>
+                      <div
+                        style={{
+                          width: "48px",
+                          height: "48px",
+                          margin: "0 auto 1rem",
+                          borderRadius: "50%",
+                          background: "white",
+                          border: "1px solid var(--line)",
+                          display: "grid",
+                          placeItems: "center",
+                          color: "var(--muted)",
+                        }}
+                      >
+                        <IconClipboard width={22} height={22} />
+                      </div>
+                      <p style={{ margin: "0 0 0.5rem", fontWeight: 700, fontSize: "1.1rem" }}>Belum Ada Pelamar Masuk</p>
+                      <p className="hint" style={{ margin: 0, maxWidth: "480px", marginLeft: "auto", marginRight: "auto" }}>
+                        Kandidat yang melamar posisi ini akan muncul di sini beserta bukti portofolio dan skor evaluasi kriteria kesiapan kerja mereka.
+                      </p>
+                    </div>
+                  ) : (
+                    <div style={{ display: "grid", gap: "1.5rem" }}>
+                      {appsToRender.map((app) => {
+                        const origIndex = jobApps.findIndex((a) => a.id === app.id);
+                        const candidateNum = origIndex >= 0 ? origIndex + 1 : 1;
+                        const badge = getApplicationBadge(app.status);
+
+                        return (
+                          <article
+                            key={app.id}
+                            style={{
+                              background: "white",
+                              border: "1px solid var(--line)",
+                              borderRadius: "12px",
+                              padding: "clamp(1.25rem, 3vw, 1.75rem)",
+                              display: "grid",
+                              gap: "1.25rem",
+                              boxShadow: "0 2px 10px rgba(20, 33, 61, 0.05)",
+                              position: "relative",
+                            }}
+                          >
+                            {/* Baris Urutan Kandidat */}
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                borderBottom: "1px solid var(--line)",
+                                paddingBottom: "0.6rem",
+                                flexWrap: "wrap",
+                                gap: "0.5rem",
+                              }}
+                            >
                               <span
                                 style={{
-                                  display: "inline-block",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: "0.4rem",
                                   fontSize: "0.75rem",
                                   fontWeight: 700,
-                                  padding: "0.2rem 0.6rem",
-                                  borderRadius: "4px",
-                                  background: badge.bg,
-                                  color: badge.color,
+                                  color: "var(--muted)",
+                                  textTransform: "uppercase",
+                                  letterSpacing: "0.06em",
                                 }}
                               >
-                                Status: {badge.label}
+                                Kandidat {candidateNum} dari {jobApps.length}
                               </span>
-                              <div style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}>
-                                <label htmlFor={`status-${app.id}`} style={{ fontSize: "0.75rem", color: "var(--muted)", fontWeight: 600 }}>
-                                  Ubah:
-                                </label>
-                                <select
-                                  id={`status-${app.id}`}
-                                  value={app.status}
-                                  onChange={(e) => handleUpdateApplicationStatus(app.id, e.target.value as ApplicationStatus)}
+                              {app.isDemo && (
+                                <span
                                   style={{
-                                    fontSize: "0.78rem",
-                                    padding: "0.18rem 0.5rem",
-                                    border: "1px solid var(--line)",
+                                    fontSize: "0.7rem",
+                                    color: "var(--muted)",
+                                    border: "1px dashed var(--line)",
+                                    padding: "0.1rem 0.45rem",
                                     borderRadius: "4px",
-                                    background: "white",
-                                    cursor: "pointer",
                                     fontWeight: 600,
                                   }}
                                 >
-                                  <option value="pending">⏳ Menunggu Peninjauan</option>
-                                  <option value="reviewed">👁️ Sedang Ditinjau</option>
-                                  <option value="shortlisted">⭐ Siap Wawancara (Shortlist)</option>
-                                  <option value="accepted">✅ Diterima Bekerja</option>
-                                  <option value="rejected">❌ Tidak Memenuhi Kriteria</option>
-                                </select>
-                              </div>
+                                  Demo Terverifikasi
+                                </span>
+                              )}
                             </div>
-                            <h3 style={{ margin: "0 0 0.25rem", fontSize: "1.25rem", color: "var(--ink)", fontWeight: 700 }}>
-                              {app.candidateName}
-                            </h3>
-                            <p style={{ margin: 0, color: "var(--muted)", fontSize: "0.85rem" }}>
-                              Melamar pada{" "}
-                              {new Date(app.appliedAt).toLocaleDateString("id-ID", {
-                                day: "numeric",
-                                month: "long",
-                                year: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </p>
-                          </div>
 
-                          {/* Skillbridge Score */}
-                          {app.skillbridgeScore !== null && app.skillbridgeScore !== undefined ? (
+                            {/* Header: Avatar, Identitas, Status, & Skor Portofolio */}
+                            <div
+                              style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "flex-start",
+                                flexWrap: "wrap",
+                                gap: "1.25rem",
+                              }}
+                            >
+                              {/* Avatar & Identitas */}
+                              <div style={{ display: "flex", gap: "1rem", alignItems: "flex-start", flex: "1 1 340px", minWidth: 0 }}>
+                                <div
+                                  style={{
+                                    width: "52px",
+                                    height: "52px",
+                                    borderRadius: "50%",
+                                    flexShrink: 0,
+                                    overflow: "hidden",
+                                    background: "var(--ink)",
+                                    color: "var(--chalk)",
+                                    display: "grid",
+                                    placeItems: "center",
+                                    fontWeight: 700,
+                                    fontSize: "1.1rem",
+                                    border: "2px solid var(--line)",
+                                    boxShadow: "0 2px 6px rgba(0,0,0,0.06)",
+                                  }}
+                                >
+                                  {app.photoUrl ? (
+                                    <img
+                                      src={app.photoUrl}
+                                      alt={app.candidateName}
+                                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                    />
+                                  ) : (
+                                    <span>{getCandidateInitials(app.candidateName)}</span>
+                                  )}
+                                </div>
+
+                                <div style={{ flex: 1, minWidth: 0 }}>
+                                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.35rem", flexWrap: "wrap" }}>
+                                    <span
+                                      style={{
+                                        display: "inline-block",
+                                        fontSize: "0.75rem",
+                                        fontWeight: 700,
+                                        padding: "0.2rem 0.6rem",
+                                        borderRadius: "4px",
+                                        background: badge.bg,
+                                        color: badge.color,
+                                        border: `1px solid ${badge.bg === "#f3f4f6" ? "var(--line)" : badge.bg}`,
+                                      }}
+                                    >
+                                      Status: {badge.label}
+                                    </span>
+                                    <div style={{ display: "inline-flex", alignItems: "center", gap: "0.35rem" }}>
+                                      <label htmlFor={`status-${app.id}`} style={{ fontSize: "0.75rem", color: "var(--muted)", fontWeight: 600 }}>
+                                        Ubah:
+                                      </label>
+                                      <select
+                                        id={`status-${app.id}`}
+                                        value={app.status}
+                                        onChange={(e) => handleUpdateApplicationStatus(app.id, e.target.value as ApplicationStatus)}
+                                        style={{
+                                          fontSize: "0.78rem",
+                                          padding: "0.2rem 0.5rem",
+                                          border: "1px solid var(--line)",
+                                          borderRadius: "4px",
+                                          background: "white",
+                                          cursor: "pointer",
+                                          fontWeight: 600,
+                                          minHeight: "30px",
+                                          height: "30px",
+                                          color: "var(--ink)",
+                                        }}
+                                      >
+                                        <option value="pending">Menunggu Peninjauan</option>
+                                        <option value="reviewed">Sedang Ditinjau</option>
+                                        <option value="shortlisted">Siap Wawancara (Shortlist)</option>
+                                        <option value="accepted">Diterima Bekerja</option>
+                                        <option value="rejected">Tidak Memenuhi Kriteria</option>
+                                      </select>
+                                    </div>
+                                  </div>
+
+                                  <h3 style={{ margin: "0 0 0.25rem", fontSize: "1.25rem", color: "var(--ink)", fontWeight: 700, lineHeight: 1.3 }}>
+                                    {app.candidateName}
+                                  </h3>
+                                  <p style={{ margin: 0, color: "var(--muted)", fontSize: "0.82rem" }}>
+                                    Melamar pada{" "}
+                                    {new Date(app.appliedAt).toLocaleDateString("id-ID", {
+                                      day: "numeric",
+                                      month: "long",
+                                      year: "numeric",
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    })}
+                                  </p>
+                                </div>
+                              </div>
+
+                              {/* Skor Portofolio */}
+                              {app.skillbridgeScore !== null && app.skillbridgeScore !== undefined ? (
+                                <div
+                                  style={{
+                                    background: "var(--paper)",
+                                    border: "1px solid var(--line)",
+                                    borderRadius: "8px",
+                                    padding: "0.6rem 0.95rem",
+                                    textAlign: "right",
+                                    minWidth: "135px",
+                                    flexShrink: 0,
+                                  }}
+                                >
+                                  <span style={{ display: "block", fontSize: "0.7rem", color: "var(--muted)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                                    Skor Portofolio
+                                  </span>
+                                  <span
+                                    style={{
+                                      fontSize: "1.5rem",
+                                      fontWeight: 700,
+                                      fontFamily: "var(--font-display)",
+                                      color:
+                                        app.skillbridgeScore >= selectedJobForApplicants.minSkillbridgeScore
+                                          ? "#15803d"
+                                          : "var(--ink)",
+                                    }}
+                                  >
+                                    {app.skillbridgeScore}
+                                    <small style={{ fontSize: "0.82rem", color: "var(--muted)" }}>/100</small>
+                                  </span>
+                                  <span
+                                    style={{
+                                      display: "flex",
+                                      alignItems: "center",
+                                      justifyContent: "flex-end",
+                                      gap: "0.25rem",
+                                      fontSize: "0.72rem",
+                                      color: app.skillbridgeScore >= selectedJobForApplicants.minSkillbridgeScore ? "#15803d" : "var(--muted)",
+                                      fontWeight: 600,
+                                      marginTop: "0.15rem",
+                                    }}
+                                  >
+                                    {app.skillbridgeScore >= selectedJobForApplicants.minSkillbridgeScore ? (
+                                      <>
+                                        <IconCheck width={13} height={13} />
+                                        <span>Memenuhi Syarat</span>
+                                      </>
+                                    ) : (
+                                      <span>Di bawah Syarat</span>
+                                    )}
+                                  </span>
+                                </div>
+                              ) : (
+                                <div
+                                  style={{
+                                    background: "var(--paper)",
+                                    border: "1px dashed var(--line)",
+                                    borderRadius: "8px",
+                                    padding: "0.6rem 0.85rem",
+                                    textAlign: "right",
+                                    fontSize: "0.78rem",
+                                    color: "var(--muted)",
+                                    flexShrink: 0,
+                                  }}
+                                >
+                                  Skor belum dilampirkan
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Grid Informasi Kontak Pelamar (2 Kolom Responsif) */}
                             <div
                               style={{
                                 background: "var(--paper)",
                                 border: "1px solid var(--line)",
                                 borderRadius: "8px",
-                                padding: "0.5rem 0.85rem",
-                                textAlign: "right",
-                                minWidth: "120px",
+                                padding: "1rem 1.25rem",
+                                display: "grid",
+                                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                                gap: "0.85rem 1.25rem",
+                                fontSize: "0.85rem",
                               }}
                             >
-                              <span style={{ display: "block", fontSize: "0.7rem", color: "var(--muted)", fontWeight: 700, textTransform: "uppercase" }}>
-                                Skor Portofolio
-                              </span>
-                              <span
+                              <div>
+                                <span
+                                  style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "0.35rem",
+                                    color: "var(--muted)",
+                                    fontSize: "0.72rem",
+                                    fontWeight: 700,
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.04em",
+                                    marginBottom: "0.2rem",
+                                  }}
+                                >
+                                  <IconMail width={14} height={14} />
+                                  <span>Alamat Email</span>
+                                </span>
+                                <div>
+                                  <a
+                                    href={`mailto:${app.candidateEmail}`}
+                                    style={{ color: "var(--ink)", textDecoration: "underline", fontWeight: 600, wordBreak: "break-all" }}
+                                  >
+                                    {app.candidateEmail}
+                                  </a>
+                                </div>
+                              </div>
+
+                              <div>
+                                <span
+                                  style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "0.35rem",
+                                    color: "var(--muted)",
+                                    fontSize: "0.72rem",
+                                    fontWeight: 700,
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.04em",
+                                    marginBottom: "0.2rem",
+                                  }}
+                                >
+                                  <IconPhone width={14} height={14} />
+                                  <span>Nomor Telepon</span>
+                                </span>
+                                {app.phone ? (
+                                  <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                                    <a href={`tel:${app.phone}`} style={{ color: "var(--ink)", fontWeight: 600 }}>
+                                      {app.phone}
+                                    </a>
+                                    {(() => {
+                                      const waUrl = getWhatsAppUrl(app.phone, app.candidateName, selectedJobForApplicants.title);
+                                      if (!waUrl) return null;
+                                      return (
+                                        <a
+                                          href={waUrl}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          style={{
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            gap: "0.3rem",
+                                            padding: "0.18rem 0.5rem",
+                                            background: "#dcfce7",
+                                            color: "#15803d",
+                                            border: "1px solid #bbf7d0",
+                                            borderRadius: "4px",
+                                            fontSize: "0.72rem",
+                                            fontWeight: 700,
+                                            textDecoration: "none",
+                                          }}
+                                          title="Kirim pesan WhatsApp langsung"
+                                        >
+                                          <IconMessageCircle width={13} height={13} />
+                                          <span>Chat WA</span>
+                                        </a>
+                                      );
+                                    })()}
+                                  </div>
+                                ) : (
+                                  <span style={{ color: "var(--muted)" }}>Tidak dicantumkan</span>
+                                )}
+                              </div>
+
+                              <div>
+                                <span
+                                  style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "0.35rem",
+                                    color: "var(--muted)",
+                                    fontSize: "0.72rem",
+                                    fontWeight: 700,
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.04em",
+                                    marginBottom: "0.2rem",
+                                  }}
+                                >
+                                  <IconMapPin width={14} height={14} />
+                                  <span>Lokasi Domisili</span>
+                                </span>
+                                <div style={{ color: "var(--ink)", fontWeight: 600 }}>
+                                  {app.location || "Tidak dicantumkan"}
+                                </div>
+                              </div>
+
+                              <div>
+                                <span
+                                  style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "0.35rem",
+                                    color: "var(--muted)",
+                                    fontSize: "0.72rem",
+                                    fontWeight: 700,
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.04em",
+                                    marginBottom: "0.2rem",
+                                  }}
+                                >
+                                  <IconFileText width={14} height={14} />
+                                  <span>Resumé / CV Pelamar</span>
+                                </span>
+                                <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", flexWrap: "wrap" }}>
+                                  <span
+                                    style={{
+                                      color: "var(--ink)",
+                                      fontWeight: 600,
+                                      overflow: "hidden",
+                                      textOverflow: "ellipsis",
+                                      whiteSpace: "nowrap",
+                                      maxWidth: "180px",
+                                    }}
+                                    title={app.resumeFileName || "CV_Pelamar.pdf"}
+                                  >
+                                    {app.resumeFileName || "CV_Pelamar.pdf"}
+                                  </span>
+                                  <button
+                                    type="button"
+                                    onClick={() => downloadCandidateResume(app)}
+                                    style={{
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: "0.3rem",
+                                      padding: "0.2rem 0.55rem",
+                                      background: "white",
+                                      border: "1px solid var(--line)",
+                                      borderRadius: "4px",
+                                      fontSize: "0.72rem",
+                                      fontWeight: 600,
+                                      cursor: "pointer",
+                                      color: "var(--ink)",
+                                    }}
+                                  >
+                                    <IconDownload width={12} height={12} />
+                                    <span>Unduh CV</span>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+
+                            {/* Surat Lamaran (Cover Letter) */}
+                            {(app.coverLetter || app.coverLetterFileName) && (
+                              <div
                                 style={{
-                                  fontSize: "1.45rem",
-                                  fontWeight: 700,
-                                  fontFamily: "var(--font-display)",
-                                  color:
-                                    app.skillbridgeScore >= selectedJobForApplicants.minSkillbridgeScore
-                                      ? "#15803d"
-                                      : "var(--ink)",
+                                  background: "#f9fafb",
+                                  border: "1px solid var(--line)",
+                                  borderLeft: "4px solid var(--ink)",
+                                  borderRadius: "6px",
+                                  padding: "0.85rem 1.1rem",
+                                  fontSize: "0.85rem",
+                                  lineHeight: 1.55,
                                 }}
                               >
-                                {app.skillbridgeScore}
-                                <small style={{ fontSize: "0.8rem", color: "var(--muted)" }}>/100</small>
-                              </span>
-                              <span style={{ display: "block", fontSize: "0.7rem", color: app.skillbridgeScore >= selectedJobForApplicants.minSkillbridgeScore ? "#15803d" : "var(--muted)", fontWeight: 600 }}>
-                                {app.skillbridgeScore >= selectedJobForApplicants.minSkillbridgeScore ? "✓ Memenuhi Syarat" : "Di bawah Syarat"}
-                              </span>
-                            </div>
-                          ) : (
-                            <span style={{ fontSize: "0.8rem", color: "var(--muted)" }}>
-                              Skor belum dilampirkan
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Grid Informasi Pribadi & Kontak Pelamar */}
-                        <div
-                          style={{
-                            background: "var(--paper)",
-                            border: "1px solid var(--line)",
-                            borderRadius: "8px",
-                            padding: "0.85rem 1rem",
-                            display: "grid",
-                            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-                            gap: "0.75rem",
-                            fontSize: "0.85rem",
-                          }}
-                        >
-                          <div>
-                            <span style={{ display: "block", color: "var(--muted)", fontSize: "0.72rem", fontWeight: 700, textTransform: "uppercase", marginBottom: "0.15rem" }}>
-                              📧 Alamat Email
-                            </span>
-                            <a href={`mailto:${app.candidateEmail}`} style={{ color: "var(--ink)", textDecoration: "underline", fontWeight: 600 }}>
-                              {app.candidateEmail}
-                            </a>
-                          </div>
-
-                          <div>
-                            <span style={{ display: "block", color: "var(--muted)", fontSize: "0.72rem", fontWeight: 700, textTransform: "uppercase", marginBottom: "0.15rem" }}>
-                              📱 Nomor Telepon
-                            </span>
-                            {app.phone ? (
-                              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
-                                <a href={`tel:${app.phone}`} style={{ color: "var(--ink)", fontWeight: 600 }}>
-                                  {app.phone}
-                                </a>
-                                {(() => {
-                                  const waUrl = getWhatsAppUrl(app.phone, app.candidateName, selectedJobForApplicants.title);
-                                  if (!waUrl) return null;
-                                  return (
-                                    <a
-                                      href={waUrl}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    marginBottom: "0.4rem",
+                                    flexWrap: "wrap",
+                                    gap: "0.4rem",
+                                  }}
+                                >
+                                  <span
+                                    style={{
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: "0.35rem",
+                                      fontSize: "0.75rem",
+                                      fontWeight: 700,
+                                      textTransform: "uppercase",
+                                      letterSpacing: "0.04em",
+                                      color: "var(--muted)",
+                                    }}
+                                  >
+                                    <IconPaperclip width={14} height={14} />
+                                    <span>
+                                      Surat Lamaran ({app.coverLetterMode === "upload" ? "Berkas Diunggah" : "Pesan Tertulis"})
+                                    </span>
+                                  </span>
+                                  {app.coverLetterFileName && (
+                                    <span
                                       style={{
                                         display: "inline-flex",
                                         alignItems: "center",
-                                        gap: "0.2rem",
-                                        padding: "0.1rem 0.4rem",
-                                        background: "#dcfce7",
-                                        color: "#15803d",
+                                        gap: "0.3rem",
+                                        fontSize: "0.75rem",
+                                        color: "var(--muted)",
+                                        background: "white",
+                                        padding: "0.15rem 0.5rem",
+                                        border: "1px solid var(--line)",
                                         borderRadius: "4px",
-                                        fontSize: "0.72rem",
-                                        fontWeight: 700,
-                                        textDecoration: "none",
                                       }}
-                                      title="Kirim pesan WhatsApp langsung"
                                     >
-                                      Chat WA
-                                    </a>
-                                  );
-                                })()}
-                              </div>
-                            ) : (
-                              <span style={{ color: "var(--muted)" }}>Tidak dicantumkan</span>
-                            )}
-                          </div>
-
-                          <div>
-                            <span style={{ display: "block", color: "var(--muted)", fontSize: "0.72rem", fontWeight: 700, textTransform: "uppercase", marginBottom: "0.15rem" }}>
-                              📍 Lokasi Rumah / Domisili
-                            </span>
-                            <span style={{ color: "var(--ink)", fontWeight: 600 }}>
-                              {app.location || "Tidak dicantumkan"}
-                            </span>
-                          </div>
-
-                          <div>
-                            <span style={{ display: "block", color: "var(--muted)", fontSize: "0.72rem", fontWeight: 700, textTransform: "uppercase", marginBottom: "0.15rem" }}>
-                              📄 Resumé / CV Pelamar
-                            </span>
-                            <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                              <span style={{ color: "var(--ink)", fontWeight: 600, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: "160px" }} title={app.resumeFileName || "CV_Pelamar.pdf"}>
-                                {app.resumeFileName || "CV_Pelamar.pdf"}
-                              </span>
-                              <button
-                                type="button"
-                                onClick={() => downloadCandidateResume(app)}
-                                style={{
-                                  padding: "0.15rem 0.5rem",
-                                  background: "white",
-                                  border: "1px solid var(--line)",
-                                  borderRadius: "4px",
-                                  fontSize: "0.72rem",
-                                  fontWeight: 600,
-                                  cursor: "pointer",
-                                }}
-                              >
-                                Unduh CV
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Surat Lamaran (Cover Letter) */}
-                        {(app.coverLetter || app.coverLetterFileName) && (
-                          <div
-                            style={{
-                              background: "#f9fafb",
-                              borderLeft: "3px solid var(--chalk)",
-                              borderRadius: "0 6px 6px 0",
-                              padding: "0.75rem 1rem",
-                              fontSize: "0.85rem",
-                              lineHeight: 1.5,
-                            }}
-                          >
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.3rem" }}>
-                              <strong style={{ fontSize: "0.75rem", textTransform: "uppercase", color: "var(--muted)" }}>
-                                Surat Lamaran ({app.coverLetterMode === "upload" ? "Berkas Diunggah" : "Pesan Tertulis"}):
-                              </strong>
-                              {app.coverLetterFileName && (
-                                <span style={{ fontSize: "0.75rem", color: "var(--muted)", background: "white", padding: "0.1rem 0.4rem", border: "1px solid var(--line)", borderRadius: "4px" }}>
-                                  📎 {app.coverLetterFileName}
-                                </span>
-                              )}
-                            </div>
-                            {app.coverLetter ? (
-                              <p style={{ margin: 0, fontStyle: "italic", color: "var(--ink)" }}>&ldquo;{app.coverLetter}&rdquo;</p>
-                            ) : (
-                              <p style={{ margin: 0, color: "var(--muted)" }}>Pelamar mengunggah berkas surat lamaran tersendiri ({app.coverLetterFileName}).</p>
-                            )}
-                          </div>
-                        )}
-
-                        {/* Evaluasi Kesesuaian Kriteria AI */}
-                        {app.fitEvaluation && (
-                          <div
-                            style={{
-                              background: "#f0fdf4",
-                              borderLeft: "3px solid #16a34a",
-                              borderRadius: "0 6px 6px 0",
-                              padding: "0.75rem 1rem",
-                              fontSize: "0.82rem",
-                              lineHeight: 1.45,
-                            }}
-                          >
-                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.3rem", flexWrap: "wrap", gap: "0.4rem" }}>
-                              <strong style={{ color: "#166534" }}>
-                                Evaluasi Kesesuaian Kriteria AI ({app.fitEvaluation.score}/100)
-                              </strong>
-                              <span style={{ fontSize: "0.72rem", fontWeight: 700, padding: "0.15rem 0.5rem", background: "#dcfce7", color: "#15803d", borderRadius: "4px" }}>
-                                {app.fitEvaluation.fitLevel === "high" ? "Kesesuaian Tinggi" : app.fitEvaluation.fitLevel === "medium" ? "Kesesuaian Menengah" : "Perlu Pertimbangan"}
-                              </span>
-                            </div>
-                            <p style={{ margin: "0 0 0.4rem", color: "var(--ink)" }}>
-                              {app.fitEvaluation.summary}
-                            </p>
-                            {app.fitEvaluation.matchingCriteria.length > 0 && (
-                              <div style={{ marginBottom: "0.3rem" }}>
-                                <span style={{ fontSize: "0.75rem", color: "#15803d", fontWeight: 700 }}>Kriteria Cocok: </span>
-                                <span style={{ color: "var(--ink)" }}>{app.fitEvaluation.matchingCriteria.join("; ")}</span>
+                                      <IconPaperclip width={12} height={12} />
+                                      <span>{app.coverLetterFileName}</span>
+                                    </span>
+                                  )}
+                                </div>
+                                {app.coverLetter ? (
+                                  <p style={{ margin: 0, fontStyle: "italic", color: "var(--ink)", lineHeight: 1.5 }}>
+                                    &ldquo;{app.coverLetter}&rdquo;
+                                  </p>
+                                ) : (
+                                  <p style={{ margin: 0, color: "var(--muted)" }}>
+                                    Pelamar mengunggah berkas surat lamaran tersendiri ({app.coverLetterFileName}).
+                                  </p>
+                                )}
                               </div>
                             )}
-                            {app.fitEvaluation.missingCriteria.length > 0 && (
-                              <div style={{ marginBottom: "0.3rem" }}>
-                                <span style={{ fontSize: "0.75rem", color: "var(--danger)", fontWeight: 700 }}>Catatan Gap: </span>
-                                <span style={{ color: "var(--muted)" }}>{app.fitEvaluation.missingCriteria.join("; ")}</span>
-                              </div>
-                            )}
-                            {app.fitEvaluation.recommendation && (
-                              <span style={{ color: "#15803d", fontStyle: "italic", display: "block" }}>
-                                Rekomendasi: {app.fitEvaluation.recommendation}
-                              </span>
-                            )}
-                          </div>
-                        )}
 
-                        {/* Action Buttons & Management Bar */}
-                        <div
-                          style={{
-                            display: "flex",
-                            gap: "0.5rem",
-                            flexWrap: "wrap",
-                            alignItems: "center",
-                            paddingTop: "0.75rem",
-                            borderTop: "1px solid var(--line)",
-                          }}
-                        >
-                          {app.assessmentId && (
-                            <Link
-                              className="button secondary"
-                              href={`/results/${app.assessmentId}`}
-                              style={{ fontSize: "0.82rem", minHeight: "36px" }}
-                            >
-                              Lihat Bukti Portofolio
-                            </Link>
-                          )}
-                          {app.portfolioUrl && (
-                            <a
-                              className="button secondary"
-                              href={app.portfolioUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              style={{ fontSize: "0.82rem", minHeight: "36px" }}
-                            >
-                              Buka Portofolio
-                            </a>
-                          )}
-                          <a
-                            className="button secondary"
-                            href={`mailto:${app.candidateEmail}?subject=${encodeURIComponent(
-                              `Skillbridge AI: Tindak Lanjut Lamaran ${selectedJobForApplicants.title}`,
-                            )}&body=${encodeURIComponent(
-                              `Halo ${app.candidateName},\n\nTerima kasih telah melamar posisi ${selectedJobForApplicants.title} di ${selectedJobForApplicants.companyName} melalui Skillbridge AI.\n\nKami telah meninjau profil, berkas resumé, dan bukti portofolio Anda. Kami ingin mengundang Anda untuk tahap seleksi selanjutnya.\n\nSalam,\nTim HR ${selectedJobForApplicants.companyName}`,
-                            )}`}
-                            style={{ fontSize: "0.82rem", minHeight: "36px" }}
-                          >
-                            Kirim Email
-                          </a>
-
-                          {/* Fast Action Status Buttons */}
-                          <div style={{ display: "inline-flex", gap: "0.4rem", marginLeft: "auto", flexWrap: "wrap" }}>
-                            {app.status !== "shortlisted" && (
-                              <button
-                                type="button"
-                                className="button"
+                            {/* Evaluasi Kesesuaian Kriteria AI */}
+                            {app.fitEvaluation && (
+                              <div
                                 style={{
-                                  fontSize: "0.82rem",
-                                  minHeight: "36px",
-                                  background: "#15803d",
-                                  borderColor: "#15803d",
-                                }}
-                                onClick={() => handleUpdateApplicationStatus(app.id, "shortlisted")}
-                              >
-                                ⭐ Wawancarai
-                              </button>
-                            )}
-                            {app.status !== "accepted" && (
-                              <button
-                                type="button"
-                                className="button secondary"
-                                style={{
-                                  fontSize: "0.82rem",
-                                  minHeight: "36px",
-                                  color: "#166534",
-                                  borderColor: "#86efac",
                                   background: "#f0fdf4",
+                                  border: "1px solid #bbf7d0",
+                                  borderLeft: "4px solid #16a34a",
+                                  borderRadius: "8px",
+                                  padding: "0.95rem 1.15rem",
+                                  fontSize: "0.82rem",
+                                  lineHeight: 1.5,
                                 }}
-                                onClick={() => handleUpdateApplicationStatus(app.id, "accepted")}
                               >
-                                ✓ Terima
-                              </button>
+                                <div
+                                  style={{
+                                    display: "flex",
+                                    justifyContent: "space-between",
+                                    alignItems: "center",
+                                    marginBottom: "0.5rem",
+                                    flexWrap: "wrap",
+                                    gap: "0.5rem",
+                                  }}
+                                >
+                                  <div style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                                    <span style={{ color: "#16a34a", display: "inline-flex" }}>
+                                      <IconSparkles width={16} height={16} />
+                                    </span>
+                                    <strong style={{ color: "#166534", fontSize: "0.88rem" }}>
+                                      Evaluasi Kesesuaian Kriteria AI ({app.fitEvaluation.score}/100)
+                                    </strong>
+                                  </div>
+                                  <span
+                                    style={{
+                                      fontSize: "0.72rem",
+                                      fontWeight: 700,
+                                      padding: "0.2rem 0.55rem",
+                                      background: "#dcfce7",
+                                      color: "#15803d",
+                                      border: "1px solid #86efac",
+                                      borderRadius: "4px",
+                                    }}
+                                  >
+                                    {app.fitEvaluation.fitLevel === "high"
+                                      ? "Kesesuaian Tinggi"
+                                      : app.fitEvaluation.fitLevel === "medium"
+                                        ? "Kesesuaian Menengah"
+                                        : "Perlu Pertimbangan"}
+                                  </span>
+                                </div>
+
+                                <p style={{ margin: "0 0 0.5rem", color: "var(--ink)" }}>
+                                  {app.fitEvaluation.summary}
+                                </p>
+
+                                {app.fitEvaluation.matchingCriteria.length > 0 && (
+                                  <div style={{ marginBottom: "0.4rem" }}>
+                                    <span style={{ fontSize: "0.75rem", color: "#15803d", fontWeight: 700, display: "block", marginBottom: "0.25rem" }}>
+                                      Kriteria Cocok:
+                                    </span>
+                                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
+                                      {app.fitEvaluation.matchingCriteria.map((crit, cIdx) => (
+                                        <span
+                                          key={cIdx}
+                                          style={{
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            gap: "0.25rem",
+                                            padding: "0.15rem 0.45rem",
+                                            background: "#dcfce7",
+                                            color: "#166534",
+                                            border: "1px solid #86efac",
+                                            borderRadius: "4px",
+                                            fontSize: "0.75rem",
+                                            fontWeight: 600,
+                                          }}
+                                        >
+                                          <IconCheck width={12} height={12} />
+                                          <span>{crit}</span>
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {app.fitEvaluation.missingCriteria.length > 0 && (
+                                  <div style={{ marginBottom: "0.4rem" }}>
+                                    <span style={{ fontSize: "0.75rem", color: "#b91c1c", fontWeight: 700, display: "block", marginBottom: "0.25rem" }}>
+                                      Catatan Gap:
+                                    </span>
+                                    <div style={{ display: "flex", flexWrap: "wrap", gap: "0.35rem" }}>
+                                      {app.fitEvaluation.missingCriteria.map((gap, gIdx) => (
+                                        <span
+                                          key={gIdx}
+                                          style={{
+                                            display: "inline-flex",
+                                            alignItems: "center",
+                                            gap: "0.25rem",
+                                            padding: "0.15rem 0.45rem",
+                                            background: "#fee2e2",
+                                            color: "#991b1b",
+                                            border: "1px solid #fca5a5",
+                                            borderRadius: "4px",
+                                            fontSize: "0.75rem",
+                                            fontWeight: 600,
+                                          }}
+                                        >
+                                          <IconX width={12} height={12} />
+                                          <span>{gap}</span>
+                                        </span>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+
+                                {app.fitEvaluation.recommendation && (
+                                  <div style={{ marginTop: "0.45rem", paddingTop: "0.45rem", borderTop: "1px solid #bbf7d0", color: "#15803d", fontSize: "0.78rem" }}>
+                                    <strong>Rekomendasi: </strong>
+                                    <em>{app.fitEvaluation.recommendation}</em>
+                                  </div>
+                                )}
+                              </div>
                             )}
-                            {app.status !== "rejected" && (
-                              <button
-                                type="button"
+
+                            {/* Action Buttons & Management Bar */}
+                            <div
+                              style={{
+                                display: "flex",
+                                gap: "0.5rem",
+                                flexWrap: "wrap",
+                                alignItems: "center",
+                                paddingTop: "0.85rem",
+                                borderTop: "1px solid var(--line)",
+                              }}
+                            >
+                              {app.assessmentId && (
+                                <Link
+                                  className="button secondary"
+                                  href={`/results/${app.assessmentId}`}
+                                  style={{
+                                    fontSize: "0.82rem",
+                                    minHeight: "36px",
+                                    height: "36px",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "0.4rem",
+                                    padding: "0 0.85rem",
+                                  }}
+                                >
+                                  <IconExternalLink width={14} height={14} />
+                                  <span>Lihat Bukti Portofolio</span>
+                                </Link>
+                              )}
+                              {app.portfolioUrl && (
+                                <a
+                                  className="button secondary"
+                                  href={app.portfolioUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  style={{
+                                    fontSize: "0.82rem",
+                                    minHeight: "36px",
+                                    height: "36px",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "0.4rem",
+                                    padding: "0 0.85rem",
+                                  }}
+                                >
+                                  <IconExternalLink width={14} height={14} />
+                                  <span>Buka Portofolio</span>
+                                </a>
+                              )}
+                              <a
                                 className="button secondary"
+                                href={`mailto:${app.candidateEmail}?subject=${encodeURIComponent(
+                                  `Skillbridge AI: Tindak Lanjut Lamaran ${selectedJobForApplicants.title}`,
+                                )}&body=${encodeURIComponent(
+                                  `Halo ${app.candidateName},\n\nTerima kasih telah melamar posisi ${selectedJobForApplicants.title} di ${selectedJobForApplicants.companyName} melalui Skillbridge AI.\n\nKami telah meninjau profil, berkas resumé, dan bukti portofolio Anda. Kami ingin mengundang Anda untuk tahap seleksi selanjutnya.\n\nSalam,\nTim HR ${selectedJobForApplicants.companyName}`,
+                                )}`}
                                 style={{
                                   fontSize: "0.82rem",
                                   minHeight: "36px",
-                                  color: "#991b1b",
-                                  borderColor: "#fecaca",
-                                  background: "#fef2f2",
+                                  height: "36px",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  gap: "0.4rem",
+                                  padding: "0 0.85rem",
                                 }}
-                                onClick={() => handleUpdateApplicationStatus(app.id, "rejected")}
                               >
-                                ✕ Tolak
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </article>
-                    );
-                  })}
-                </div>
+                                <IconMail width={14} height={14} />
+                                <span>Kirim Email</span>
+                              </a>
+
+                              {/* Fast Action Status Buttons */}
+                              <div style={{ display: "inline-flex", gap: "0.4rem", marginLeft: "auto", flexWrap: "wrap" }}>
+                                {app.status !== "shortlisted" && (
+                                  <button
+                                    type="button"
+                                    className="button"
+                                    style={{
+                                      fontSize: "0.82rem",
+                                      minHeight: "36px",
+                                      height: "36px",
+                                      background: "#15803d",
+                                      borderColor: "#15803d",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: "0.35rem",
+                                      padding: "0 0.85rem",
+                                    }}
+                                    onClick={() => handleUpdateApplicationStatus(app.id, "shortlisted")}
+                                  >
+                                    <IconCalendar width={14} height={14} />
+                                    <span>Wawancarai</span>
+                                  </button>
+                                )}
+                                {app.status !== "accepted" && (
+                                  <button
+                                    type="button"
+                                    className="button secondary"
+                                    style={{
+                                      fontSize: "0.82rem",
+                                      minHeight: "36px",
+                                      height: "36px",
+                                      color: "#166534",
+                                      borderColor: "#86efac",
+                                      background: "#f0fdf4",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: "0.35rem",
+                                      padding: "0 0.85rem",
+                                    }}
+                                    onClick={() => handleUpdateApplicationStatus(app.id, "accepted")}
+                                  >
+                                    <IconCheck width={14} height={14} />
+                                    <span>Terima</span>
+                                  </button>
+                                )}
+                                {app.status !== "rejected" && (
+                                  <button
+                                    type="button"
+                                    className="button secondary"
+                                    style={{
+                                      fontSize: "0.82rem",
+                                      minHeight: "36px",
+                                      height: "36px",
+                                      color: "#991b1b",
+                                      borderColor: "#fecaca",
+                                      background: "#fef2f2",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: "0.35rem",
+                                      padding: "0 0.85rem",
+                                    }}
+                                    onClick={() => handleUpdateApplicationStatus(app.id, "rejected")}
+                                  >
+                                    <IconX width={14} height={14} />
+                                    <span>Tolak</span>
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          </article>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
               );
             })()}
 
@@ -2339,7 +2925,10 @@ export default function RecruiterView() {
               <button
                 type="button"
                 className="button secondary"
-                onClick={() => setSelectedJobForApplicants(null)}
+                onClick={() => {
+                  setSelectedJobForApplicants(null);
+                  setSelectedApplicantId("all");
+                }}
               >
                 Tutup
               </button>
@@ -2388,7 +2977,7 @@ export default function RecruiterView() {
           >
             <button
               type="button"
-              aria-label="Tutup"
+              aria-label="Tutup modal"
               disabled={isSubmittingJob}
               onClick={() => setIsCreateModalOpen(false)}
               style={{
@@ -2397,12 +2986,16 @@ export default function RecruiterView() {
                 right: "1.25rem",
                 background: "transparent",
                 border: "none",
-                fontSize: "1.5rem",
+                padding: "0.35rem",
                 cursor: "pointer",
-                lineHeight: 1,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "var(--muted)",
+                borderRadius: "4px",
               }}
             >
-              ×
+              <IconX width={20} height={20} />
             </button>
 
             <div style={{ marginBottom: "1.5rem" }}>
@@ -2677,7 +3270,7 @@ export default function RecruiterView() {
                             flexShrink: 0,
                           }}
                         >
-                          ✕
+                          <IconX width={14} height={14} />
                         </button>
                       </div>
                     ))}
@@ -2828,7 +3421,7 @@ export default function RecruiterView() {
           >
             <button
               type="button"
-              aria-label="Tutup"
+              aria-label="Tutup modal"
               disabled={isSavingEdit}
               onClick={() => setEditingJob(null)}
               style={{
@@ -2837,12 +3430,16 @@ export default function RecruiterView() {
                 right: "1.25rem",
                 background: "transparent",
                 border: "none",
-                fontSize: "1.5rem",
+                padding: "0.35rem",
                 cursor: "pointer",
-                lineHeight: 1,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "var(--muted)",
+                borderRadius: "4px",
               }}
             >
-              ×
+              <IconX width={20} height={20} />
             </button>
 
             <div style={{ marginBottom: "1.5rem" }}>
@@ -3129,7 +3726,7 @@ export default function RecruiterView() {
                             flexShrink: 0,
                           }}
                         >
-                          ✕
+                          <IconX width={14} height={14} />
                         </button>
                       </div>
                     ))}
@@ -3276,7 +3873,7 @@ export default function RecruiterView() {
           >
             <button
               type="button"
-              aria-label="Tutup"
+              aria-label="Tutup modal"
               disabled={isDeletingJob}
               onClick={() => setDeletingJob(null)}
               style={{
@@ -3285,12 +3882,16 @@ export default function RecruiterView() {
                 right: "1.25rem",
                 background: "transparent",
                 border: "none",
-                fontSize: "1.5rem",
+                padding: "0.35rem",
                 cursor: "pointer",
-                lineHeight: 1,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "var(--muted)",
+                borderRadius: "4px",
               }}
             >
-              ×
+              <IconX width={20} height={20} />
             </button>
 
             <div style={{ marginBottom: "1.25rem" }}>

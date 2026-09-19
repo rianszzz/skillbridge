@@ -58,13 +58,27 @@ export async function PATCH(request: Request) {
       throw new PublicError("Status lamaran wajib diisi.", 400, "missing_status");
     }
 
-    const updated = await updateApplicationStatus(
-      user.id,
-      body.applicationId,
-      body.status,
-    );
+    try {
+      const updated = await updateApplicationStatus(
+        user.id,
+        body.applicationId,
+        body.status,
+      );
 
-    return Response.json(updated, privateResponse());
+      return Response.json(updated, privateResponse());
+    } catch (updateErr) {
+      if (
+        updateErr instanceof Error &&
+        (updateErr.message.includes("tidak memiliki akses") ||
+          updateErr.message.includes("tidak ditemukan"))
+      ) {
+        throw new PublicError(updateErr.message, 403, "forbidden");
+      }
+      if (updateErr instanceof Error && updateErr.message.includes("tidak valid")) {
+        throw new PublicError(updateErr.message, 400, "invalid_status");
+      }
+      throw updateErr;
+    }
   } catch (error) {
     return errorResponse(error, "Gagal memperbarui status lamaran.");
   }

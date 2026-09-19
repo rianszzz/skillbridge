@@ -20,6 +20,11 @@ import {
   updateApplicationStatus,
   isTableMissing,
   parseDeletedJobsCookie,
+  saveApplicationToRecruiterMetadata,
+  updateApplicationStatusInRecruiterMetadata,
+  saveApplicationToCandidateMetadata,
+  updateApplicationStatusInCandidateMetadata,
+  resetInMemoryApplicationsForTesting,
 } from "./jobs.ts";
 import type { JobPosting, JobApplication } from "./types.ts";
 
@@ -1003,6 +1008,299 @@ test("updateApplicationStatus memvalidasi input dan memperbarui status pelamar s
   // 5. Update status to rejected
   const updated3 = await updateApplicationStatus(recruiterId, testApp.id, "rejected");
   assert.equal(updated3.status, "rejected");
+});
+
+test("Isolasi data antar-recruiter: HR hanya dapat melihat dan mengelola lamaran pada lowongan miliknya", async () => {
+  const recruiterAlpha = "recruiter-iso-alpha-101";
+  const recruiterBeta = "recruiter-iso-beta-202";
+
+  // Recruiter Alpha membuat Job Alpha
+  const jobAlpha = await createJobPosting(recruiterAlpha, "PT Alpha Tech", {
+    title: "Web Developer Alpha",
+    field: "informatics",
+    targetRole: "Junior Web Developer",
+    employmentType: "fulltime",
+    workplaceType: "hybrid",
+    location: "Jakarta",
+    minEducation: "smk",
+    experienceLevel: "fresh_graduate",
+    compensationType: "paid",
+    salaryMin: 5000000,
+    salaryMax: 7000000,
+    highlights: ["Alpha 1", "Alpha 2", "Alpha 3"],
+    responsibilities: ["Coding"],
+    requiredSkills: ["TypeScript"],
+  });
+
+  // Recruiter Beta membuat Job Beta
+  const jobBeta = await createJobPosting(recruiterBeta, "PT Beta Solusi", {
+    title: "Graphic Designer Beta",
+    field: "design",
+    targetRole: "Junior Graphic Designer",
+    employmentType: "fulltime",
+    workplaceType: "onsite",
+    location: "Bandung",
+    minEducation: "smk",
+    experienceLevel: "fresh_graduate",
+    compensationType: "paid",
+    salaryMin: 4500000,
+    salaryMax: 6000000,
+    highlights: ["Beta 1", "Beta 2", "Beta 3"],
+    responsibilities: ["Designing"],
+    requiredSkills: ["Figma"],
+  });
+
+  // Kandidat 1 melamar ke Job Alpha
+  const appAlpha = await applyToJob("candidate-iso-1", {
+    jobId: jobAlpha.id,
+    candidateName: "Kandidat Alpha",
+    candidateEmail: "candidate.alpha@example.com",
+    coverLetter: "Melamar ke PT Alpha Tech",
+  });
+
+  // Kandidat 2 melamar ke Job Beta
+  const appBeta = await applyToJob("candidate-iso-2", {
+    jobId: jobBeta.id,
+    candidateName: "Kandidat Beta",
+    candidateEmail: "candidate.beta@example.com",
+    coverLetter: "Melamar ke PT Beta Solusi",
+  });
+
+  // 1. Recruiter Alpha hanya melihat appAlpha, TIDAK melihat appBeta
+  const appsAlpha = await getJobApplicationsForRecruiter(recruiterAlpha);
+  assert.ok(appsAlpha.some((a) => a.id === appAlpha.id), "Recruiter Alpha harus melihat appAlpha");
+  assert.ok(!appsAlpha.some((a) => a.id === appBeta.id), "Recruiter Alpha TIDAK boleh melihat appBeta milik Recruiter Beta");
+
+  // 2. Recruiter Beta hanya melihat appBeta, TIDAK melihat appAlpha
+  const appsBeta = await getJobApplicationsForRecruiter(recruiterBeta);
+  assert.ok(appsBeta.some((a) => a.id === appBeta.id), "Recruiter Beta harus melihat appBeta");
+  assert.ok(!appsBeta.some((a) => a.id === appAlpha.id), "Recruiter Beta TIDAK boleh melihat appAlpha milik Recruiter Alpha");
+
+  // 3. Recruiter Beta mencoba memfilter dengan jobId milik Alpha -> harus kosong (akses ditolak / tidak bocor)
+  const leakAttempt = await getJobApplicationsForRecruiter(recruiterBeta, jobAlpha.id);
+  assert.equal(leakAttempt.length, 0, "Recruiter Beta tidak boleh melihat lamaran pada lowongan milik Recruiter Alpha");
+
+  // 4. Recruiter Beta mencoba mengubah status appAlpha milik Alpha -> harus ditolak
+  await assert.rejects(
+    () => updateApplicationStatus(recruiterBeta, appAlpha.id, "shortlisted"),
+    /tidak memiliki akses|tidak ditemukan/i,
+    "Recruiter Beta tidak boleh mengubah status lamaran milik lowongan Recruiter Alpha",
+  );
+
+  // 5. Recruiter Alpha berhasil mengubah status appAlpha
+  const updatedAlpha = await updateApplicationStatus(recruiterAlpha, appAlpha.id, "shortlisted");
+  assert.equal(updatedAlpha.status, "shortlisted");
+});
+
+test("Persistensi cloud Supabase Auth Metadata: data pelamar tetap ada setelah serverless restart / cold start tanpa tabel DB", async () => {
+  const testRecruiterId = "00000000-0000-4000-8000-000000000777";
+  const testCandidateId = "00000000-0000-4000-8000-000000000778";
+  const testJobId = "10000000-0000-4000-8000-000000000779";
+
+  // Simulasi mock storage auth metadata user
+  const userMetadataStore: Record<string, Record<string, unknown>> = {
+    [testRecruiterId]: {
+      custom_jobs: [
+        {
+          id: testJobId,
+          recruiterId: testRecruiterId,
+          title: "Cloud Software Engineer",
+          companyName: "PT Cloud Persistindo",
+          field: "informatics",
+          targetRole: "Junior Web Developer",
+          employmentType: "fulltime",
+          workplaceType: "remote",
+          location: "Jakarta",
+          minEducation: "smk",
+          experienceLevel: "fresh_graduate",
+          compensationType: "paid",
+          salaryMin: 6000000,
+          salaryMax: 8000000,
+          showSalary: true,
+          benefits: [],
+          highlights: ["H1", "H2", "H3"],
+          responsibilities: ["R1"],
+          requiredSkills: ["Next.js"],
+          acceptedEvidenceTypes: ["github"],
+          minSkillbridgeScore: 60,
+          status: "active",
+          createdAt: new Date().toISOString(),
+          isDemo: false,
+        },
+      ],
+      job_applications: [],
+    },
+    [testCandidateId]: {
+      my_applications: [],
+    },
+  };
+
+  const origFetch = globalThis.fetch;
+  const origUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const origKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  process.env.NEXT_PUBLIC_SUPABASE_URL = "http://localhost:54321";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
+
+  globalThis.fetch = async (url, init) => {
+    const urlStr = url.toString();
+    // Supabase Auth Admin: /auth/v1/admin/users
+    if (urlStr.includes("/auth/v1/admin/users")) {
+      // listUsers endpoint
+      if (urlStr.includes("?") && !urlStr.match(/\/auth\/v1\/admin\/users\/[0-9a-f-]{36}/i)) {
+        return new Response(
+          JSON.stringify({
+            users: Object.entries(userMetadataStore).map(([id, meta]) => ({
+              id,
+              user_metadata: meta,
+            })),
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+      }
+
+      // getUserById / updateUserById endpoint: /auth/v1/admin/users/:id
+      const parts = urlStr.split("/");
+      const targetUserId = parts[parts.length - 1]?.split("?")[0];
+      const method = init?.method || "GET";
+
+      if (method === "PUT") {
+        const body = JSON.parse(init?.body as string);
+        if (body.user_metadata) {
+          userMetadataStore[targetUserId] = {
+            ...(userMetadataStore[targetUserId] || {}),
+            ...body.user_metadata,
+          };
+        }
+        return new Response(
+          JSON.stringify({
+            id: targetUserId,
+            user_metadata: userMetadataStore[targetUserId] || {},
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        );
+      }
+
+      return new Response(
+        JSON.stringify({
+          id: targetUserId,
+          user_metadata: userMetadataStore[targetUserId] || {},
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    }
+
+    // DB query mengembalikan error (tabel job_applications belum ada / PGRST204)
+    return new Response(
+      JSON.stringify({ code: "PGRST204", message: "relation public.job_applications does not exist" }),
+      { status: 404, headers: { "Content-Type": "application/json" } },
+    );
+  };
+
+  try {
+    // 1. Kandidat melamar ke lowongan cloud
+    const application = await applyToJob(testCandidateId, {
+      jobId: testJobId,
+      candidateName: "Kandidat Cloud",
+      candidateEmail: "candidate.cloud@example.com",
+      coverLetter: "Lamaran persisten cloud.",
+    });
+
+    assert.ok(application.id);
+    assert.equal(application.status, "pending");
+
+    // 2. SIMULASI COLD START / SERVERLESS INSTANCE BERBEDA
+    // Kosongkan seluruh memori serverless!
+    resetInMemoryApplicationsForTesting();
+
+    // 3. HR membuka dashboard di instance serverless baru (memori kosong)
+    const recruiterApps = await getJobApplicationsForRecruiter(testRecruiterId);
+    assert.equal(recruiterApps.length, 1, "Lamaran harus tetap ada di serverless instance baru melalui Supabase Auth metadata");
+    assert.equal(recruiterApps[0].id, application.id);
+    assert.equal(recruiterApps[0].candidateName, "Kandidat Cloud");
+    assert.equal(recruiterApps[0].status, "pending");
+
+    // 4. Kandidat membuka halaman riwayat di instance serverless baru (memori kosong)
+    resetInMemoryApplicationsForTesting();
+    const candidateApps = await getJobApplicationsForCandidate(testCandidateId);
+    assert.equal(candidateApps.length, 1, "Kandidat harus tetap melihat lamaran melalui metadata my_applications");
+    assert.equal(candidateApps[0].id, application.id);
+
+    // 5. HR mengubah status lamaran menjadi 'accepted'
+    const updated = await updateApplicationStatus(testRecruiterId, application.id, "accepted");
+    assert.equal(updated.status, "accepted");
+
+    // 6. SIMULASI COLD START KEDUA
+    resetInMemoryApplicationsForTesting();
+
+    // HR mengecek kembali status di cold instance
+    const recruiterAppsAfter = await getJobApplicationsForRecruiter(testRecruiterId);
+    assert.equal(recruiterAppsAfter[0].status, "accepted", "Status yang diubah harus tersimpan persisten di metadata recruiter");
+
+    // Kandidat mengecek status di cold instance
+    const candidateAppsAfter = await getJobApplicationsForCandidate(testCandidateId);
+    assert.equal(candidateAppsAfter[0].status, "accepted", "Status yang diubah harus tersimpan persisten di metadata kandidat");
+  } finally {
+    globalThis.fetch = origFetch;
+    process.env.NEXT_PUBLIC_SUPABASE_URL = origUrl;
+    process.env.SUPABASE_SERVICE_ROLE_KEY = origKey;
+  }
+});
+
+test("Helper fungsi persistensi: saveApplicationToRecruiterMetadata dan updateApplicationStatusInRecruiterMetadata", async () => {
+  const dummyRecruiterId = "00000000-0000-4000-8000-000000000999";
+  let storedMeta: Record<string, unknown> = {};
+
+  const origFetch = globalThis.fetch;
+  const origUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const origKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  process.env.NEXT_PUBLIC_SUPABASE_URL = "http://localhost:54321";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
+
+  globalThis.fetch = async (url, init) => {
+    const method = init?.method || "GET";
+    if (method === "PUT") {
+      const body = JSON.parse(init?.body as string);
+      storedMeta = { ...storedMeta, ...body.user_metadata };
+      return new Response(
+        JSON.stringify({ id: dummyRecruiterId, user_metadata: storedMeta }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    }
+    return new Response(
+      JSON.stringify({ id: dummyRecruiterId, user_metadata: storedMeta }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    );
+  };
+
+  try {
+    const sampleApp: JobApplication = {
+      id: "app-helper-001",
+      jobId: "job-helper-001",
+      candidateId: "cand-helper-001",
+      candidateName: "Budi Helper",
+      candidateEmail: "budi@helper.test",
+      status: "pending",
+      appliedAt: new Date().toISOString(),
+    };
+
+    // Simpan lamaran via helper
+    await saveApplicationToRecruiterMetadata(dummyRecruiterId, sampleApp);
+    const savedApps = (storedMeta.job_applications || []) as JobApplication[];
+    assert.equal(savedApps.length, 1);
+    assert.equal(savedApps[0].id, "app-helper-001");
+    assert.equal(savedApps[0].status, "pending");
+
+    // Perbarui status via helper
+    await updateApplicationStatusInRecruiterMetadata(dummyRecruiterId, "app-helper-001", "shortlisted");
+    const updatedApps = (storedMeta.job_applications || []) as JobApplication[];
+    assert.equal(updatedApps[0].status, "shortlisted");
+  } finally {
+    globalThis.fetch = origFetch;
+    process.env.NEXT_PUBLIC_SUPABASE_URL = origUrl;
+    process.env.SUPABASE_SERVICE_ROLE_KEY = origKey;
+  }
 });
 
 
