@@ -1877,6 +1877,15 @@ export function validateApplicationInput(candidateId: string, data: ApplyJobInpu
       throw new Error("Skor Skillbridge harus berupa angka antara 0 dan 100.");
     }
   }
+  if (data.coverLetterMode === "upload") {
+    if (!data.coverLetterFileName || data.coverLetterFileName.trim().length === 0) {
+      throw new Error("Berkas surat lamaran wajib diunggah jika memilih opsi Unggah surat lamaran.");
+    }
+  } else if (data.coverLetterMode === "write") {
+    if (!data.coverLetter || data.coverLetter.trim().length === 0) {
+      throw new Error("Isi surat lamaran wajib diisi jika memilih opsi Tulis surat lamaran.");
+    }
+  }
 }
 
 async function findAssessment(assessmentId: string): Promise<AssessmentResult | null> {
@@ -2038,7 +2047,7 @@ export async function applyToJob(
     coverLetterMode: data.coverLetterMode || undefined,
     coverLetterFileName: data.coverLetterFileName?.trim() || undefined,
     assessmentId: data.assessmentId ?? null,
-    skillbridgeScore: fitEvaluation.score,
+    skillbridgeScore: assessment?.finalScore ?? fitEvaluation.score,
     portfolioUrl: effectivePortfolioUrl,
     portfolioItems: processedPortfolioItems && processedPortfolioItems.length > 0 ? processedPortfolioItems : undefined,
     coverLetter: data.coverLetter?.trim() ?? undefined,

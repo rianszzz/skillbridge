@@ -2249,9 +2249,6 @@ export default function RecruiterView() {
                           filteredApps.map((app) => {
                             const isSelected = activeApp.id === app.id;
                             const badge = getApplicationBadge(app.status);
-                            const score = app.fitEvaluation?.score ?? app.skillbridgeScore;
-                            const isPass =
-                              typeof score === "number" && score >= selectedJobForApplicants.minSkillbridgeScore;
 
                             return (
                               <div
@@ -2300,33 +2297,91 @@ export default function RecruiterView() {
                                   </div>
                                 </div>
 
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "0.5rem", marginTop: "0.4rem" }}>
-                                  <span
-                                    style={{
-                                      fontSize: "0.72rem",
-                                      fontWeight: 600,
-                                      padding: "0.15rem 0.45rem",
-                                      borderRadius: "4px",
-                                      background: badge.bg,
-                                      color: badge.color,
-                                      border: "1px solid var(--line)",
-                                    }}
-                                  >
-                                    {badge.label}
-                                  </span>
-                                  {score !== null && score !== undefined ? (
+                                <div style={{ marginTop: "0.5rem", display: "flex", flexDirection: "column", gap: "0.4rem" }}>
+                                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                                     <span
                                       style={{
-                                        fontSize: "0.75rem",
-                                        fontWeight: 700,
-                                        color: isPass ? "#15803d" : "#b91c1c",
+                                        fontSize: "0.72rem",
+                                        fontWeight: 600,
+                                        padding: "0.15rem 0.45rem",
+                                        borderRadius: "4px",
+                                        background: badge.bg,
+                                        color: badge.color,
+                                        border: "1px solid var(--line)",
                                       }}
                                     >
-                                      {score}/100 {isPass ? "✓" : ""}
+                                      {badge.label}
                                     </span>
-                                  ) : (
-                                    <span style={{ fontSize: "0.75rem", color: "var(--muted)" }}>—/100</span>
-                                  )}
+                                  </div>
+
+                                  <div style={{ display: "flex", flexDirection: "column", gap: "0.3rem" }}>
+                                    {((app.skillbridgeScore !== null && app.skillbridgeScore !== undefined) || app.assessmentId) && (
+                                      <span
+                                        style={{
+                                          display: "inline-flex",
+                                          alignItems: "center",
+                                          gap: "0.3rem",
+                                          fontSize: "0.72rem",
+                                          fontWeight: 600,
+                                          padding: "0.18rem 0.45rem",
+                                          borderRadius: "4px",
+                                          background: "#f0fdf4",
+                                          color: "#166534",
+                                          border: "1px solid #bbf7d0",
+                                          width: "fit-content",
+                                        }}
+                                      >
+                                        <svg width="11" height="11" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" style={{ flexShrink: 0 }}>
+                                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                        </svg>
+                                        <span>
+                                          {app.skillbridgeScore !== null && app.skillbridgeScore !== undefined
+                                            ? `Asesmen Skillbridge: ${app.skillbridgeScore}/100`
+                                            : "Terverifikasi Skillbridge"}
+                                        </span>
+                                      </span>
+                                    )}
+
+                                    {app.fitEvaluation && (
+                                      (() => {
+                                        const fitLevelLabel =
+                                          app.fitEvaluation.fitLevel === "high"
+                                            ? "Tinggi"
+                                            : app.fitEvaluation.fitLevel === "medium"
+                                              ? "Menengah"
+                                              : "Awal";
+                                        return (
+                                          <span
+                                            style={{
+                                              display: "inline-flex",
+                                              alignItems: "center",
+                                              gap: "0.3rem",
+                                              fontSize: "0.72rem",
+                                              fontWeight: 600,
+                                              padding: "0.18rem 0.45rem",
+                                              borderRadius: "4px",
+                                              background: "#eff6ff",
+                                              color: "#1d4ed8",
+                                              border: "1px solid #bfdbfe",
+                                              width: "fit-content",
+                                            }}
+                                          >
+                                            <svg width="11" height="11" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" style={{ flexShrink: 0 }}>
+                                              <path fillRule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clipRule="evenodd" />
+                                              <path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z" />
+                                            </svg>
+                                            <span>
+                                              Kecocokan Lowongan: {app.fitEvaluation.score}/100 ({fitLevelLabel})
+                                            </span>
+                                          </span>
+                                        );
+                                      })()
+                                    )}
+
+                                    {!app.skillbridgeScore && !app.assessmentId && !app.fitEvaluation && (
+                                      <span style={{ fontSize: "0.72rem", color: "var(--muted)" }}>—/100</span>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
                             );
@@ -2386,34 +2441,154 @@ export default function RecruiterView() {
                           </div>
                         </div>
 
-                        {/* Unified Score Indicator */}
-                        {(() => {
-                          const activeScore = activeApp.fitEvaluation?.score ?? activeApp.skillbridgeScore;
-                          const minScore = selectedJobForApplicants.minSkillbridgeScore;
-                          const isPass = typeof activeScore === "number" && activeScore >= minScore;
-                          return (
+                        {/* BADGE TERPISAH: Skor Asesmen Kompetensi & Kecocokan Lowongan */}
+                        <div
+                          style={{
+                            display: "flex",
+                            gap: "0.65rem",
+                            flexWrap: "wrap",
+                            alignItems: "stretch",
+                            justifyContent: "flex-end",
+                          }}
+                        >
+                          {/* Badge 1: Skor Asesmen Kompetensi */}
+                          {((activeApp.skillbridgeScore !== null && activeApp.skillbridgeScore !== undefined) || activeApp.assessmentId) && (
                             <div
                               style={{
-                                background: isPass ? "#f0fdf4" : "#fef2f2",
-                                border: `1px solid ${isPass ? "#86efac" : "#fecaca"}`,
+                                background: "#f0fdf4",
+                                border: "1px solid #86efac",
                                 borderRadius: "8px",
-                                padding: "0.65rem 1.1rem",
+                                padding: "0.6rem 0.95rem",
+                                textAlign: "right",
+                                flexShrink: 0,
+                                display: "flex",
+                                flexDirection: "column",
+                                justifyContent: "center",
+                              }}
+                            >
+                              <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "0.3rem", marginBottom: "0.15rem" }}>
+                                <svg width="13" height="13" viewBox="0 0 20 20" fill="#166534" aria-hidden="true" style={{ flexShrink: 0 }}>
+                                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                </svg>
+                                <span
+                                  style={{
+                                    fontSize: "0.7rem",
+                                    fontWeight: 700,
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.05em",
+                                    color: "#166534",
+                                  }}
+                                >
+                                  Skor Asesmen Kompetensi
+                                </span>
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: "1.45rem",
+                                  fontWeight: 800,
+                                  color: "#15803d",
+                                  lineHeight: 1.1,
+                                  margin: "0.1rem 0",
+                                }}
+                              >
+                                {activeApp.skillbridgeScore !== null && activeApp.skillbridgeScore !== undefined
+                                  ? `${activeApp.skillbridgeScore}/100`
+                                  : "Terverifikasi"}
+                              </div>
+                              <span style={{ fontSize: "0.74rem", fontWeight: 600, color: "#166534" }}>
+                                {activeApp.skillbridgeScore !== null && activeApp.skillbridgeScore !== undefined
+                                  ? `Asesmen Skillbridge: ${activeApp.skillbridgeScore}/100`
+                                  : "Terverifikasi Skillbridge"}
+                              </span>
+                            </div>
+                          )}
+
+                          {/* Badge 2: Kecocokan Lowongan */}
+                          {activeApp.fitEvaluation && (
+                            (() => {
+                              const fit = activeApp.fitEvaluation;
+                              const fitLevelLabel =
+                                fit.fitLevel === "high"
+                                  ? "Tinggi"
+                                  : fit.fitLevel === "medium"
+                                    ? "Menengah"
+                                    : "Awal";
+                              const minScore = selectedJobForApplicants.minSkillbridgeScore;
+                              const isPass = fit.score >= minScore;
+                              return (
+                                <div
+                                  style={{
+                                    background: "#eff6ff",
+                                    border: "1px solid #93c5fd",
+                                    borderRadius: "8px",
+                                    padding: "0.6rem 0.95rem",
+                                    textAlign: "right",
+                                    flexShrink: 0,
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    justifyContent: "center",
+                                  }}
+                                >
+                                  <div style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "0.3rem", marginBottom: "0.15rem" }}>
+                                    <svg width="13" height="13" viewBox="0 0 20 20" fill="#1d4ed8" aria-hidden="true" style={{ flexShrink: 0 }}>
+                                      <path fillRule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clipRule="evenodd" />
+                                      <path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z" />
+                                    </svg>
+                                    <span
+                                      style={{
+                                        fontSize: "0.7rem",
+                                        fontWeight: 700,
+                                        textTransform: "uppercase",
+                                        letterSpacing: "0.05em",
+                                        color: "#1e40af",
+                                      }}
+                                    >
+                                      Kecocokan Lowongan
+                                    </span>
+                                  </div>
+                                  <div
+                                    style={{
+                                      fontSize: "1.45rem",
+                                      fontWeight: 800,
+                                      color: "#1d4ed8",
+                                      lineHeight: 1.1,
+                                      margin: "0.1rem 0",
+                                    }}
+                                  >
+                                    {fit.score}/100
+                                  </div>
+                                  <span style={{ fontSize: "0.74rem", fontWeight: 600, color: isPass ? "#1d4ed8" : "#991b1b" }}>
+                                    Kecocokan Lowongan: {fit.score}/100 ({fitLevelLabel})
+                                  </span>
+                                </div>
+                              );
+                            })()
+                          )}
+
+                          {/* Fallback jika belum ada evaluasi sama sekali */}
+                          {(!activeApp.skillbridgeScore && !activeApp.assessmentId && !activeApp.fitEvaluation) && (
+                            <div
+                              style={{
+                                background: "#f8fafc",
+                                border: "1px solid var(--line)",
+                                borderRadius: "8px",
+                                padding: "0.6rem 0.95rem",
                                 textAlign: "right",
                                 flexShrink: 0,
                               }}
                             >
-                              <span style={{ fontSize: "0.72rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: isPass ? "#166534" : "#991b1b", display: "block" }}>
-                                Skor Kecocokan AI
+                              <span style={{ fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--muted)", display: "block" }}>
+                                Status Evaluasi
                               </span>
-                              <div style={{ fontSize: "1.6rem", fontWeight: 800, color: isPass ? "#15803d" : "#b91c1c", lineHeight: 1.1, margin: "0.15rem 0" }}>
-                                {activeScore !== null && activeScore !== undefined ? `${activeScore}/100` : "—/100"}
+                              <div style={{ fontSize: "1.45rem", fontWeight: 800, color: "var(--muted)", lineHeight: 1.1, margin: "0.1rem 0" }}>
+                                —/100
                               </div>
-                              <span style={{ fontSize: "0.75rem", fontWeight: 600, color: isPass ? "#15803d" : "#b91c1c" }}>
-                                {isPass ? `Memenuhi Syarat (≥ ${minScore})` : `Di Bawah Syarat (≥ ${minScore})`}
+                              <span style={{ fontSize: "0.74rem", color: "var(--muted)" }}>
+                                Belum ada asesmen atau evaluasi
                               </span>
                             </div>
-                          );
-                        })()}
+                          )}
+                        </div>
                       </div>
 
                       {/* Interactive 4-Step Pipeline Stepper */}
@@ -2625,21 +2800,71 @@ export default function RecruiterView() {
                                 Bukti Portofolio, Karya & Sertifikasi ({activeApp.portfolioItems?.length || 1})
                               </h4>
                             </div>
-                            {activeApp.skillbridgeScore !== null && activeApp.skillbridgeScore !== undefined && (
-                              <span
-                                style={{
-                                  fontSize: "0.72rem",
-                                  padding: "0.15rem 0.5rem",
-                                  borderRadius: "4px",
-                                  background: "#f0fdf4",
-                                  color: "#166534",
-                                  border: "1px solid #bbf7d0",
-                                  fontWeight: 600,
-                                }}
-                              >
-                                Terverifikasi Skillbridge ({activeApp.skillbridgeScore}/100)
-                              </span>
-                            )}
+                            <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", flexWrap: "wrap" }}>
+                              {/* Badge 1: Skor Asesmen Kompetensi */}
+                              {((activeApp.skillbridgeScore !== null && activeApp.skillbridgeScore !== undefined) || activeApp.assessmentId) && (
+                                <span
+                                  style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "0.25rem",
+                                    fontSize: "0.72rem",
+                                    padding: "0.2rem 0.55rem",
+                                    borderRadius: "4px",
+                                    background: "#f0fdf4",
+                                    color: "#166534",
+                                    border: "1px solid #bbf7d0",
+                                    fontWeight: 600,
+                                  }}
+                                >
+                                  <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" style={{ flexShrink: 0 }}>
+                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                                  </svg>
+                                  <span>
+                                    {activeApp.skillbridgeScore !== null && activeApp.skillbridgeScore !== undefined
+                                      ? `Asesmen Skillbridge: ${activeApp.skillbridgeScore}/100`
+                                      : "Terverifikasi Skillbridge"}
+                                  </span>
+                                </span>
+                              )}
+
+                              {/* Badge 2: Kecocokan Lowongan */}
+                              {activeApp.fitEvaluation && (
+                                (() => {
+                                  const fit = activeApp.fitEvaluation;
+                                  const fitLevelLabel =
+                                    fit.fitLevel === "high"
+                                      ? "Tinggi"
+                                      : fit.fitLevel === "medium"
+                                        ? "Menengah"
+                                        : "Awal";
+                                  return (
+                                    <span
+                                      style={{
+                                        display: "inline-flex",
+                                        alignItems: "center",
+                                        gap: "0.25rem",
+                                        fontSize: "0.72rem",
+                                        padding: "0.2rem 0.55rem",
+                                        borderRadius: "4px",
+                                        background: "#eff6ff",
+                                        color: "#1d4ed8",
+                                        border: "1px solid #bfdbfe",
+                                        fontWeight: 600,
+                                      }}
+                                    >
+                                      <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" style={{ flexShrink: 0 }}>
+                                        <path fillRule="evenodd" d="M6 6V5a3 3 0 013-3h2a3 3 0 013 3v1h2a2 2 0 012 2v3.57A22.952 22.952 0 0110 13a22.95 22.95 0 01-8-1.43V8a2 2 0 012-2h2zm2-1a1 1 0 011-1h2a1 1 0 011 1v1H8V5zm1 5a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1z" clipRule="evenodd" />
+                                        <path d="M2 13.692V16a2 2 0 002 2h12a2 2 0 002-2v-2.308A24.974 24.974 0 0110 15c-2.796 0-5.487-.46-8-1.308z" />
+                                      </svg>
+                                      <span>
+                                        Kecocokan Lowongan: {fit.score}/100 ({fitLevelLabel})
+                                      </span>
+                                    </span>
+                                  );
+                                })()
+                              )}
+                            </div>
                           </div>
 
                           <div style={{ display: "flex", flexDirection: "column", gap: "0.5rem" }}>

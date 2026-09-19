@@ -28,7 +28,8 @@ import {
   isSignedUrlExpiring,
   mergeApplicationDetails,
 } from "./jobs.ts";
-import type { JobPosting, JobApplication } from "./types.ts";
+import type { JobPosting, JobApplication, AssessmentResult } from "./types.ts";
+import { DEMO_SEEDS } from "./demo-seed.ts";
 
 test("DEMO_JOBS kosong di produksi dan MOCK_JOBS_FIXTURE mematuhi skema data dan kriteria Proposal Kompres 16", () => {
   assert.equal(DEMO_JOBS.length, 0, "DEMO_JOBS harus kosong di produksi");
@@ -367,6 +368,160 @@ test("Validasi input applyToJob menolak data lamaran yang tidak lengkap atau tid
   assert.ok(application.fitEvaluation, "applyToJob harus memuat fitEvaluation");
   assert.ok([0, 25, 50, 75, 100].includes(application.fitEvaluation.score));
   assert.equal(application.skillbridgeScore, application.fitEvaluation.score);
+});
+
+test("validateApplicationInput menolak surat lamaran kosong pada opsi upload dan write, serta mengizinkan opsi none dan undefined", () => {
+  const baseValid = {
+    jobId: MOCK_JOBS_FIXTURE[0].id,
+    candidateName: "Rian Pratama",
+    candidateEmail: "rian@example.com",
+  };
+
+  // 1. Opsi upload: nama file kosong atau tidak ada
+  assert.throws(
+    () =>
+      validateApplicationInput("candidate-1", {
+        ...baseValid,
+        coverLetterMode: "upload",
+      }),
+    /berkas surat lamaran wajib diunggah jika memilih opsi unggah surat lamaran/i,
+  );
+
+  assert.throws(
+    () =>
+      validateApplicationInput("candidate-1", {
+        ...baseValid,
+        coverLetterMode: "upload",
+        coverLetterFileName: "   ",
+      }),
+    /berkas surat lamaran wajib diunggah jika memilih opsi unggah surat lamaran/i,
+  );
+
+  // 1b. Opsi upload valid
+  assert.doesNotThrow(() =>
+    validateApplicationInput("candidate-1", {
+      ...baseValid,
+      coverLetterMode: "upload",
+      coverLetterFileName: "surat_lamaran_rian.pdf",
+    }),
+  );
+
+  // 2. Opsi write: isi surat lamaran kosong atau tidak ada
+  assert.throws(
+    () =>
+      validateApplicationInput("candidate-1", {
+        ...baseValid,
+        coverLetterMode: "write",
+      }),
+    /isi surat lamaran wajib diisi jika memilih opsi tulis surat lamaran/i,
+  );
+
+  assert.throws(
+    () =>
+      validateApplicationInput("candidate-1", {
+        ...baseValid,
+        coverLetterMode: "write",
+        coverLetter: "   ",
+      }),
+    /isi surat lamaran wajib diisi jika memilih opsi tulis surat lamaran/i,
+  );
+
+  // 2b. Opsi write valid
+  assert.doesNotThrow(() =>
+    validateApplicationInput("candidate-1", {
+      ...baseValid,
+      coverLetterMode: "write",
+      coverLetter: "Saya sangat tertarik dengan kesempatan ini.",
+    }),
+  );
+
+  // 3. Opsi none atau undefined: diizinkan kosong
+  assert.doesNotThrow(() =>
+    validateApplicationInput("candidate-1", {
+      ...baseValid,
+      coverLetterMode: "none",
+    }),
+  );
+
+  assert.doesNotThrow(() =>
+    validateApplicationInput("candidate-1", {
+      ...baseValid,
+      coverLetterMode: undefined,
+    }),
+  );
+});
+
+test("applyToJob menyimpan skor asesmen asli dan fitEvaluation >= 75 untuk pelamar dengan asesmen 75/100 tanpa portofolio opsional", async () => {
+  const testAsmId = "00000000-0000-4000-8000-000000000075";
+  const mockAssessment75: AssessmentResult = {
+    id: testAsmId,
+    createdAt: "2026-09-01T00:00:00Z",
+    role: "Junior Web Developer",
+    sourceUrl: "https://github.com/skillbridge-demo/verified-repo",
+    evidenceType: "github",
+    rubric_version: "1.1",
+    evidence_sufficiency: "sufficient",
+    finalScore: 75,
+    strengths: ["Struktur kode dan arsitektur Next.js terbukti rapi"],
+    gaps: [],
+    limitations: [],
+    criteria: [],
+  };
+
+  // Daftarkan sementara ke DEMO_SEEDS agar ditemukan oleh findAssessment
+  DEMO_SEEDS.push(mockAssessment75);
+
+  try {
+    const job = MOCK_JOBS_FIXTURE[0]; // Junior Front-End Web Developer (informatics)
+    const applicationInput = {
+      jobId: job.id,
+      candidateName: "Kandidat Terverifikasi Asesmen 75",
+      candidateEmail: "terverifikasi75@example.com",
+      assessmentId: testAsmId,
+      // Tanpa portofolio opsional
+    };
+
+    const app = await applyToJob("candidate-verified-75", applicationInput);
+
+    // 1. Pastikan skillbridgeScore menyimpan skor asesmen asli (75)
+    assert.equal(
+      app.skillbridgeScore,
+      75,
+      "skillbridgeScore harus menyimpan skor asesmen asli kandidat (75)",
+    );
+
+    // 2. Pastikan fitEvaluation tersimpan
+    assert.ok(app.fitEvaluation, "fitEvaluation harus tersedia pada lamaran");
+
+    // 3. Pastikan skor fitEvaluation TIDAK turun menjadi 50/100 melainkan tetap >= 75/100
+    assert.ok(
+      app.fitEvaluation.score >= 75,
+      `Skor fitEvaluation harus >= 75 (diterima: ${app.fitEvaluation.score}), tidak boleh anjlok ke 50/100`,
+    );
+    assert.equal(app.fitEvaluation.score, 75);
+    assert.equal(app.fitEvaluation.fitLevel, "high");
+
+    // 4. Kriteria matching memuat pengakuan asesmen terverifikasi
+    assert.ok(
+      app.fitEvaluation.matchingCriteria.some((c) =>
+        c.includes("Hasil Asesmen Kompetensi Portofolio Skillbridge terverifikasi: 75/100"),
+      ),
+      "matchingCriteria wajib mencantumkan status asesmen terverifikasi",
+    );
+
+    // 5. Kriteria missing TIDAK menuntut portofolio tambahan
+    assert.ok(
+      !app.fitEvaluation.missingCriteria.some((c) =>
+        c.toLowerCase().includes("tautan portofolio proyek spesifik belum disertakan"),
+      ),
+      "missingCriteria TIDAK boleh menuntut portofolio jika kandidat sudah memiliki asesmen terverifikasi",
+    );
+  } finally {
+    const idx = DEMO_SEEDS.findIndex((s) => s.id === testAsmId);
+    if (idx !== -1) {
+      DEMO_SEEDS.splice(idx, 1);
+    }
+  }
 });
 
 test("applyToJob menerima dan menyimpan data pelamar tambahan (phone, location, resumeFileName, resumeUrl, coverLetterMode, coverLetterFileName)", async () => {

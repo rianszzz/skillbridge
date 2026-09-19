@@ -214,6 +214,7 @@ export default function JobsView() {
   const [coverLetterMode, setCoverLetterMode] = useState<"upload" | "write" | "none">("write");
   const [coverLetter, setCoverLetter] = useState("");
   const [coverLetterFileName, setCoverLetterFileName] = useState("");
+  const [coverLetterError, setCoverLetterError] = useState("");
 
   const [selectedAssessmentId, setSelectedAssessmentId] = useState<string>("");
   const [portfolioUrl, setPortfolioUrl] = useState("");
@@ -226,6 +227,7 @@ export default function JobsView() {
 
   const resumeFileInputRef = useRef<HTMLInputElement>(null);
   const coverLetterFileInputRef = useRef<HTMLInputElement>(null);
+  const coverLetterTextareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Check auth & load user assessments
   useEffect(() => {
@@ -405,6 +407,7 @@ export default function JobsView() {
     setSubmitSuccess(false);
     setSubmittedApp(null);
     setSubmitError("");
+    setCoverLetterError("");
     setProfileSaveError("");
     setPhotoHover(false);
     setPencilHover(false);
@@ -649,6 +652,8 @@ export default function JobsView() {
       return;
     }
     setCoverLetterFileName(file.name);
+    setCoverLetterError("");
+    setSubmitError("");
   }
 
   function handleSaveApplicantProfile() {
@@ -769,8 +774,38 @@ export default function JobsView() {
       return;
     }
 
+    if (coverLetterMode === "upload" && (!coverLetterFileName || coverLetterFileName.trim().length === 0)) {
+      const msg = "Harap unggah berkas surat lamaran Anda terlebih dahulu.";
+      setSubmitError(msg);
+      setCoverLetterError(msg);
+      const section = document.getElementById("cover-letter-section") || document.getElementById("cover-letter-upload-radio");
+      if (section) {
+        section.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+      coverLetterFileInputRef.current?.focus();
+      return;
+    }
+
+    if (coverLetterMode === "write" && (!coverLetter || coverLetter.trim().length === 0)) {
+      const msg = "Harap tuliskan surat lamaran Anda terlebih dahulu.";
+      setSubmitError(msg);
+      setCoverLetterError(msg);
+      if (coverLetterTextareaRef.current) {
+        coverLetterTextareaRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+        coverLetterTextareaRef.current.focus();
+      } else {
+        const textarea = document.getElementById("applicant-cover-letter");
+        if (textarea) {
+          textarea.scrollIntoView({ behavior: "smooth", block: "center" });
+          textarea.focus();
+        }
+      }
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitError("");
+    setCoverLetterError("");
 
     try {
       const selectedAssessment = userAssessments.find((a) => a.id === selectedAssessmentId);
@@ -3389,7 +3424,7 @@ export default function JobsView() {
                 </div>
 
                 {/* Headline [Surat lamaran] */}
-                <div style={{ marginTop: "1.75rem", marginBottom: "1.25rem" }}>
+                <div id="cover-letter-section" style={{ marginTop: "1.75rem", marginBottom: "1.25rem" }}>
                   <h3
                     style={{
                       fontSize: "1.15rem",
@@ -3401,21 +3436,51 @@ export default function JobsView() {
                     Surat lamaran
                   </h3>
 
+                  {coverLetterError && (
+                    <div
+                      role="alert"
+                      id="cover-letter-error-banner"
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "0.5rem",
+                        padding: "0.65rem 0.85rem",
+                        background: "#fef2f2",
+                        border: "1.5px solid #ef4444",
+                        borderRadius: "6px",
+                        color: "#b91c1c",
+                        fontSize: "0.85rem",
+                        fontWeight: 600,
+                        marginBottom: "0.85rem",
+                      }}
+                    >
+                      <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" style={{ flexShrink: 0 }}>
+                        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                      <span>{coverLetterError}</span>
+                    </div>
+                  )}
+
                   {/* Radio 1: Unggah surat lamaran */}
                   <div
+                    id="cover-letter-upload-radio"
                     style={{
                       border:
                         coverLetterMode === "upload"
-                          ? "1.5px solid var(--ink)"
+                          ? coverLetterError && !coverLetterFileName
+                            ? "2px solid #ef4444"
+                            : "1.5px solid var(--ink)"
                           : "1px solid var(--line)",
                       borderRadius: "8px",
                       padding: "1rem",
                       marginBottom: "0.75rem",
                       background:
                         coverLetterMode === "upload"
-                          ? "rgba(255, 255, 255, 0.95)"
+                          ? coverLetterError && !coverLetterFileName
+                            ? "#fff5f5"
+                            : "rgba(255, 255, 255, 0.95)"
                           : "white",
-                      transition: "border-color 0.15s ease",
+                      transition: "border-color 0.15s ease, background 0.15s ease",
                     }}
                   >
                     <label
@@ -3433,7 +3498,10 @@ export default function JobsView() {
                         name="coverLetterMode"
                         value="upload"
                         checked={coverLetterMode === "upload"}
-                        onChange={() => setCoverLetterMode("upload")}
+                        onChange={() => {
+                          setCoverLetterMode("upload");
+                          setCoverLetterError("");
+                        }}
                         style={{
                           width: "18px",
                           minHeight: "18px",
@@ -3466,7 +3534,10 @@ export default function JobsView() {
                                 gap: "0.4rem",
                               }}
                             >
-                              <span style={{ fontSize: "1rem" }}>↑</span> Unggah
+                              <svg width="14" height="14" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zM6.293 6.707a1 1 0 010-1.414l3-3a1 1 0 011.414 0l3 3a1 1 0 01-1.414 1.414L11 5.414V13a1 1 0 11-2 0V5.414L7.707 6.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                              </svg>
+                              <span>Unggah Berkas</span>
                             </button>
                             <p
                               className="hint"
@@ -3478,6 +3549,19 @@ export default function JobsView() {
                             >
                               Jenis file yang diterima: .doc, .docx, .pdf, .txt, dan .rtf (batas 5MB).
                             </p>
+
+                            {coverLetterError && !coverLetterFileName && (
+                              <p
+                                style={{
+                                  margin: "0.45rem 0 0",
+                                  fontSize: "0.82rem",
+                                  color: "#dc2626",
+                                  fontWeight: 600,
+                                }}
+                              >
+                                Harap unggah berkas surat lamaran Anda terlebih dahulu.
+                              </p>
+                            )}
 
                             {coverLetterFileName && (
                               <div
@@ -3493,7 +3577,9 @@ export default function JobsView() {
                                 }}
                               >
                                 <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                                  <span>📄</span>
+                                  <svg width="16" height="16" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" style={{ color: "var(--ink)" }}>
+                                    <path fillRule="evenodd" d="M4 4a2 2 0 012-2h4.586A2 2 0 0112 2.586L15.414 6A2 2 0 0116 7.414V16a2 2 0 01-2 2H6a2 2 0 01-2-2V4zm2 6a1 1 0 011-1h6a1 1 0 110 2H7a1 1 0 01-1-1zm1 3a1 1 0 100 2h6a1 1 0 100-2H7z" clipRule="evenodd" />
+                                  </svg>
                                   <span
                                     style={{
                                       fontSize: "0.88rem",
@@ -3521,7 +3607,10 @@ export default function JobsView() {
                                 <button
                                   type="button"
                                   aria-label="Hapus berkas surat lamaran"
-                                  onClick={() => setCoverLetterFileName("")}
+                                  onClick={() => {
+                                    setCoverLetterFileName("");
+                                    setCoverLetterError("");
+                                  }}
                                   style={{
                                     background: "transparent",
                                     border: "none",
@@ -3544,19 +3633,24 @@ export default function JobsView() {
 
                   {/* Radio 2: Tulis surat lamaran */}
                   <div
+                    id="cover-letter-write-radio"
                     style={{
                       border:
                         coverLetterMode === "write"
-                          ? "1.5px solid var(--ink)"
+                          ? coverLetterError && !coverLetter.trim()
+                            ? "2px solid #ef4444"
+                            : "1.5px solid var(--ink)"
                           : "1px solid var(--line)",
                       borderRadius: "8px",
                       padding: "1rem",
                       marginBottom: "0.75rem",
                       background:
                         coverLetterMode === "write"
-                          ? "rgba(255, 255, 255, 0.95)"
+                          ? coverLetterError && !coverLetter.trim()
+                            ? "#fff5f5"
+                            : "rgba(255, 255, 255, 0.95)"
                           : "white",
-                      transition: "border-color 0.15s ease",
+                      transition: "border-color 0.15s ease, background 0.15s ease",
                     }}
                   >
                     <label
@@ -3574,7 +3668,10 @@ export default function JobsView() {
                         name="coverLetterMode"
                         value="write"
                         checked={coverLetterMode === "write"}
-                        onChange={() => setCoverLetterMode("write")}
+                        onChange={() => {
+                          setCoverLetterMode("write");
+                          setCoverLetterError("");
+                        }}
                         style={{
                           width: "18px",
                           minHeight: "18px",
@@ -3600,13 +3697,32 @@ export default function JobsView() {
                               terkait kamu yang relevan.
                             </p>
                             <textarea
+                              ref={coverLetterTextareaRef}
                               id="applicant-cover-letter"
                               rows={5}
                               placeholder="Tuliskan surat lamaran Anda di sini..."
                               value={coverLetter}
-                              onChange={(e) => setCoverLetter(e.target.value)}
-                              style={{ width: "100%" }}
+                              onChange={(e) => {
+                                setCoverLetter(e.target.value);
+                                if (coverLetterError) setCoverLetterError("");
+                              }}
+                              style={{
+                                width: "100%",
+                                borderColor: coverLetterError && !coverLetter.trim() ? "#ef4444" : undefined,
+                              }}
                             />
+                            {coverLetterError && !coverLetter.trim() && (
+                              <p
+                                style={{
+                                  margin: "0.4rem 0 0",
+                                  fontSize: "0.82rem",
+                                  color: "#dc2626",
+                                  fontWeight: 600,
+                                }}
+                              >
+                                Harap tuliskan surat lamaran Anda terlebih dahulu.
+                              </p>
+                            )}
                           </div>
                         )}
                       </div>
@@ -3645,7 +3761,10 @@ export default function JobsView() {
                         name="coverLetterMode"
                         value="none"
                         checked={coverLetterMode === "none"}
-                        onChange={() => setCoverLetterMode("none")}
+                        onChange={() => {
+                          setCoverLetterMode("none");
+                          setCoverLetterError("");
+                        }}
                         style={{
                           width: "18px",
                           minHeight: "18px",

@@ -5,9 +5,11 @@ import {
   fallbackJobFitEvaluation,
   snapToAnchor,
   getFitLevel,
+  isRoleOrFieldRelevant,
 } from "./job-fit-evaluator.ts";
 import { MOCK_JOBS_FIXTURE } from "./jobs.ts";
 import { DEMO_SEEDS } from "./demo-seed.ts";
+import type { AssessmentResult } from "./types.ts";
 
 test("snapToAnchor membatasi skor secara ketat pada anchor 0, 25, 50, 75, 100", () => {
   assert.equal(snapToAnchor(0), 0);
@@ -146,4 +148,97 @@ test("fallbackJobFitEvaluation mengakui bukti dari portfolioItems dan verifiedSk
   assert.ok(result.matchingCriteria.some((c) => c.includes("Keahlian dibuktikan lewat portofolio: React")));
   assert.ok(result.matchingCriteria.some((c) => c.includes("2 bukti portofolio & karya nyata terlampir")));
   assert.ok(result.score >= 50, "Kandidat dengan 2 portofolio dan skill verified harus mencapai minimal skor 50");
+});
+
+test("fallbackJobFitEvaluation mempertahankan skor >= 75 untuk pelamar dengan asesmen 75/100 tanpa portofolio opsional", () => {
+  const job = MOCK_JOBS_FIXTURE[0]; // Junior Front-End Web Developer (field: informatics)
+  const mockAssessment75: AssessmentResult = {
+    id: "mock-asm-75-web",
+    createdAt: "2026-09-01T00:00:00Z",
+    role: "Junior Web Developer",
+    sourceUrl: "https://github.com/test/repo",
+    evidenceType: "github",
+    rubric_version: "1.1",
+    evidence_sufficiency: "sufficient",
+    finalScore: 75,
+    strengths: ["Kualitas kode bersih"],
+    gaps: [],
+    limitations: [],
+    criteria: [],
+  };
+
+  const applicant = {
+    name: "Calon Web Dev Unggul",
+    email: "webdev@example.com",
+    assessment: mockAssessment75,
+    // TIDAK menyertakan portfolioUrl maupun portfolioItems
+  };
+
+  const result = fallbackJobFitEvaluation(job, applicant);
+
+  // Skor TIDAK boleh anjlok/turun ke 50/100
+  assert.ok(
+    result.score >= 75,
+    `Skor harus tetap >= 75 (diterima: ${result.score}), tidak boleh turun ke 50/100 hanya karena form portofolio opsional kosong`,
+  );
+  assert.equal(result.score, 75);
+  assert.equal(result.fitLevel, "high");
+
+  // Harus mencatat hasil asesmen portofolio terverifikasi
+  assert.ok(
+    result.matchingCriteria.some((c) =>
+      c.includes("Hasil Asesmen Kompetensi Portofolio Skillbridge terverifikasi: 75/100"),
+    ),
+    "matchingCriteria wajib memuat label hasil asesmen terverifikasi",
+  );
+
+  // JANGAN menambahkan Tautan portofolio proyek spesifik belum disertakan ke missingCriteria
+  assert.ok(
+    !result.missingCriteria.some((c) =>
+      c.toLowerCase().includes("tautan portofolio proyek spesifik belum disertakan"),
+    ),
+    "missingCriteria TIDAK boleh menuntut portofolio tambahan jika kandidat sudah memiliki asesmen Skillbridge",
+  );
+});
+
+test("fallbackJobFitEvaluation menghitung bobot adil ketika bidang asesmen berbeda dengan lowongan", () => {
+  const job = MOCK_JOBS_FIXTURE[0]; // Junior Front-End Web Developer (field: informatics)
+  const mockAssessmentDKV75: AssessmentResult = {
+    id: "mock-asm-75-dkv",
+    createdAt: "2026-09-01T00:00:00Z",
+    role: "Junior Graphic Designer", // Bidang: design, bukan informatics
+    sourceUrl: "https://behance.net/test",
+    evidenceType: "image",
+    rubric_version: "1.1",
+    evidence_sufficiency: "sufficient",
+    finalScore: 75,
+    strengths: ["Konsistensi visual baik"],
+    gaps: [],
+    limitations: [],
+    criteria: [],
+  };
+
+  const applicant = {
+    name: "Pelamar Lintas Bidang",
+    email: "lintas@example.com",
+    assessment: mockAssessmentDKV75,
+  };
+
+  const result = fallbackJobFitEvaluation(job, applicant);
+
+  // Jika bidang berbeda: rawScore = 75 * 0.6 + 0 * 40 = 45 -> snapToAnchor(45) = 50
+  assert.equal(result.score, 50, "Asesmen lintas bidang dihitung dengan rumus berbobot adil (skor 50)");
+  assert.equal(result.fitLevel, "medium");
+});
+
+test("isRoleOrFieldRelevant mendeteksi kecocokan peran dan bidang secara akurat", () => {
+  // Bidang & peran cocok
+  assert.equal(isRoleOrFieldRelevant("Junior Web Developer", "informatics", "Junior Front-End Web Developer"), true);
+  assert.equal(isRoleOrFieldRelevant("Junior Graphic Designer", "design", "Junior Graphic Designer"), true);
+  assert.equal(isRoleOrFieldRelevant("Junior Digital Marketer", "marketing", "Junior Digital Marketer"), true);
+
+  // Bidang tidak cocok
+  assert.equal(isRoleOrFieldRelevant("Junior Graphic Designer", "informatics", "Junior Web Developer"), false);
+  assert.equal(isRoleOrFieldRelevant("Junior Web Developer", "design", "Junior Graphic Designer"), false);
+  assert.equal(isRoleOrFieldRelevant(null, "informatics", "Junior Web Developer"), false);
 });
