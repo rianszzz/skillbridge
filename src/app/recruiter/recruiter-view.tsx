@@ -90,11 +90,11 @@ function getApplicationBadge(status: ApplicationStatus) {
     case "pending":
       return { label: "Terkirim", bg: "#f3f4f6", color: "#374151" };
     case "reviewed":
-      return { label: "Ditinjau HR", bg: "#e0f2fe", color: "#0369a1" };
+      return { label: "Sedang Ditinjau", bg: "#e0f2fe", color: "#0369a1" };
     case "shortlisted":
-      return { label: "Shortlisted", bg: "#e6f4ea", color: "#137333" };
+      return { label: "Siap Wawancara", bg: "#e6f4ea", color: "#137333" };
     case "rejected":
-      return { label: "Tidak Lolos", bg: "#fce8e6", color: "#c5221f" };
+      return { label: "Ditolak", bg: "#fce8e6", color: "#c5221f" };
     case "accepted":
       return { label: "Diterima", bg: "#dcfce7", color: "#15803d" };
     default:
@@ -268,6 +268,33 @@ function IconClipboard({ width = 24, height = 24, className = "" }: { width?: nu
     <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
       <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
       <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+    </svg>
+  );
+}
+
+function IconLock({ width = 16, height = 16, className = "" }: { width?: number; height?: number; className?: string }) {
+  return (
+    <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <rect width="18" height="11" x="3" y="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  );
+}
+
+function IconSend({ width = 16, height = 16, className = "" }: { width?: number; height?: number; className?: string }) {
+  return (
+    <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="m22 2-7 20-4-9-9-4Z" />
+      <path d="M22 2 11 13" />
+    </svg>
+  );
+}
+
+function IconCheckCircle({ width = 24, height = 24, className = "" }: { width?: number; height?: number; className?: string }) {
+  return (
+    <svg width={width} height={height} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+      <polyline points="22 4 12 14.01 9 11.01" />
     </svg>
   );
 }
@@ -823,6 +850,200 @@ function FilePreviewModal({
   );
 }
 
+function StatusAlertModal({
+  isOpen,
+  message,
+  candidateName,
+  status,
+  onClose,
+}: {
+  isOpen: boolean;
+  message: string;
+  candidateName: string;
+  status?: ApplicationStatus;
+  onClose: () => void;
+}) {
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const originalOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = originalOverflow;
+    };
+  }, [isOpen]);
+
+  if (!isOpen) return null;
+
+  const isReject = status === "rejected";
+  const isShortlisted = status === "shortlisted";
+  const iconTheme = isReject
+    ? { bg: "#fef2f2", border: "#fecaca", color: "#dc2626" }
+    : isShortlisted
+      ? { bg: "#f0fdf4", border: "#bbf7d0", color: "#16a34a" }
+      : { bg: "#f0f9ff", border: "#bae6fd", color: "#0284c7" };
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="status-alert-modal-title"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(15, 23, 42, 0.72)",
+        backdropFilter: "blur(4px)",
+        zIndex: 130,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "clamp(1rem, 3vw, 1.5rem)",
+      }}
+    >
+      <div
+        className="panel"
+        style={{
+          maxWidth: "460px",
+          width: "100%",
+          background: "#ffffff",
+          borderRadius: "12px",
+          padding: "1.75rem",
+          boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          textAlign: "center",
+          position: "relative",
+        }}
+      >
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Tutup Notifikasi"
+          style={{
+            position: "absolute",
+            top: "1rem",
+            right: "1rem",
+            background: "transparent",
+            border: "none",
+            color: "var(--muted)",
+            cursor: "pointer",
+            padding: "0.35rem",
+            borderRadius: "6px",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <IconX width={18} height={18} />
+        </button>
+
+        <div
+          style={{
+            width: "56px",
+            height: "56px",
+            borderRadius: "50%",
+            background: iconTheme.bg,
+            border: `2px solid ${iconTheme.border}`,
+            color: iconTheme.color,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: "1rem",
+          }}
+        >
+          {isReject ? <IconX width={26} height={26} /> : <IconCheckCircle width={28} height={28} />}
+        </div>
+
+        <span
+          style={{
+            fontSize: "0.75rem",
+            fontWeight: 700,
+            textTransform: "uppercase",
+            letterSpacing: "0.06em",
+            color: "var(--muted)",
+            marginBottom: "0.25rem",
+          }}
+        >
+          Notifikasi Status Pelamar
+        </span>
+
+        <h3
+          id="status-alert-modal-title"
+          style={{
+            fontSize: "1.2rem",
+            fontWeight: 800,
+            color: "var(--ink)",
+            margin: "0 0 0.4rem",
+            lineHeight: 1.3,
+          }}
+        >
+          Status Berhasil Diperbarui
+        </h3>
+
+        <div
+          style={{
+            fontSize: "0.82rem",
+            color: "var(--muted)",
+            marginBottom: "0.9rem",
+          }}
+        >
+          Kandidat: <strong style={{ color: "var(--ink)" }}>{candidateName}</strong>
+        </div>
+
+        <div
+          style={{
+            background: "#f8fafc",
+            border: "1px solid var(--line)",
+            borderRadius: "8px",
+            padding: "0.85rem 1rem",
+            width: "100%",
+            marginBottom: "1.5rem",
+          }}
+        >
+          <p
+            style={{
+              margin: 0,
+              fontSize: "0.95rem",
+              fontWeight: 700,
+              color: "var(--ink)",
+              lineHeight: 1.45,
+            }}
+          >
+            {message}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={onClose}
+          className="button"
+          style={{
+            width: "100%",
+            justifyContent: "center",
+            padding: "0.65rem 1.25rem",
+            fontSize: "0.92rem",
+            fontWeight: 600,
+          }}
+        >
+          Mengerti
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function RecruiterView() {
   const [authState, setAuthState] = useState<AuthState>({ status: "loading" });
   const [activeTab, setActiveTab] = useState<"talent-pool" | "my-jobs">("talent-pool");
@@ -861,6 +1082,17 @@ export default function RecruiterView() {
   const [selectedJobForApplicants, setSelectedJobForApplicants] = useState<JobPosting | null>(null);
   const [selectedApplicantId, setSelectedApplicantId] = useState<string | "all">("all");
   const [applicantFilterStatus, setApplicantFilterStatus] = useState<"all" | ApplicationStatus>("all");
+  const [pendingStatusByApp, setPendingStatusByApp] = useState<{
+    applicationId: string;
+    status: ApplicationStatus;
+  } | null>(null);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const [statusAlertModal, setStatusAlertModal] = useState<{
+    isOpen: boolean;
+    message: string;
+    candidateName: string;
+    status?: ApplicationStatus;
+  } | null>(null);
 
   // Form IDs
   const titleInputId = useId();
@@ -2169,7 +2401,6 @@ export default function RecruiterView() {
                 const pendingCount = currentJobApps.filter((a) => a.status === "pending").length;
                 const reviewedCount = currentJobApps.filter((a) => a.status === "reviewed").length;
                 const shortlistedCount = currentJobApps.filter((a) => a.status === "shortlisted").length;
-                const acceptedCount = currentJobApps.filter((a) => a.status === "accepted").length;
                 const rejectedCount = currentJobApps.filter((a) => a.status === "rejected").length;
 
                 const filteredApps =
@@ -2180,6 +2411,18 @@ export default function RecruiterView() {
                 const activeApp =
                   (selectedApplicantId !== "all" && currentJobApps.find((a) => a.id === selectedApplicantId)) ||
                   currentJobApps[0];
+
+                const pendingStatus =
+                  activeApp && pendingStatusByApp?.applicationId === activeApp.id
+                    ? pendingStatusByApp.status
+                    : null;
+                const setPendingStatus = (status: ApplicationStatus | null) => {
+                  if (status && activeApp) {
+                    setPendingStatusByApp({ applicationId: activeApp.id, status });
+                  } else {
+                    setPendingStatusByApp(null);
+                  }
+                };
 
                 return (
                   <div
@@ -2210,10 +2453,9 @@ export default function RecruiterView() {
                         <div className="chips" role="tablist" aria-label="Filter Status Pelamar">
                           {[
                             { id: "all", label: `Semua (${currentJobApps.length})` },
-                            { id: "pending", label: `Terkirim (${pendingCount})` },
-                            { id: "reviewed", label: `Ditinjau (${reviewedCount})` },
-                            { id: "shortlisted", label: `Wawancara (${shortlistedCount})` },
-                            { id: "accepted", label: `Diterima (${acceptedCount})` },
+                            { id: "pending", label: `Masuk / Terkirim (${pendingCount})` },
+                            { id: "reviewed", label: `Sedang Ditinjau (${reviewedCount})` },
+                            { id: "shortlisted", label: `Siap Wawancara (${shortlistedCount})` },
                             { id: "rejected", label: `Ditolak (${rejectedCount})` },
                           ].map((tab) => {
                             const active = applicantFilterStatus === tab.id;
@@ -2591,77 +2833,283 @@ export default function RecruiterView() {
                         </div>
                       </div>
 
-                      {/* Interactive 4-Step Pipeline Stepper */}
-                      <div style={{ padding: "0.9rem 1rem", background: "var(--paper)", border: "1px solid var(--line)", borderRadius: "8px" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.65rem", flexWrap: "wrap", gap: "0.5rem" }}>
-                          <span style={{ fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--muted)" }}>
-                            Tahapan Seleksi Pelamar (1-Klik untuk Perbarui Status)
-                          </span>
-                          <span style={{ fontSize: "0.78rem", color: "var(--muted)" }}>
-                            Status: <strong style={{ color: "var(--ink)" }}>{getApplicationBadge(activeApp.status).label}</strong>
-                          </span>
-                        </div>
+                      {/* Tahapan Seleksi Pelamar */}
+                      {(() => {
+                        const isStatusLocked =
+                          activeApp.status === "shortlisted" ||
+                          activeApp.status === "rejected" ||
+                          activeApp.status === "accepted";
+                        const finalStatusLabel =
+                          activeApp.status === "shortlisted"
+                            ? "Siap Wawancara"
+                            : activeApp.status === "rejected"
+                              ? "Ditolak"
+                              : "Diterima";
 
-                        <div style={{ display: "flex", gap: "0.4rem", flexWrap: "wrap", alignItems: "center" }}>
-                          {[
-                            { status: "pending" as ApplicationStatus, label: "1. Terkirim" },
-                            { status: "reviewed" as ApplicationStatus, label: "2. Sedang Ditinjau" },
-                            { status: "shortlisted" as ApplicationStatus, label: "3. Siap Wawancara" },
-                            { status: "accepted" as ApplicationStatus, label: "4. Diterima Bekerja" },
-                          ].map((step) => {
-                            const isActive = activeApp.status === step.status;
-                            return (
-                              <button
-                                key={step.status}
-                                type="button"
-                                onClick={() => handleUpdateApplicationStatus(activeApp.id, step.status)}
+                        if (isStatusLocked) {
+                          return (
+                            <div
+                              style={{
+                                padding: "1rem 1.15rem",
+                                background: activeApp.status === "rejected" ? "#fef2f2" : "#f0fdf4",
+                                border: `1px solid ${activeApp.status === "rejected" ? "#fecaca" : "#bbf7d0"}`,
+                                borderRadius: "8px",
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "0.5rem",
+                              }}
+                            >
+                              <div
                                 style={{
-                                  flex: "1 1 auto",
-                                  padding: "0.45rem 0.65rem",
-                                  borderRadius: "6px",
-                                  border: isActive ? "2px solid var(--ink)" : "1px solid var(--line)",
-                                  background: isActive ? "var(--ink)" : "white",
-                                  color: isActive ? "white" : "var(--ink)",
-                                  fontWeight: isActive ? 700 : 500,
-                                  fontSize: "0.8rem",
-                                  cursor: "pointer",
-                                  display: "inline-flex",
+                                  display: "flex",
+                                  justifyContent: "space-between",
                                   alignItems: "center",
-                                  justifyContent: "center",
-                                  gap: "0.3rem",
-                                  transition: "all 0.15s ease",
+                                  flexWrap: "wrap",
+                                  gap: "0.5rem",
                                 }}
                               >
-                                {isActive && <IconCheck width={12} height={12} />}
-                                <span>{step.label}</span>
-                              </button>
-                            );
-                          })}
+                                <span
+                                  style={{
+                                    fontSize: "0.75rem",
+                                    fontWeight: 700,
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.05em",
+                                    color: "var(--muted)",
+                                  }}
+                                >
+                                  Tahapan Seleksi Pelamar
+                                </span>
+                                <span
+                                  style={{
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    gap: "0.35rem",
+                                    padding: "0.25rem 0.65rem",
+                                    borderRadius: "9999px",
+                                    background: activeApp.status === "rejected" ? "#fee2e2" : "#dcfce7",
+                                    color: activeApp.status === "rejected" ? "#991b1b" : "#166534",
+                                    fontSize: "0.78rem",
+                                    fontWeight: 700,
+                                    border: `1px solid ${activeApp.status === "rejected" ? "#fca5a5" : "#86efac"}`,
+                                  }}
+                                >
+                                  <IconLock width={13} height={13} />
+                                  <span>Status Final: {finalStatusLabel}</span>
+                                </span>
+                              </div>
+                              <p
+                                style={{
+                                  margin: 0,
+                                  fontSize: "0.85rem",
+                                  color: activeApp.status === "rejected" ? "#991b1b" : "#166534",
+                                  lineHeight: 1.5,
+                                }}
+                              >
+                                Status seleksi pelamar ini telah difinalisasi ({finalStatusLabel}) dan tidak dapat diubah lagi.
+                              </p>
+                            </div>
+                          );
+                        }
 
-                          <button
-                            type="button"
-                            onClick={() => handleUpdateApplicationStatus(activeApp.id, "rejected")}
-                            style={{
-                              padding: "0.45rem 0.75rem",
-                              borderRadius: "6px",
-                              border: activeApp.status === "rejected" ? "2px solid #b91c1c" : "1px solid #fca5a5",
-                              background: activeApp.status === "rejected" ? "#b91c1c" : "#fef2f2",
-                              color: activeApp.status === "rejected" ? "white" : "#991b1b",
-                              fontWeight: activeApp.status === "rejected" ? 700 : 500,
-                              fontSize: "0.8rem",
-                              cursor: "pointer",
-                              display: "inline-flex",
-                              alignItems: "center",
-                              justifyContent: "center",
-                              gap: "0.3rem",
-                              transition: "all 0.15s ease",
-                            }}
-                          >
-                            <IconX width={12} height={12} />
-                            <span>Tolak</span>
-                          </button>
-                        </div>
-                      </div>
+                        const pendingLabel =
+                          pendingStatus === "reviewed"
+                            ? "Sedang Ditinjau"
+                            : pendingStatus === "shortlisted"
+                              ? "Siap Wawancara"
+                              : pendingStatus === "rejected"
+                                ? "Tolak"
+                                : "";
+
+                        return (
+                          <div style={{ padding: "0.9rem 1rem", background: "var(--paper)", border: "1px solid var(--line)", borderRadius: "8px" }}>
+                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.65rem", flexWrap: "wrap", gap: "0.5rem" }}>
+                              <span style={{ fontSize: "0.75rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--muted)" }}>
+                                Tahapan Seleksi Pelamar
+                              </span>
+                              <span style={{ fontSize: "0.78rem", color: "var(--muted)" }}>
+                                Status Saat Ini: <strong style={{ color: "var(--ink)" }}>{getApplicationBadge(activeApp.status).label}</strong>
+                              </span>
+                            </div>
+
+                            <div style={{ display: "flex", gap: "0.45rem", flexWrap: "wrap", alignItems: "center" }}>
+                              {[
+                                {
+                                  status: "reviewed" as ApplicationStatus,
+                                  label: "Sedang Ditinjau",
+                                  icon: <IconEye width={13} height={13} />,
+                                  activeBorder: "#0284c7",
+                                  activeBg: "#f0f9ff",
+                                  activeColor: "#0369a1",
+                                },
+                                {
+                                  status: "shortlisted" as ApplicationStatus,
+                                  label: "Siap Wawancara",
+                                  icon: <IconCheck width={13} height={13} />,
+                                  activeBorder: "#16a34a",
+                                  activeBg: "#f0fdf4",
+                                  activeColor: "#15803d",
+                                },
+                                {
+                                  status: "rejected" as ApplicationStatus,
+                                  label: "Tolak",
+                                  icon: <IconX width={13} height={13} />,
+                                  activeBorder: "#dc2626",
+                                  activeBg: "#fef2f2",
+                                  activeColor: "#991b1b",
+                                },
+                              ].map((opt) => {
+                                const isSelected = pendingStatus === opt.status;
+                                const isCurrent = activeApp.status === opt.status;
+                                return (
+                                  <button
+                                    key={opt.status}
+                                    type="button"
+                                    onClick={() => setPendingStatus(isSelected ? null : opt.status)}
+                                    style={{
+                                      flex: "1 1 auto",
+                                      padding: "0.5rem 0.75rem",
+                                      borderRadius: "6px",
+                                      border: isSelected
+                                        ? `2px solid ${opt.activeBorder}`
+                                        : isCurrent
+                                          ? "1px dashed var(--ink)"
+                                          : "1px solid var(--line)",
+                                      background: isSelected ? opt.activeBg : isCurrent ? "var(--chalk)" : "white",
+                                      color: isSelected ? opt.activeColor : isCurrent ? "var(--ink)" : "var(--ink)",
+                                      fontWeight: isSelected ? 700 : isCurrent ? 600 : 500,
+                                      fontSize: "0.82rem",
+                                      cursor: "pointer",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      justifyContent: "center",
+                                      gap: "0.35rem",
+                                      transition: "all 0.15s ease",
+                                      boxShadow: isSelected ? `0 0 0 1px ${opt.activeBorder}` : "none",
+                                    }}
+                                  >
+                                    {opt.icon}
+                                    <span>{opt.label}</span>
+                                    {isCurrent && !isSelected && (
+                                      <span style={{ fontSize: "0.68rem", color: "var(--muted)", fontWeight: 500 }}>
+                                        (Saat Ini)
+                                      </span>
+                                    )}
+                                    {isSelected && (
+                                      <span
+                                        style={{
+                                          fontSize: "0.68rem",
+                                          background: opt.activeColor,
+                                          color: "white",
+                                          padding: "0.1rem 0.35rem",
+                                          borderRadius: "4px",
+                                          fontWeight: 700,
+                                        }}
+                                      >
+                                        Dipilih
+                                      </span>
+                                    )}
+                                  </button>
+                                );
+                              })}
+                            </div>
+
+                            {/* Tombol [Kirim Status] saat pendingStatus terpilih */}
+                            {pendingStatus && (
+                              <div
+                                style={{
+                                  marginTop: "0.8rem",
+                                  padding: "0.7rem 0.85rem",
+                                  background: "#f8fafc",
+                                  border: "1px dashed var(--line)",
+                                  borderRadius: "6px",
+                                  display: "flex",
+                                  alignItems: "center",
+                                  justifyContent: "space-between",
+                                  flexWrap: "wrap",
+                                  gap: "0.5rem",
+                                }}
+                              >
+                                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                                  <span style={{ fontSize: "0.8rem", color: "var(--muted)" }}>
+                                    Pilihan status baru:
+                                  </span>
+                                  <strong style={{ fontSize: "0.82rem", color: "var(--ink)" }}>
+                                    {pendingLabel}
+                                  </strong>
+                                </div>
+
+                                <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
+                                  <button
+                                    type="button"
+                                    onClick={() => setPendingStatus(null)}
+                                    className="button secondary"
+                                    style={{
+                                      padding: "0.38rem 0.7rem",
+                                      fontSize: "0.78rem",
+                                      borderRadius: "5px",
+                                    }}
+                                  >
+                                    Batal
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    disabled={isUpdatingStatus}
+                                    onClick={async () => {
+                                      if (!pendingStatus || isUpdatingStatus) return;
+                                      const statusToSend = pendingStatus;
+                                      const candidateName = activeApp.candidateName;
+                                      let alertMsg = "";
+                                      if (statusToSend === "reviewed") {
+                                        alertMsg = `Status ditinjau ${candidateName} sudah terkirim`;
+                                      } else if (statusToSend === "shortlisted") {
+                                        alertMsg = `Status siap wawancara ${candidateName} sudah terkirim`;
+                                      } else if (statusToSend === "rejected") {
+                                        alertMsg = `Status tolak ${candidateName} sudah terkirim`;
+                                      } else {
+                                        alertMsg = `Status ${candidateName} sudah terkirim`;
+                                      }
+
+                                      setIsUpdatingStatus(true);
+                                      try {
+                                        await handleUpdateApplicationStatus(activeApp.id, statusToSend);
+                                        setStatusAlertModal({
+                                          isOpen: true,
+                                          message: alertMsg,
+                                          candidateName,
+                                          status: statusToSend,
+                                        });
+                                      } finally {
+                                        setIsUpdatingStatus(false);
+                                        setPendingStatus(null);
+                                      }
+                                    }}
+                                    style={{
+                                      padding: "0.42rem 0.9rem",
+                                      borderRadius: "5px",
+                                      border: "none",
+                                      background: pendingStatus === "rejected" ? "#dc2626" : "var(--ink)",
+                                      color: "#ffffff",
+                                      fontWeight: 700,
+                                      fontSize: "0.82rem",
+                                      cursor: isUpdatingStatus ? "not-allowed" : "pointer",
+                                      display: "inline-flex",
+                                      alignItems: "center",
+                                      gap: "0.35rem",
+                                      opacity: isUpdatingStatus ? 0.7 : 1,
+                                    }}
+                                  >
+                                    <IconSend width={12} height={12} />
+                                    <span>
+                                      {isUpdatingStatus ? "Mengirim..." : `Kirim Status: ${pendingLabel}`}
+                                    </span>
+                                  </button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
 
                       {/* 2x2 Contact Grid */}
                       <div
@@ -4681,6 +5129,19 @@ export default function RecruiterView() {
           item={previewModalItem.item}
           candidateName={previewModalItem.candidateName}
           onClose={() => setPreviewModalItem(null)}
+        />
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL: ALERT NOTIFIKASI STATUS PELAMAR */}
+      {/* ========================================================= */}
+      {statusAlertModal?.isOpen && (
+        <StatusAlertModal
+          isOpen={statusAlertModal.isOpen}
+          message={statusAlertModal.message}
+          candidateName={statusAlertModal.candidateName}
+          status={statusAlertModal.status}
+          onClose={() => setStatusAlertModal(null)}
         />
       )}
     </section>
