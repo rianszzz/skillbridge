@@ -12,6 +12,7 @@ import {
 import type {
   JobPosting,
   JobApplication,
+  ApplicationStatus,
   Field,
   MinEducation,
   EmploymentType,
@@ -157,6 +158,53 @@ function getFieldBadgeColor(field: Field): { bg: string; border: string } {
   }
 }
 
+function getApplicationStatusBadge(status: ApplicationStatus): { label: string; bg: string; color: string; border: string } {
+  switch (status) {
+    case "pending":
+      return {
+        label: "Terkirim",
+        bg: "#f3f4f6",
+        color: "#374151",
+        border: "#d1d5db",
+      };
+    case "reviewed":
+      return {
+        label: "Sedang Ditinjau",
+        bg: "#e0f2fe",
+        color: "#0369a1",
+        border: "#bae6fd",
+      };
+    case "shortlisted":
+      return {
+        label: "Siap Wawancara",
+        bg: "#e6f4ea",
+        color: "#137333",
+        border: "#ceead6",
+      };
+    case "rejected":
+      return {
+        label: "Ditolak",
+        bg: "#fce8e6",
+        color: "#c5221f",
+        border: "#fad2cf",
+      };
+    case "accepted":
+      return {
+        label: "Diterima",
+        bg: "#dcfce7",
+        color: "#15803d",
+        border: "#86efac",
+      };
+    default:
+      return {
+        label: status,
+        bg: "#f3f4f6",
+        color: "#374151",
+        border: "#d1d5db",
+      };
+  }
+}
+
 export default function JobsView() {
   const searchInputId = useId();
   const [jobs, setJobs] = useState<JobPosting[]>([]);
@@ -173,6 +221,7 @@ export default function JobsView() {
   // Auth & Assessments
   const [currentUser, setCurrentUser] = useState<{ id: string; email?: string; name?: string } | null>(null);
   const [userAssessments, setUserAssessments] = useState<AssessmentResult[]>([]);
+  const [userApplicationsMap, setUserApplicationsMap] = useState<Record<string, JobApplication>>({});
 
   // Modals
   const [detailJob, setDetailJob] = useState<JobPosting | null>(null);
@@ -229,7 +278,27 @@ export default function JobsView() {
   const coverLetterFileInputRef = useRef<HTMLInputElement>(null);
   const coverLetterTextareaRef = useRef<HTMLTextAreaElement>(null);
 
-  // Check auth & load user assessments
+  const loadUserApplications = useCallback(async () => {
+    try {
+      const headers = await authHeaders();
+      const res = await fetch("/api/jobs/applications", { headers });
+      if (!res.ok) return;
+      const data = await res.json();
+      if (Array.isArray(data)) {
+        const map: Record<string, JobApplication> = {};
+        for (const app of data) {
+          if (app && app.jobId) {
+            map[app.jobId] = app;
+          }
+        }
+        setUserApplicationsMap(map);
+      }
+    } catch {
+      // User belum login atau bukan akun pelamar
+    }
+  }, []);
+
+  // Check auth & load user assessments and applications
   useEffect(() => {
     let active = true;
     const supabase = getSupabase();
@@ -245,6 +314,13 @@ export default function JobsView() {
       setCurrentUser({ id: u.id, email: u.email, name });
       // applicantName tetap kosong tanpa nilai default
       setApplicantEmail(u.email || "");
+
+      const role =
+        (u.user_metadata?.role as string | undefined) ||
+        (u.user_metadata?.account_role as string | undefined);
+      if (role !== "recruiter") {
+        loadUserApplications();
+      }
 
       // Fetch assessments
       authHeaders()
@@ -273,9 +349,17 @@ export default function JobsView() {
         setCurrentUser({ id: u.id, email: u.email, name });
         // applicantName tetap kosong tanpa nilai default
         setApplicantEmail(u.email || "");
+
+        const role =
+          (u.user_metadata?.role as string | undefined) ||
+          (u.user_metadata?.account_role as string | undefined);
+        if (role !== "recruiter") {
+          loadUserApplications();
+        }
       } else {
         setCurrentUser(null);
         setUserAssessments([]);
+        setUserApplicationsMap({});
       }
     });
 
@@ -283,7 +367,7 @@ export default function JobsView() {
       active = false;
       listener.subscription.unsubscribe();
     };
-  }, []);
+  }, [loadUserApplications]);
 
   // Hydrate saved applicant profile from localStorage on client mount
   useEffect(() => {
@@ -384,15 +468,30 @@ export default function JobsView() {
         setDetailJob((prev) => (prev?.id === deletedJobId ? null : prev));
         setApplyJob((prev) => (prev?.id === deletedJobId ? null : prev));
       },
+      onApplicationStatusUpdated: (payload) => {
+        setUserApplicationsMap((prev) => {
+          let updated = false;
+          const next = { ...prev };
+          for (const [jobId, app] of Object.entries(next)) {
+            if (app.id === payload.applicationId) {
+              next[jobId] = { ...app, status: payload.status as ApplicationStatus };
+              updated = true;
+            }
+          }
+          return updated ? next : prev;
+        });
+        loadUserApplications();
+      },
       onRefresh: () => {
         fetchJobs();
+        loadUserApplications();
       },
     });
 
     return () => {
       unsubscribe();
     };
-  }, [fetchJobs]);
+  }, [fetchJobs, loadUserApplications]);
 
   function getFieldFromRole(role: string): Field | null {
     if (role === "Junior Web Developer") return "informatics";
@@ -885,6 +984,12 @@ export default function JobsView() {
 
       setSubmittedApp(body);
       setSubmitSuccess(true);
+      if (applyJob) {
+        setUserApplicationsMap((prev) => ({
+          ...prev,
+          [applyJob.id]: body,
+        }));
+      }
       broadcastJobSync({ type: "JOBS_REFRESH" });
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : "Terjadi kesalahan saat mengirim lamaran.");
@@ -1146,6 +1251,30 @@ export default function JobsView() {
                 }}
               >
                 <div>
+                  {/* Applied Status Badge */}
+                  {userApplicationsMap[job.id] && (() => {
+                    const appliedApp = userApplicationsMap[job.id];
+                    const appBadge = getApplicationStatusBadge(appliedApp.status);
+                    return (
+                      <div style={{ marginBottom: "0.75rem" }}>
+                        <span
+                          style={{
+                            display: "inline-block",
+                            fontSize: "0.78rem",
+                            fontWeight: 700,
+                            padding: "0.25rem 0.65rem",
+                            borderRadius: "3px",
+                            background: appBadge.bg,
+                            color: appBadge.color,
+                            border: `1px solid ${appBadge.border}`,
+                          }}
+                        >
+                          Sudah Dilamar · Status: {appBadge.label}
+                        </span>
+                      </div>
+                    );
+                  })()}
+
                   {/* Top Badges */}
                   <div
                     style={{
@@ -1345,14 +1474,42 @@ export default function JobsView() {
                   >
                     Lihat Detail
                   </button>
-                  <button
-                    type="button"
-                    className="button"
-                    style={{ flex: "1 1 140px", fontSize: "0.88rem" }}
-                    onClick={() => handleOpenApply(job)}
-                  >
-                    Lamar Sekarang
-                  </button>
+                  {userApplicationsMap[job.id] ? (
+                    (() => {
+                      const appliedApp = userApplicationsMap[job.id];
+                      const appBadge = getApplicationStatusBadge(appliedApp.status);
+                      return (
+                        <Link
+                          href="/history?tab=applications"
+                          className="button"
+                          style={{
+                            flex: "1 1 140px",
+                            fontSize: "0.88rem",
+                            textDecoration: "none",
+                            textAlign: "center",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            background: appBadge.bg,
+                            color: appBadge.color,
+                            border: `1px solid ${appBadge.border}`,
+                            fontWeight: 700,
+                          }}
+                        >
+                          Status: {appBadge.label} &rarr;
+                        </Link>
+                      );
+                    })()
+                  ) : (
+                    <button
+                      type="button"
+                      className="button"
+                      style={{ flex: "1 1 140px", fontSize: "0.88rem" }}
+                      onClick={() => handleOpenApply(job)}
+                    >
+                      Lamar Sekarang
+                    </button>
+                  )}
                 </div>
               </article>
             );
@@ -1441,6 +1598,61 @@ export default function JobsView() {
                 {detailJob.companyName} · {detailJob.location}
               </p>
             </div>
+
+            {/* Applicant Notice if already applied */}
+            {userApplicationsMap[detailJob.id] && (() => {
+              const appliedApp = userApplicationsMap[detailJob.id];
+              const appBadge = getApplicationStatusBadge(appliedApp.status);
+              return (
+                <div
+                  style={{
+                    background: appBadge.bg,
+                    border: `1px solid ${appBadge.border}`,
+                    borderLeft: `4px solid ${appBadge.border}`,
+                    padding: "0.85rem 1rem",
+                    borderRadius: "4px",
+                    marginBottom: "1.25rem",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                      marginBottom: "0.35rem",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <strong style={{ color: appBadge.color, fontSize: "0.95rem" }}>
+                      Anda Sudah Melamar Lowongan Ini
+                    </strong>
+                    <span
+                      style={{
+                        fontSize: "0.78rem",
+                        fontWeight: 700,
+                        padding: "0.2rem 0.6rem",
+                        borderRadius: "3px",
+                        background: "#ffffff",
+                        color: appBadge.color,
+                        border: `1px solid ${appBadge.border}`,
+                      }}
+                    >
+                      Status: {appBadge.label}
+                    </span>
+                  </div>
+                  <p style={{ margin: 0, fontSize: "0.85rem", color: "var(--ink)", lineHeight: 1.5 }}>
+                    Lamaran Anda telah diajukan pada{" "}
+                    {new Date(appliedApp.appliedAt).toLocaleDateString("id-ID", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
+                    . Status peninjauan dari tim HR: <strong>{appBadge.label}</strong>. Pantau detail tahapan seleksi di menu riwayat lamaran.
+                  </p>
+                </div>
+              );
+            })()}
 
             {/* Quick Specs */}
             <div
@@ -1570,14 +1782,32 @@ export default function JobsView() {
               >
                 Tutup
               </button>
-              <button
-                type="button"
-                className="button"
-                onClick={() => handleOpenApply(detailJob)}
-                style={{ flex: "2 1 200px" }}
-              >
-                Lamar Posisi Ini
-              </button>
+              {userApplicationsMap[detailJob.id] ? (
+                <Link
+                  href="/history?tab=applications"
+                  className="button"
+                  style={{
+                    flex: "2 1 200px",
+                    textDecoration: "none",
+                    textAlign: "center",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                  onClick={() => setDetailJob(null)}
+                >
+                  Lihat di Riwayat Lamaran
+                </Link>
+              ) : (
+                <button
+                  type="button"
+                  className="button"
+                  onClick={() => handleOpenApply(detailJob)}
+                  style={{ flex: "2 1 200px" }}
+                >
+                  Lamar Posisi Ini
+                </button>
+              )}
             </div>
           </div>
         </div>

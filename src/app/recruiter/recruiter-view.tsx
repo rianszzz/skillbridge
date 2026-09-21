@@ -1373,6 +1373,9 @@ export default function RecruiterView() {
   }, [authState.status]);
 
   async function handleUpdateApplicationStatus(applicationId: string, newStatus: ApplicationStatus) {
+    const targetApp = applications.find((app) => app.id === applicationId);
+    const candidateId = targetApp?.candidateId;
+
     setApplications((prev) => {
       const updated = prev.map((app) => (app.id === applicationId ? { ...app, status: newStatus } : app));
       try {
@@ -1395,11 +1398,19 @@ export default function RecruiterView() {
         const err = await res.json().catch(() => ({}));
         throw new Error(err.error || "Gagal memperbarui status.");
       }
+      broadcastJobSync({
+        type: "APPLICATION_STATUS_UPDATED",
+        applicationId,
+        candidateId,
+        status: newStatus,
+      });
       broadcastJobSync({ type: "JOBS_REFRESH" });
     } catch (err) {
       console.error("Gagal update status lamaran:", err);
     }
   }
+
+  const handleConfirmSendStatus = handleUpdateApplicationStatus;
 
   function handleOpenEdit(job: JobPosting) {
     setEditingJob(job);
@@ -3072,7 +3083,7 @@ export default function RecruiterView() {
 
                                       setIsUpdatingStatus(true);
                                       try {
-                                        await handleUpdateApplicationStatus(activeApp.id, statusToSend);
+                                        await handleConfirmSendStatus(activeApp.id, statusToSend);
                                         setStatusAlertModal({
                                           isOpen: true,
                                           message: alertMsg,

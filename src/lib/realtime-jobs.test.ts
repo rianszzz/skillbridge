@@ -65,3 +65,64 @@ test("setupJobRealtimeSync mendispatch pesan BroadcastChannel ke handler spesifi
 
   unsubscribe();
 });
+
+test("setupJobRealtimeSync mendispatch APPLICATION_STATUS_UPDATED ke onApplicationStatusUpdated dan onRefresh", async () => {
+  let updatedPayload: { applicationId: string; candidateId?: string; status: string } | null = null;
+  let refreshCalled = false;
+
+  const unsubscribe = setupJobRealtimeSync({
+    onApplicationStatusUpdated: (payload) => {
+      updatedPayload = payload;
+    },
+    onRefresh: () => {
+      refreshCalled = true;
+    },
+  });
+
+  broadcastJobSync({
+    type: "APPLICATION_STATUS_UPDATED",
+    applicationId: "app-123",
+    candidateId: "user-456",
+    status: "shortlisted",
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 50));
+
+  assert.ok(updatedPayload !== null);
+  const resPayload = updatedPayload as { applicationId: string; candidateId?: string; status: string };
+  assert.equal(resPayload.applicationId, "app-123");
+  assert.equal(resPayload.candidateId, "user-456");
+  assert.equal(resPayload.status, "shortlisted");
+  assert.equal(refreshCalled, true);
+
+  unsubscribe();
+});
+
+test("Event APPLICATION_STATUS_UPDATED dapat dikirim dan diterima melalui broadcastJobSync", async () => {
+  let receivedEvent: JobSyncEvent | null = null;
+
+  const bcReceiver = new BroadcastChannel(JOB_SYNC_CHANNEL);
+  bcReceiver.onmessage = (event) => {
+    receivedEvent = event.data as JobSyncEvent;
+  };
+
+  broadcastJobSync({
+    type: "APPLICATION_STATUS_UPDATED",
+    applicationId: "app-sync-evt-001",
+    candidateId: "candidate-sync-evt-001",
+    status: "shortlisted",
+  });
+
+  await new Promise((resolve) => setTimeout(resolve, 50));
+
+  assert.ok(receivedEvent !== null);
+  const evt = receivedEvent as Extract<JobSyncEvent, { type: "APPLICATION_STATUS_UPDATED" }>;
+  assert.equal(evt.type, "APPLICATION_STATUS_UPDATED");
+  assert.equal(evt.applicationId, "app-sync-evt-001");
+  assert.equal(evt.candidateId, "candidate-sync-evt-001");
+  assert.equal(evt.status, "shortlisted");
+
+  bcReceiver.close();
+});
+
+

@@ -1,5 +1,5 @@
 import { getSupabase } from "./auth-client.ts";
-import type { JobPosting } from "./types.ts";
+import type { JobPosting, ApplicationStatus } from "./types.ts";
 
 export const JOB_SYNC_CHANNEL = "skillbridge_jobs_channel";
 
@@ -7,12 +7,23 @@ export type JobSyncEvent =
   | { type: "JOB_CREATED"; job: JobPosting }
   | { type: "JOB_UPDATED"; job: JobPosting }
   | { type: "JOB_DELETED"; jobId: string }
-  | { type: "JOBS_REFRESH" };
+  | { type: "JOBS_REFRESH" }
+  | {
+      type: "APPLICATION_STATUS_UPDATED";
+      applicationId: string;
+      candidateId?: string;
+      status: ApplicationStatus;
+    };
 
 export interface RealtimeJobHandlers {
   onJobCreated?: (job: JobPosting) => void;
   onJobUpdated?: (job: JobPosting) => void;
   onJobDeleted?: (jobId: string) => void;
+  onApplicationStatusUpdated?: (payload: {
+    applicationId: string;
+    candidateId?: string;
+    status: ApplicationStatus;
+  }) => void;
   onRefresh?: () => void;
 }
 
@@ -49,7 +60,7 @@ export function setupJobRealtimeSync(handlers: RealtimeJobHandlers): () => void 
     try {
       const supabase = getSupabase();
       const channel = supabase
-        .channel("realtime:job_postings")
+        .channel("realtime:jobs_and_apps")
         .on(
           "postgres_changes",
           { event: "*", schema: "public", table: "job_postings" },
@@ -64,6 +75,23 @@ export function setupJobRealtimeSync(handlers: RealtimeJobHandlers): () => void 
             } else {
               handlers.onRefresh?.();
             }
+          },
+        )
+        .on(
+          "postgres_changes",
+          { event: "*", schema: "public", table: "job_applications" },
+          (payload) => {
+            if (payload.eventType === "UPDATE") {
+              const newRow = payload.new as { id?: string; candidate_id?: string; status?: ApplicationStatus } | null;
+              if (newRow?.id && newRow?.status && handlers.onApplicationStatusUpdated) {
+                handlers.onApplicationStatusUpdated({
+                  applicationId: newRow.id,
+                  candidateId: newRow.candidate_id,
+                  status: newRow.status,
+                });
+              }
+            }
+            handlers.onRefresh?.();
           },
         )
         .subscribe();
@@ -109,6 +137,16 @@ export function setupJobRealtimeSync(handlers: RealtimeJobHandlers): () => void 
             } else {
               handlers.onRefresh?.();
             }
+            break;
+          case "APPLICATION_STATUS_UPDATED":
+            if (handlers.onApplicationStatusUpdated) {
+              handlers.onApplicationStatusUpdated({
+                applicationId: data.applicationId,
+                candidateId: data.candidateId,
+                status: data.status,
+              });
+            }
+            handlers.onRefresh?.();
             break;
           case "JOBS_REFRESH":
             handlers.onRefresh?.();

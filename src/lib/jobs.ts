@@ -855,6 +855,14 @@ export async function refreshApplicationSignedUrls(app: JobApplication): Promise
   return updatedApp;
 }
 
+export const STATUS_PRECEDENCE: Record<ApplicationStatus, number> = {
+  pending: 0,
+  reviewed: 1,
+  shortlisted: 2,
+  accepted: 3,
+  rejected: 3,
+};
+
 export function mergeApplicationDetails(
   primary: JobApplication,
   fallback?: JobApplication | null,
@@ -886,9 +894,22 @@ export function mergeApplicationDetails(
     mergedPortfolioItems = fallback.portfolioItems;
   }
 
+  const primaryWeight = primary.status && primary.status in STATUS_PRECEDENCE
+    ? STATUS_PRECEDENCE[primary.status]
+    : -1;
+  const fallbackWeight = fallback.status && fallback.status in STATUS_PRECEDENCE
+    ? STATUS_PRECEDENCE[fallback.status]
+    : -1;
+
+  const resolvedStatus: ApplicationStatus =
+    fallbackWeight > primaryWeight && fallback.status
+      ? fallback.status
+      : primary.status;
+
   return {
     ...fallback,
     ...primary,
+    status: resolvedStatus,
     phone: primary.phone || fallback.phone,
     location: primary.location || fallback.location,
     photoUrl: primary.photoUrl || fallback.photoUrl,
@@ -1008,6 +1029,7 @@ export async function updateApplicationStatusInCandidateMetadata(
   candidateId: string,
   applicationId: string,
   newStatus: ApplicationStatus,
+  fallbackApp?: JobApplication,
 ): Promise<void> {
   if (!candidateId || !isValidUuid(candidateId) || !applicationId) return;
   try {
@@ -1026,6 +1048,11 @@ export async function updateApplicationStatusInCandidateMetadata(
         }
         return sanitizeApplicationForMetadata(a);
       });
+
+      if (!modified && fallbackApp) {
+        updatedApps.push(sanitizeApplicationForMetadata({ ...fallbackApp, status: newStatus }));
+        modified = true;
+      }
 
       if (modified) {
         await admin.auth.admin.updateUserById(candidateId, {
@@ -2451,9 +2478,15 @@ export async function getJobApplicationsForCandidate(
   }
 
   for (const a of metadataApps) {
+    const memApp = inMemoryApplications.get(a.id);
     if (!combinedMap.has(a.id)) {
-      const memApp = inMemoryApplications.get(a.id);
       const merged = mergeApplicationDetails(a, memApp);
+      combinedMap.set(merged.id, merged);
+      inMemoryApplications.set(merged.id, merged);
+    } else {
+      const existing = combinedMap.get(a.id)!;
+      const mergedWithMeta = mergeApplicationDetails(existing, a);
+      const merged = mergeApplicationDetails(mergedWithMeta, memApp);
       combinedMap.set(merged.id, merged);
       inMemoryApplications.set(merged.id, merged);
     }
@@ -2462,12 +2495,18 @@ export async function getJobApplicationsForCandidate(
   for (const a of inMemApps) {
     if (!combinedMap.has(a.id)) {
       combinedMap.set(a.id, a);
+    } else {
+      const existing = combinedMap.get(a.id)!;
+      const merged = mergeApplicationDetails(existing, a);
+      combinedMap.set(merged.id, merged);
     }
   }
 
   for (const a of demoApps) {
     if (!combinedMap.has(a.id)) {
-      combinedMap.set(a.id, a);
+      const memApp = inMemoryApplications.get(a.id);
+      const merged = mergeApplicationDetails(a, memApp);
+      combinedMap.set(merged.id, merged);
     }
   }
 
@@ -2593,8 +2632,35 @@ export async function updateApplicationStatus(
   const finalResult = dbApp || metaApp || updatedMemApp;
   if (finalResult) {
     inMemoryApplications.set(finalResult.id, finalResult);
+
+    if (!candidateIdToUpdate) {
+      candidateIdToUpdate =
+        finalResult.candidateId ||
+        inMemoryApplications.get(applicationId)?.candidateId;
+    }
+    if (!candidateIdToUpdate) {
+      try {
+        const db = createAdminSupabase();
+        const { data: appRow } = await db
+          .from("job_applications")
+          .select("candidate_id")
+          .eq("id", applicationId)
+          .maybeSingle();
+        if (appRow?.candidate_id) {
+          candidateIdToUpdate = appRow.candidate_id;
+        }
+      } catch {
+        // fail-safe
+      }
+    }
+
     if (candidateIdToUpdate) {
-      await updateApplicationStatusInCandidateMetadata(candidateIdToUpdate, applicationId, status);
+      await updateApplicationStatusInCandidateMetadata(
+        candidateIdToUpdate,
+        applicationId,
+        status,
+        finalResult,
+      );
     }
     return finalResult;
   }

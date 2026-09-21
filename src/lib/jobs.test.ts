@@ -22,11 +22,13 @@ import {
   parseDeletedJobsCookie,
   saveApplicationToRecruiterMetadata,
   updateApplicationStatusInRecruiterMetadata,
+  updateApplicationStatusInCandidateMetadata,
   resetInMemoryApplicationsForTesting,
   uploadApplicationFileToStorage,
   sanitizeApplicationForMetadata,
   isSignedUrlExpiring,
   mergeApplicationDetails,
+  STATUS_PRECEDENCE,
 } from "./jobs.ts";
 import type { JobPosting, JobApplication, AssessmentResult } from "./types.ts";
 import { DEMO_SEEDS } from "./demo-seed.ts";
@@ -1926,6 +1928,173 @@ test("uploadApplicationFileToStorage mengunggah berkas base64 dan fail-safe", as
     // Fail-safe ketika input tidak valid atau kosong
     const emptyRes = await uploadApplicationFileToStorage("", 0, "", "", "");
     assert.equal(emptyRes, null);
+  } finally {
+    globalThis.fetch = origFetch;
+    process.env.NEXT_PUBLIC_SUPABASE_URL = origUrl;
+    process.env.SUPABASE_SERVICE_ROLE_KEY = origKey;
+  }
+});
+
+test("Ketika HR memanggil updateApplicationStatus('shortlisted'), getJobApplicationsForCandidate langsung mengembalikan status 'shortlisted'", async () => {
+  const recruiterId = "recruiter-sync-cand-01";
+  const candidateId = "candidate-sync-cand-01";
+
+  // 1. Buat lowongan oleh HR
+  const job = await createJobPosting(recruiterId, "PT Solusi Sukses", {
+    title: "Junior Frontend Engineer",
+    field: "informatics",
+    targetRole: "Junior Web Developer",
+    employmentType: "fulltime",
+    workplaceType: "hybrid",
+    location: "Jakarta",
+    minEducation: "smk",
+    experienceLevel: "fresh_graduate",
+    compensationType: "paid",
+    minSkillbridgeScore: 60,
+    highlights: ["Gaji kompetitif", "BPJS Kesehatan", "Jalur Karier"],
+    description: "Lowongan uji sync status kandidat",
+    responsibilities: ["Frontend development"],
+    requiredSkills: ["Next.js", "React"],
+  });
+
+  // 2. Kandidat melamar pekerjaan
+  const app = await applyToJob(candidateId, {
+    jobId: job.id,
+    candidateName: "Pelamar Uji Sinkronisasi",
+    candidateEmail: "pelamar.sync@example.com",
+    coverLetter: "Saya sangat tertarik dengan lowongan ini.",
+  });
+
+  assert.equal(app.status, "pending");
+
+  // 3. Verifikasi lamaran di getJobApplicationsForCandidate awal berstatus pending
+  const initialApps = await getJobApplicationsForCandidate(candidateId);
+  const foundInitial = initialApps.find((a) => a.id === app.id);
+  assert.ok(foundInitial, "Lamaran harus ditemukan di awal");
+  assert.equal(foundInitial.status, "pending");
+
+  // 4. HR mengubah status lamaran menjadi 'shortlisted'
+  const updatedByHr = await updateApplicationStatus(recruiterId, app.id, "shortlisted");
+  assert.equal(updatedByHr.status, "shortlisted");
+
+  // 5. Pemanggilan getJobApplicationsForCandidate langsung mengembalikan status 'shortlisted'
+  const candidateAppsAfter = await getJobApplicationsForCandidate(candidateId);
+  const foundAfter = candidateAppsAfter.find((a) => a.id === app.id);
+  assert.ok(foundAfter, "Lamaran harus ditemukan setelah pembaruan");
+  assert.equal(foundAfter.status, "shortlisted", "Status lamaran harus langsung 'shortlisted' di akun pelamar");
+});
+
+test("Status 'reviewed', 'shortlisted', dan 'rejected' tersimpan ke metadata candidate dan tidak tertimpa oleh status pending", async () => {
+  const dummyCandidateId = "00000000-0000-4000-8000-000000000888";
+  let userMetadata: Record<string, unknown> = {};
+
+  const origFetch = globalThis.fetch;
+  const origUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const origKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+  process.env.NEXT_PUBLIC_SUPABASE_URL = "http://localhost:54321";
+  process.env.SUPABASE_SERVICE_ROLE_KEY = "test-service-key";
+
+  globalThis.fetch = async (url, init) => {
+    const method = init?.method || "GET";
+    if (method === "PUT") {
+      const body = JSON.parse(init?.body as string);
+      userMetadata = { ...userMetadata, ...body.user_metadata };
+      return new Response(
+        JSON.stringify({ id: dummyCandidateId, user_metadata: userMetadata }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    }
+    return new Response(
+      JSON.stringify({ id: dummyCandidateId, user_metadata: userMetadata }),
+      { status: 200, headers: { "Content-Type": "application/json" } },
+    );
+  };
+
+  try {
+    const baseApp: JobApplication = {
+      id: "app-precedence-001",
+      jobId: "job-precedence-001",
+      candidateId: dummyCandidateId,
+      candidateName: "Kandidat Presedensi",
+      candidateEmail: "kandidat.presedensi@example.com",
+      status: "pending",
+      appliedAt: new Date().toISOString(),
+    };
+
+    // 1. Simpan fallbackApp dengan status 'reviewed' saat metadata candidate masih kosong
+    await updateApplicationStatusInCandidateMetadata(
+      dummyCandidateId,
+      baseApp.id,
+      "reviewed",
+      baseApp,
+    );
+
+    let myApps = (userMetadata.my_applications || []) as JobApplication[];
+    assert.equal(myApps.length, 1);
+    assert.equal(myApps[0].id, "app-precedence-001");
+    assert.equal(myApps[0].status, "reviewed", "Status 'reviewed' harus tersimpan ke metadata candidate");
+
+    // 2. Perbarui ke 'shortlisted'
+    await updateApplicationStatusInCandidateMetadata(
+      dummyCandidateId,
+      baseApp.id,
+      "shortlisted",
+    );
+    myApps = (userMetadata.my_applications || []) as JobApplication[];
+    assert.equal(myApps[0].status, "shortlisted", "Status 'shortlisted' harus tersimpan ke metadata candidate");
+
+    // 3. Perbarui ke 'rejected'
+    await updateApplicationStatusInCandidateMetadata(
+      dummyCandidateId,
+      baseApp.id,
+      "rejected",
+    );
+    myApps = (userMetadata.my_applications || []) as JobApplication[];
+    assert.equal(myApps[0].status, "rejected", "Status 'rejected' harus tersimpan ke metadata candidate");
+
+    // 4. Verifikasi resolusi prioritas di mergeApplicationDetails
+    // a) Primary pending, Fallback reviewed -> Hasil harus 'reviewed'
+    const merge1 = mergeApplicationDetails(
+      { ...baseApp, status: "pending" },
+      { ...baseApp, status: "reviewed" },
+    );
+    assert.equal(merge1.status, "reviewed", "Pending tidak boleh menimpa status 'reviewed'");
+
+    // b) Primary pending, Fallback shortlisted -> Hasil harus 'shortlisted'
+    const merge2 = mergeApplicationDetails(
+      { ...baseApp, status: "pending" },
+      { ...baseApp, status: "shortlisted" },
+    );
+    assert.equal(merge2.status, "shortlisted", "Pending tidak boleh menimpa status 'shortlisted'");
+
+    // c) Primary pending, Fallback rejected -> Hasil harus 'rejected'
+    const merge3 = mergeApplicationDetails(
+      { ...baseApp, status: "pending" },
+      { ...baseApp, status: "rejected" },
+    );
+    assert.equal(merge3.status, "rejected", "Pending tidak boleh menimpa status 'rejected'");
+
+    // d) Primary shortlisted, Fallback pending -> Tetap 'shortlisted'
+    const merge4 = mergeApplicationDetails(
+      { ...baseApp, status: "shortlisted" },
+      { ...baseApp, status: "pending" },
+    );
+    assert.equal(merge4.status, "shortlisted", "Pending lama tidak boleh menimpa status 'shortlisted'");
+
+    // e) Primary rejected, Fallback pending -> Tetap 'rejected'
+    const merge5 = mergeApplicationDetails(
+      { ...baseApp, status: "rejected" },
+      { ...baseApp, status: "pending" },
+    );
+    assert.equal(merge5.status, "rejected", "Pending lama tidak boleh menimpa status 'rejected'");
+
+    // f) STATUS_PRECEDENCE memetakan bobot status secara benar
+    assert.equal(STATUS_PRECEDENCE.pending, 0);
+    assert.equal(STATUS_PRECEDENCE.reviewed, 1);
+    assert.equal(STATUS_PRECEDENCE.shortlisted, 2);
+    assert.equal(STATUS_PRECEDENCE.accepted, 3);
+    assert.equal(STATUS_PRECEDENCE.rejected, 3);
   } finally {
     globalThis.fetch = origFetch;
     process.env.NEXT_PUBLIC_SUPABASE_URL = origUrl;

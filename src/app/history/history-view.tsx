@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAssessments } from "@/lib/assessment-client";
 import { authHeaders } from "@/lib/auth-client";
+import { setupJobRealtimeSync } from "@/lib/realtime-jobs";
 import type { JobApplication, ApplicationStatus } from "@/lib/types";
 
 function getStatusBadge(status: ApplicationStatus) {
@@ -17,21 +18,21 @@ function getStatusBadge(status: ApplicationStatus) {
       };
     case "reviewed":
       return {
-        label: "Ditinjau HR",
+        label: "Sedang Ditinjau",
         bg: "#e0f2fe",
         color: "#0369a1",
         border: "#bae6fd",
       };
     case "shortlisted":
       return {
-        label: "Shortlisted",
+        label: "Siap Wawancara",
         bg: "#e6f4ea",
         color: "#137333",
         border: "#ceead6",
       };
     case "rejected":
       return {
-        label: "Tidak Lolos",
+        label: "Ditolak",
         bg: "#fce8e6",
         color: "#c5221f",
         border: "#fad2cf",
@@ -53,17 +54,65 @@ function getStatusBadge(status: ApplicationStatus) {
   }
 }
 
+function getStatusNote(status: ApplicationStatus) {
+  switch (status) {
+    case "shortlisted":
+      return {
+        message: "Lamaran Anda lolos ke tahap wawancara. Tim HR akan segera menghubungi Anda untuk jadwal wawancara.",
+        bg: "#e6f4ea",
+        color: "#137333",
+        border: "#ceead6",
+      };
+    case "reviewed":
+      return {
+        message: "Lamaran Anda sedang aktif ditinjau oleh tim HR perusahaan.",
+        bg: "#e0f2fe",
+        color: "#0369a1",
+        border: "#bae6fd",
+      };
+    case "rejected":
+      return {
+        message: "Terima kasih atas partisipasi Anda. Saat ini kualifikasi Anda belum sesuai dengan kebutuhan lowongan ini.",
+        bg: "#fce8e6",
+        color: "#c5221f",
+        border: "#fad2cf",
+      };
+    case "accepted":
+      return {
+        message: "Selamat! Lamaran Anda telah diterima oleh perusahaan mitra.",
+        bg: "#dcfce7",
+        color: "#15803d",
+        border: "#86efac",
+      };
+    case "pending":
+    default:
+      return {
+        message: "Lamaran telah terkirim dan berada dalam antrean peninjauan HR.",
+        bg: "#f3f4f6",
+        color: "#374151",
+        border: "#d1d5db",
+      };
+  }
+}
+
 export default function HistoryView() {
-  const [activeTab, setActiveTab] = useState<"assessments" | "applications">("assessments");
+  const [activeTab, setActiveTab] = useState<"assessments" | "applications">(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("tab") === "applications" || window.location.hash === "#applications") {
+        return "applications";
+      }
+    }
+    return "assessments";
+  });
   const { items, loading: assessmentsLoading, error: assessmentsError } = useAssessments();
 
   const [applications, setApplications] = useState<JobApplication[]>([]);
-  const [appsLoading, setAppsLoading] = useState(false);
+  const [appsLoading, setAppsLoading] = useState(true);
   const [appsError, setAppsError] = useState("");
 
-  useEffect(() => {
-    let active = true;
-    authHeaders()
+  const loadApplications = useCallback(() => {
+    return authHeaders()
       .then((headers) => fetch("/api/jobs/applications", { headers }))
       .then(async (res) => {
         if (!res.ok) {
@@ -73,19 +122,44 @@ export default function HistoryView() {
         return res.json();
       })
       .then((data: JobApplication[]) => {
-        if (active) setApplications(data);
+        if (Array.isArray(data)) {
+          setApplications(data);
+          setAppsError("");
+        }
       })
       .catch((err) => {
-        if (active) setAppsError(err instanceof Error ? err.message : "Gagal memuat lamaran.");
+        setAppsError(err instanceof Error ? err.message : "Gagal memuat lamaran.");
       })
       .finally(() => {
-        if (active) setAppsLoading(false);
+        setAppsLoading(false);
       });
+  }, []);
+
+  useEffect(() => {
+    loadApplications();
+  }, [loadApplications]);
+
+  useEffect(() => {
+    const unsubscribe = setupJobRealtimeSync({
+      onRefresh: () => {
+        loadApplications();
+      },
+      onApplicationStatusUpdated: (payload) => {
+        setApplications((prev) =>
+          prev.map((app) =>
+            app.id === payload.applicationId
+              ? { ...app, status: payload.status as ApplicationStatus }
+              : app,
+          ),
+        );
+        loadApplications();
+      },
+    });
 
     return () => {
-      active = false;
+      unsubscribe();
     };
-  }, []);
+  }, [loadApplications]);
 
   const demoLinks = (
     <div style={{ marginTop: "2rem", borderTop: "1px solid var(--line)", paddingTop: "1.5rem" }}>
@@ -309,6 +383,29 @@ export default function HistoryView() {
                         </div>
                       )}
                     </div>
+
+                    {/* Keterangan Pesan Status HR */}
+                    {(() => {
+                      const note = getStatusNote(app.status);
+                      return (
+                        <div
+                          style={{
+                            background: note.bg,
+                            border: `1px solid ${note.border}`,
+                            borderLeft: `4px solid ${note.border}`,
+                            padding: "0.75rem 1rem",
+                            fontSize: "0.9rem",
+                            color: note.color,
+                            lineHeight: 1.5,
+                          }}
+                        >
+                          <strong style={{ display: "block", fontSize: "0.75rem", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "0.25rem" }}>
+                            Pemberitahuan Status:
+                          </strong>
+                          <span>{note.message}</span>
+                        </div>
+                      );
+                    })()}
 
                     {app.coverLetter && (
                       <div
