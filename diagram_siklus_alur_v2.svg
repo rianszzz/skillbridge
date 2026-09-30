@@ -1,0 +1,234 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 860" width="100%" height="100%" style="background:#ffffff; font-family:-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif;">
+  <defs>
+    <linearGradient id="gradHeader2" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#1e293b" />
+    </linearGradient>
+    <linearGradient id="gradCandidate" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#eff6ff" />
+      <stop offset="100%" stop-color="#dbeafe" />
+    </linearGradient>
+    <linearGradient id="gradJobs" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#fefce8" />
+      <stop offset="100%" stop-color="#fef08a" />
+    </linearGradient>
+    <linearGradient id="gradHR" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#f0fdf4" />
+      <stop offset="100%" stop-color="#dcfce7" />
+    </linearGradient>
+    <filter id="shadow2" x="-2%" y="-2%" width="104%" height="106%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.08"/>
+    </filter>
+    <marker id="arrDark" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#1e293b"/>
+    </marker>
+    <marker id="arrBlue" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrGreen" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#16a34a"/>
+    </marker>
+    <marker id="arrOrange" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#ea580c"/>
+    </marker>
+  </defs>
+
+  <!-- Title Header Banner -->
+  <rect x="30" y="20" width="1040" height="60" rx="8" fill="url(#gradHeader2)" filter="url(#shadow2)"/>
+  <text x="50" y="45" fill="#f8fafc" font-size="16.5" font-weight="700" letter-spacing="0.5">GAMBAR 2 (REVISI): DIAGRAM ALUR SIKLUS TERTUTUP END-TO-END (CLOSED-LOOP PIPELINE)</text>
+  <text x="50" y="65" fill="#94a3b8" font-size="12">Integrasi Siklus Belajar Pelamar, Bursa Lowongan Industri, Evaluasi HR ATS, &amp; Umpan Balik Real-Time</text>
+  <rect x="910" y="35" width="140" height="28" rx="14" fill="#10b981"/>
+  <text x="980" y="53" fill="#ffffff" font-size="11" font-weight="700" text-anchor="middle">REALTIME SYNC ACTIVE</text>
+
+  <!-- SECTION A: JALUR KANDIDAT / PELAMAR (SIKLUS ASESMEN & PEMBELAJARAN) -->
+  <g transform="translate(30, 95)">
+    <rect x="0" y="0" width="1040" height="220" rx="8" fill="url(#gradCandidate)" stroke="#bfdbfe" stroke-width="1.5" filter="url(#shadow2)"/>
+    <rect x="15" y="12" width="310" height="24" rx="4" fill="#1d4ed8"/>
+    <text x="25" y="28" fill="#ffffff" font-size="11" font-weight="700">FASE 1: SIKLUS BELAJAR &amp; ASESMEN PELAMAR</text>
+    <text x="335" y="28" fill="#1e3a8a" font-size="11">Evaluasi Mandiri Berbasis Rubrik Obyektif · Remedi Kurikulum Terkurasi · Re-assessment</text>
+
+    <!-- Step A1 -->
+    <rect x="15" y="48" width="145" height="110" rx="6" fill="#ffffff" stroke="#93c5fd" stroke-width="1.2"/>
+    <circle cx="35" cy="68" r="11" fill="#2563eb"/>
+    <text x="35" y="72" fill="#ffffff" font-size="11" font-weight="700" text-anchor="middle">1</text>
+    <text x="52" y="72" fill="#0f172a" font-size="11.5" font-weight="700">Onboarding</text>
+    <text x="23" y="93" fill="#475569" font-size="10">• Pilih Bidang Studi</text>
+    <text x="23" y="108" fill="#475569" font-size="10">• Tentukan Peran</text>
+    <text x="23" y="123" fill="#475569" font-size="10">• Syarat &amp; Privasi</text>
+    <text x="23" y="145" fill="#2563eb" font-size="9.5" font-weight="600">Akun: Kandidat</text>
+
+    <!-- Arrow A1 -> A2 -->
+    <line x1="160" y1="103" x2="185" y2="103" stroke="#2563eb" stroke-width="2" marker-end="url(#arrBlue)"/>
+
+    <!-- Step A2 -->
+    <rect x="190" y="48" width="180" height="110" rx="6" fill="#ffffff" stroke="#93c5fd" stroke-width="1.2"/>
+    <circle cx="210" cy="68" r="11" fill="#2563eb"/>
+    <text x="210" y="72" fill="#ffffff" font-size="11" font-weight="700" text-anchor="middle">2</text>
+    <text x="227" y="72" fill="#0f172a" font-size="11.5" font-weight="700">Multi-Bukti Portofolio</text>
+    <text x="198" y="93" fill="#475569" font-size="10">• Drag &amp; Drop PDF / ZIP / PNG</text>
+    <text x="198" y="108" fill="#475569" font-size="10">• GitHub Repo / Profile URL</text>
+    <text x="198" y="123" fill="#475569" font-size="10">• Figma / Behance / Web Demo</text>
+    <text x="198" y="145" fill="#2563eb" font-size="9.5" font-weight="600">Tersimpan Privat</text>
+
+    <!-- Arrow A2 -> A3 -->
+    <line x1="370" y1="103" x2="395" y2="103" stroke="#2563eb" stroke-width="2" marker-end="url(#arrBlue)"/>
+
+    <!-- Step A3 -->
+    <rect x="400" y="48" width="185" height="110" rx="6" fill="#ffffff" stroke="#93c5fd" stroke-width="1.2"/>
+    <circle cx="420" cy="68" r="11" fill="#2563eb"/>
+    <text x="420" y="72" fill="#ffffff" font-size="11" font-weight="700" text-anchor="middle">3</text>
+    <text x="437" y="72" fill="#0f172a" font-size="11.5" font-weight="700">Ekstraksi &amp; AI Inferensi</text>
+    <text x="408" y="93" fill="#475569" font-size="10">• Groq gpt-oss-20b (Teks)</text>
+    <text x="408" y="108" fill="#475569" font-size="10">• Qwen 3.8-27b (Visual)</text>
+    <text x="408" y="123" fill="#475569" font-size="10">• Grounded Quote Verification</text>
+    <text x="408" y="145" fill="#2563eb" font-size="9.5" font-weight="600">Rate Limit 8k TPM</text>
+
+    <!-- Arrow A3 -> A4 -->
+    <line x1="585" y1="103" x2="610" y2="103" stroke="#2563eb" stroke-width="2" marker-end="url(#arrBlue)"/>
+
+    <!-- Step A4 -->
+    <rect x="615" y="48" width="185" height="110" rx="6" fill="#ffffff" stroke="#93c5fd" stroke-width="1.2"/>
+    <circle cx="635" cy="68" r="11" fill="#2563eb"/>
+    <text x="635" y="72" fill="#ffffff" font-size="11" font-weight="700" text-anchor="middle">4</text>
+    <text x="652" y="72" fill="#0f172a" font-size="11.5" font-weight="700">Skor Rubrik &amp; Gap</text>
+    <text x="623" y="93" fill="#475569" font-size="10">• Diskrit {0, 25, 50, 75, 100}</text>
+    <text x="623" y="108" fill="#475569" font-size="10">• Formula: Σ(skor × bobot)</text>
+    <text x="623" y="123" fill="#475569" font-size="10">• Safe Null (insufficient)</text>
+    <text x="623" y="145" fill="#2563eb" font-size="9.5" font-weight="600">Skor Asli Kompetensi</text>
+
+    <!-- Arrow A4 -> A5 -->
+    <line x1="800" y1="103" x2="825" y2="103" stroke="#2563eb" stroke-width="2" marker-end="url(#arrBlue)"/>
+
+    <!-- Step A5 -->
+    <rect x="830" y="48" width="195" height="110" rx="6" fill="#ffffff" stroke="#93c5fd" stroke-width="1.2"/>
+    <circle cx="850" cy="68" r="11" fill="#2563eb"/>
+    <text x="850" y="72" fill="#ffffff" font-size="11" font-weight="700" text-anchor="middle">5</text>
+    <text x="867" y="72" fill="#0f172a" font-size="11.5" font-weight="700">Rekomendasi Belajar</text>
+    <text x="838" y="93" fill="#475569" font-size="10">• Modul Terkurasi Sesuai Gap</text>
+    <text x="838" y="108" fill="#475569" font-size="10">• Simulasi Wawancara Teks</text>
+    <text x="838" y="123" fill="#475569" font-size="10">• Perbaikan &amp; Unggah Bukti Baru</text>
+    <text x="838" y="145" fill="#ea580c" font-size="9.5" font-weight="700">Siklus Penilaian Ulang ↺</text>
+
+    <!-- Re-assessment Loop Back to A2 -->
+    <path d="M 927 158 L 927 185 L 280 185 L 280 162" fill="none" stroke="#ea580c" stroke-width="1.8" stroke-dasharray="5,3" marker-end="url(#arrOrange)"/>
+    <text x="603" y="200" fill="#ea580c" font-size="10" font-weight="600" text-anchor="middle">Siklus Pembelajaran Adaptif Tertutup (Re-Assessment Loop jika skor &lt; 75)</text>
+  </g>
+
+  <!-- BRIDGE SECTION: BURSA LOWONGAN KERJA (INTEGRASI PASAR KERJA) -->
+  <g transform="translate(30, 335)">
+    <rect x="0" y="0" width="1040" height="135" rx="8" fill="url(#gradJobs)" stroke="#fde047" stroke-width="1.5" filter="url(#shadow2)"/>
+    <rect x="15" y="12" width="310" height="24" rx="4" fill="#ca8a04"/>
+    <text x="25" y="28" fill="#ffffff" font-size="11" font-weight="700">FASE 2: BURSA KERJA KEMITRAAN INDUSTRI</text>
+    <text x="335" y="28" fill="#854d0e" font-size="11">Penyaluran Lulusan Siap Kerja · Transparansi Gaji &amp; Syarat Portofolio Riil (/jobs)</text>
+
+    <!-- Step B1: Eksplorasi Lowongan -->
+    <rect x="60" y="45" width="280" height="75" rx="6" fill="#ffffff" stroke="#facc15" stroke-width="1.2"/>
+    <circle cx="80" cy="62" r="10" fill="#ca8a04"/>
+    <text x="80" y="66" fill="#ffffff" font-size="10" font-weight="700" text-anchor="middle">6</text>
+    <text x="96" y="66" fill="#0f172a" font-size="11" font-weight="700">Eksplorasi Bursa Lowongan</text>
+    <text x="70" y="85" fill="#475569" font-size="10">• Filter Bidang, Jenjang &amp; Lokasi</text>
+    <text x="70" y="100" fill="#475569" font-size="10">• Review Portofolio Minimum Diminta</text>
+
+    <!-- Arrow B1 -> B2 -->
+    <line x1="340" y1="82" x2="410" y2="82" stroke="#ca8a04" stroke-width="2" marker-end="url(#arrDark)"/>
+
+    <!-- Step B2: Pengajuan Lamaran -->
+    <rect x="415" y="45" width="310" height="75" rx="6" fill="#ffffff" stroke="#facc15" stroke-width="1.2"/>
+    <circle cx="435" cy="62" r="10" fill="#ca8a04"/>
+    <text x="435" y="66" fill="#ffffff" font-size="10" font-weight="700" text-anchor="middle">7</text>
+    <text x="451" y="66" fill="#0f172a" font-size="11" font-weight="700">Lamar dengan Skor Tervalidasi</text>
+    <text x="425" y="85" fill="#475569" font-size="10">• Sertakan Skor Asesmen Skillbridge Asli</text>
+    <text x="425" y="100" fill="#475569" font-size="10">• Lampirkan Dokumen / Link Karya Terkait</text>
+
+    <!-- Arrow B2 -> B3 -->
+    <line x1="725" y1="82" x2="795" y2="82" stroke="#ca8a04" stroke-width="2" marker-end="url(#arrDark)"/>
+
+    <!-- Step B3: Dual-Score Evaluator -->
+    <rect x="800" y="45" width="220" height="75" rx="6" fill="#ffffff" stroke="#facc15" stroke-width="1.2"/>
+    <circle cx="820" cy="62" r="10" fill="#ca8a04"/>
+    <text x="820" y="66" fill="#ffffff" font-size="10" font-weight="700" text-anchor="middle">8</text>
+    <text x="836" y="66" fill="#0f172a" font-size="11" font-weight="700">Dual-Score Matching</text>
+    <text x="810" y="85" fill="#475569" font-size="10">• Skor Asli Kompetensi (0-100)</text>
+    <text x="810" y="100" fill="#15803d" font-size="10" font-weight="700">• Skor Kecocokan Lowongan (Fit)</text>
+  </g>
+
+  <!-- Connectors A to B & B to C -->
+  <line x1="927" y1="315" x2="927" y2="335" stroke="#ca8a04" stroke-width="2" marker-end="url(#arrDark)"/>
+  <line x1="910" y1="470" x2="910" y2="490" stroke="#16a34a" stroke-width="2" marker-end="url(#arrGreen)"/>
+
+  <!-- SECTION C: JALUR REKRUTER / HR (PORTAL ATS & TALENT POOL) -->
+  <g transform="translate(30, 490)">
+    <rect x="0" y="0" width="1040" height="230" rx="8" fill="url(#gradHR)" stroke="#bbf7d0" stroke-width="1.5" filter="url(#shadow2)"/>
+    <rect x="15" y="12" width="310" height="24" rx="4" fill="#15803d"/>
+    <text x="25" y="28" fill="#ffffff" font-size="11" font-weight="700">FASE 3: PORTAL REKRUTER &amp; ATS PIPELINE</text>
+    <text x="335" y="28" fill="#14532d" font-size="11">Skrining Bukti Nyata · Multi-Tenant Isolation · Two-Step Confirm &amp; Permanent Lock (/recruiter)</text>
+
+    <!-- Step C1: Kelola Lowongan -->
+    <rect x="15" y="48" width="180" height="115" rx="6" fill="#ffffff" stroke="#86efac" stroke-width="1.2"/>
+    <circle cx="35" cy="68" r="11" fill="#15803d"/>
+    <text x="35" y="72" fill="#ffffff" font-size="11" font-weight="700" text-anchor="middle">9</text>
+    <text x="52" y="72" fill="#0f172a" font-size="11.5" font-weight="700">Pasang Lowongan</text>
+    <text x="23" y="93" fill="#475569" font-size="10">• Judul, Bidang, Tipe Kerja</text>
+    <text x="23" y="108" fill="#475569" font-size="10">• Ambang Batas Skor Asesmen</text>
+    <text x="23" y="123" fill="#475569" font-size="10">• Gaji Transparan / Negosiasi</text>
+    <text x="23" y="145" fill="#15803d" font-size="9.5" font-weight="600">Kelola Status Aktif</text>
+
+    <!-- Arrow C1 -> C2 -->
+    <line x1="195" y1="105" x2="220" y2="105" stroke="#15803d" stroke-width="2" marker-end="url(#arrGreen)"/>
+
+    <!-- Step C2: Talent Pool Global -->
+    <rect x="225" y="48" width="180" height="115" rx="6" fill="#ffffff" stroke="#86efac" stroke-width="1.2"/>
+    <circle cx="245" cy="68" r="11" fill="#15803d"/>
+    <text x="245" y="72" fill="#ffffff" font-size="11" font-weight="700" text-anchor="middle">10</text>
+    <text x="262" y="72" fill="#0f172a" font-size="11.5" font-weight="700">Talent Pool Global</text>
+    <text x="233" y="93" fill="#475569" font-size="10">• Saring Kandidat Terverifikasi</text>
+    <text x="233" y="108" fill="#475569" font-size="10">• Filter Skor Kesiapan (≥75)</text>
+    <text x="233" y="123" fill="#475569" font-size="10">• Pratinjau Bukti GitHub/PDF</text>
+    <text x="233" y="145" fill="#15803d" font-size="9.5" font-weight="600">Skrining 80% Lebih Cepat</text>
+
+    <!-- Arrow C2 -> C3 -->
+    <line x1="405" y1="105" x2="430" y2="105" stroke="#15803d" stroke-width="2" marker-end="url(#arrGreen)"/>
+
+    <!-- Step C3: Review Pelamar -->
+    <rect x="435" y="48" width="195" height="115" rx="6" fill="#ffffff" stroke="#86efac" stroke-width="1.2"/>
+    <circle cx="455" cy="68" r="11" fill="#15803d"/>
+    <text x="455" y="72" fill="#ffffff" font-size="11" font-weight="700" text-anchor="middle">11</text>
+    <text x="472" y="72" fill="#0f172a" font-size="11.5" font-weight="700">Review Lamaran Masuk</text>
+    <text x="443" y="93" fill="#475569" font-size="10">• Master-Detail Split View</text>
+    <text x="443" y="108" fill="#475569" font-size="10">• Dual Score: Skor Asli vs Fit</text>
+    <text x="443" y="123" fill="#475569" font-size="10">• Unduh Berkas &amp; Preview File</text>
+    <text x="443" y="145" fill="#15803d" font-size="9.5" font-weight="600">Isolasi Hak Akses HR</text>
+
+    <!-- Arrow C3 -> C4 -->
+    <line x1="630" y1="105" x2="655" y2="105" stroke="#15803d" stroke-width="2" marker-end="url(#arrGreen)"/>
+
+    <!-- Step C4: Keputusan Seleksi ATS -->
+    <rect x="660" y="48" width="175" height="115" rx="6" fill="#ffffff" stroke="#86efac" stroke-width="1.2"/>
+    <circle cx="680" cy="68" r="11" fill="#15803d"/>
+    <text x="680" y="72" fill="#ffffff" font-size="11" font-weight="700" text-anchor="middle">12</text>
+    <text x="697" y="72" fill="#0f172a" font-size="11.5" font-weight="700">Keputusan ATS</text>
+    <text x="668" y="93" fill="#475569" font-size="10">• Terkirim (pending)</text>
+    <text x="668" y="108" fill="#475569" font-size="10">• Ditinjau (reviewed)</text>
+    <text x="668" y="123" fill="#475569" font-size="10">• Siap Wawancara (shortlisted)</text>
+    <text x="668" y="145" fill="#dc2626" font-size="9.5" font-weight="600">• Ditolak / Diterima</text>
+
+    <!-- Arrow C4 -> C5 -->
+    <line x1="835" y1="105" x2="860" y2="105" stroke="#15803d" stroke-width="2" marker-end="url(#arrGreen)"/>
+
+    <!-- Step C5: Confirm & Lock -->
+    <rect x="865" y="48" width="160" height="115" rx="6" fill="#ffffff" stroke="#86efac" stroke-width="1.2"/>
+    <circle cx="885" cy="68" r="11" fill="#15803d"/>
+    <text x="885" y="72" fill="#ffffff" font-size="11" font-weight="700" text-anchor="middle">13</text>
+    <text x="902" y="72" fill="#0f172a" font-size="11.5" font-weight="700">Confirm &amp; Lock</text>
+    <text x="873" y="93" fill="#475569" font-size="10">• Dialog Konfirmasi Aksi</text>
+    <text x="873" y="108" fill="#475569" font-size="10">• Permanent Lock Stage</text>
+    <text x="873" y="123" fill="#475569" font-size="10">• Integritas Audit Status</text>
+    <text x="873" y="145" fill="#15803d" font-size="9.5" font-weight="600">Simpan ke DB &amp; Auth</text>
+  </g>
+
+  <!-- FEEDBACK LOOP CLOSING: REAL-TIME SYNC FROM HR BACK TO CANDIDATE -->
+  <path d="M 945 720 L 945 770 L 90 770 L 90 205" fill="none" stroke="#0284c7" stroke-width="2.5" stroke-dasharray="6,4" marker-end="url(#arrBlue)"/>
+  <rect x="360" y="755" width="400" height="28" rx="14" fill="#0284c7"/>
+  <text x="560" y="774" fill="#ffffff" font-size="11" font-weight="700" text-anchor="middle">SINKRONISASI REAL-TIME: BroadcastChannel + Supabase Metadata</text>
+  <text x="560" y="800" fill="#0369a1" font-size="11" font-weight="600" text-anchor="middle">Status Lamaran di Dasbor Riwayat Pelamar (/history?tab=applications) Terbarui Instan Tanpa Muat Ulang Halaman</text>
+</svg>

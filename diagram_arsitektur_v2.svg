@@ -1,0 +1,201 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 850" width="100%" height="100%" style="background:#ffffff; font-family:-apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Helvetica, Arial, sans-serif;">
+  <defs>
+    <linearGradient id="gradHeader" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#1e293b" />
+    </linearGradient>
+    <linearGradient id="gradL1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#eff6ff" />
+      <stop offset="100%" stop-color="#dbeafe" />
+    </linearGradient>
+    <linearGradient id="gradL2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0fdf4" />
+      <stop offset="100%" stop-color="#dcfce7" />
+    </linearGradient>
+    <linearGradient id="gradL3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#faf5ff" />
+      <stop offset="100%" stop-color="#f3e8ff" />
+    </linearGradient>
+    <linearGradient id="gradL4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fffbeb" />
+      <stop offset="100%" stop-color="#fef3c7" />
+    </linearGradient>
+    <filter id="shadow" x="-2%" y="-2%" width="104%" height="106%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000000" flood-opacity="0.06"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#475569"/>
+    </marker>
+    <marker id="arrowSync" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#0284c7"/>
+    </marker>
+  </defs>
+
+  <!-- Title Header Banner -->
+  <rect x="30" y="20" width="1040" height="60" rx="8" fill="url(#gradHeader)" filter="url(#shadow)"/>
+  <text x="50" y="45" fill="#f8fafc" font-size="17" font-weight="700" letter-spacing="0.5">GAMBAR 1 (REVISI): ARSITEKTUR SISTEM SKILLBRIDGE TERKINI (PRODUKSI v2)</text>
+  <text x="50" y="65" fill="#94a3b8" font-size="12">Integrasi 4-Layer: Multi-Portfolio Client, Security Guard, Dual-Model Groq Inference, &amp; Cloud Persistence</text>
+  <rect x="920" y="35" width="130" height="28" rx="14" fill="#0284c7"/>
+  <text x="985" y="53" fill="#ffffff" font-size="11" font-weight="700" text-anchor="middle">NEXT.JS 16 + REACT 19</text>
+
+  <!-- LAYER 1: PRESENTASI & ANTARMUKA -->
+  <g transform="translate(30, 95)">
+    <rect x="0" y="0" width="1040" height="155" rx="8" fill="url(#gradL1)" stroke="#bfdbfe" stroke-width="1.5" filter="url(#shadow)"/>
+    <rect x="15" y="12" width="220" height="24" rx="4" fill="#1e40af"/>
+    <text x="25" y="28" fill="#ffffff" font-size="11" font-weight="700">LAPISAN 1: PRESENTASI &amp; KLIEN</text>
+    <text x="245" y="28" fill="#1e3a8a" font-size="11">Next.js 16 App Router · React 19 Components · Tailwind CSS v4 · Zero-Latency BroadcastChannel</text>
+
+    <!-- UI Box 1: Pelamar Asesmen -->
+    <rect x="15" y="45" width="235" height="95" rx="6" fill="#ffffff" stroke="#93c5fd" stroke-width="1.2"/>
+    <text x="25" y="65" fill="#0f172a" font-size="12" font-weight="700">Portal Asesmen Pelamar</text>
+    <text x="25" y="82" fill="#475569" font-size="10.5">• Form Portofolio Multi-Bukti</text>
+    <text x="25" y="97" fill="#475569" font-size="10.5">• Drag &amp; Drop PDF / ZIP / PNG</text>
+    <text x="25" y="112" fill="#475569" font-size="10.5">• Auto-Detect GitHub &amp; Figma URL</text>
+    <text x="25" y="127" fill="#2563eb" font-size="10" font-weight="600">Route: /assess</text>
+
+    <!-- UI Box 2: Bursa Lowongan -->
+    <rect x="265" y="45" width="245" height="95" rx="6" fill="#ffffff" stroke="#93c5fd" stroke-width="1.2"/>
+    <text x="275" y="65" fill="#0f172a" font-size="12" font-weight="700">Bursa Lowongan Kerja</text>
+    <text x="275" y="82" fill="#475569" font-size="10.5">• Feed Kemitraan Industri Terverifikasi</text>
+    <text x="275" y="97" fill="#475569" font-size="10.5">• Modal Lamar Portofolio Dinamis</text>
+    <text x="275" y="112" fill="#475569" font-size="10.5">• Filter Bidang, Tipe &amp; Skor Minimum</text>
+    <text x="275" y="127" fill="#2563eb" font-size="10" font-weight="600">Route: /jobs</text>
+
+    <!-- UI Box 3: Recruiter ATS -->
+    <rect x="525" y="45" width="250" height="95" rx="6" fill="#ffffff" stroke="#93c5fd" stroke-width="1.2"/>
+    <text x="535" y="65" fill="#0f172a" font-size="12" font-weight="700">Portal Rekruter &amp; ATS</text>
+    <text x="535" y="82" fill="#475569" font-size="10.5">• Master-Detail Applicant Pipeline</text>
+    <text x="535" y="97" fill="#475569" font-size="10.5">• Talent Pool Global &amp; Filter Skor</text>
+    <text x="535" y="112" fill="#475569" font-size="10.5">• Two-Step Confirm &amp; Permanent Lock</text>
+    <text x="535" y="127" fill="#2563eb" font-size="10" font-weight="600">Route: /recruiter</text>
+
+    <!-- UI Box 4: Riwayat & Realtime Sync -->
+    <rect x="790" y="45" width="235" height="95" rx="6" fill="#ffffff" stroke="#93c5fd" stroke-width="1.2"/>
+    <text x="800" y="65" fill="#0f172a" font-size="12" font-weight="700">Riwayat &amp; Sync Bus</text>
+    <text x="800" y="82" fill="#475569" font-size="10.5">• Dual Tab: Asesmen &amp; Lamaran</text>
+    <text x="800" y="97" fill="#475569" font-size="10.5">• Status Badge: Terkirim → Ditinjau → Siap</text>
+    <text x="800" y="112" fill="#0284c7" font-size="10.5" font-weight="600">• BroadcastChannel Realtime</text>
+    <text x="800" y="127" fill="#2563eb" font-size="10" font-weight="600">Route: /history</text>
+  </g>
+
+  <!-- Connectors L1 -> L2 -->
+  <line x1="147" y1="250" x2="147" y2="280" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="387" y1="250" x2="387" y2="280" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="650" y1="250" x2="650" y2="280" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="907" y1="250" x2="907" y2="280" stroke="#0284c7" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arrowSync)"/>
+
+  <!-- LAYER 2: LOGIKA BISNIS & ARSITEKTUR KEAMANAN -->
+  <g transform="translate(30, 280)">
+    <rect x="0" y="0" width="1040" height="165" rx="8" fill="url(#gradL2)" stroke="#bbf7d0" stroke-width="1.5" filter="url(#shadow)"/>
+    <rect x="15" y="12" width="250" height="24" rx="4" fill="#15803d"/>
+    <text x="25" y="28" fill="#ffffff" font-size="11" font-weight="700">LAPISAN 2: KEAMANAN &amp; ORKESTRASI API</text>
+    <text x="275" y="28" fill="#14532d" font-size="11">Next.js Edge/Serverless Route Handlers · Strict Authorization · Rate Limiting · Sanitization</text>
+
+    <!-- Sec Box 1: API Gateway -->
+    <rect x="15" y="45" width="235" height="105" rx="6" fill="#ffffff" stroke="#86efac" stroke-width="1.2"/>
+    <text x="25" y="65" fill="#0f172a" font-size="12" font-weight="700">API Gateway Handlers</text>
+    <text x="25" y="82" fill="#475569" font-size="10.5">• POST /api/assess</text>
+    <text x="25" y="97" fill="#475569" font-size="10.5">• GET &amp; POST /api/jobs</text>
+    <text x="25" y="112" fill="#475569" font-size="10.5">• POST /api/jobs/[id]/apply</text>
+    <text x="25" y="127" fill="#475569" font-size="10.5">• GET /api/talent-pool</text>
+    <text x="25" y="142" fill="#15803d" font-size="10" font-weight="600">Bearer Token Auth Guard</text>
+
+    <!-- Sec Box 2: Rate Limiter & Token Budgeting -->
+    <rect x="265" y="45" width="245" height="105" rx="6" fill="#ffffff" stroke="#86efac" stroke-width="1.2"/>
+    <text x="275" y="65" fill="#0f172a" font-size="12" font-weight="700">Groq TPM &amp; Quota Guard</text>
+    <text x="275" y="82" fill="#475569" font-size="10.5">• Limit 8.000 TPM Groq Protection</text>
+    <text x="275" y="97" fill="#475569" font-size="10.5">• Token Budget: max_tokens 1800</text>
+    <text x="275" y="112" fill="#475569" font-size="10.5">• README 5KB &amp; Source 12KB Cap</text>
+    <text x="275" y="127" fill="#475569" font-size="10.5">• Error 429 Retry-After: 60 Mapping</text>
+    <text x="275" y="142" fill="#15803d" font-size="10" font-weight="600">Atomic Quota RPC in DB</text>
+
+    <!-- Sec Box 3: Sanitasi & GoTrue 1MB -->
+    <rect x="525" y="45" width="250" height="105" rx="6" fill="#ffffff" stroke="#86efac" stroke-width="1.2"/>
+    <text x="535" y="65" fill="#0f172a" font-size="12" font-weight="700">Payload Sanitizer &amp; Idempotency</text>
+    <text x="535" y="82" fill="#475569" font-size="10.5">• sanitizeApplicationForMetadata</text>
+    <text x="535" y="97" fill="#475569" font-size="10.5">• Mitigasi Batas GoTrue 1MB (Drop base64)</text>
+    <text x="535" y="112" fill="#475569" font-size="10.5">• SHA-256 Idempotency Operation Key</text>
+    <text x="535" y="127" fill="#475569" font-size="10.5">• cleanJsonContent Parser Stripper</text>
+    <text x="535" y="142" fill="#15803d" font-size="10" font-weight="600">Zero Crash on Markdown Wrapping</text>
+
+    <!-- Sec Box 4: Multi-Tenant & Rubrik Server -->
+    <rect x="790" y="45" width="235" height="105" rx="6" fill="#ffffff" stroke="#86efac" stroke-width="1.2"/>
+    <text x="800" y="65" fill="#0f172a" font-size="12" font-weight="700">Kalkulasi Server &amp; Isolasi</text>
+    <text x="800" y="82" fill="#475569" font-size="10.5">• Dual-Score Engine: Asli vs Job-Fit</text>
+    <text x="800" y="97" fill="#475569" font-size="10.5">• Safe Null on insufficient_evidence</text>
+    <text x="800" y="112" fill="#475569" font-size="10.5">• Recruiter Multi-Tenant Isolation</text>
+    <text x="800" y="127" fill="#475569" font-size="10.5">• HR hanya akses pelamar loker sendiri</text>
+    <text x="800" y="142" fill="#15803d" font-size="10" font-weight="600">Formula: Σ(skor × bobot kriteria)</text>
+  </g>
+
+  <!-- Connectors L2 -> L3 & L4 -->
+  <line x1="387" y1="445" x2="387" y2="475" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+  <line x1="650" y1="445" x2="650" y2="475" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- LAYER 3: INFERENSI AI & MULTIMODAL MODEL -->
+  <g transform="translate(30, 475)">
+    <rect x="0" y="0" width="1040" height="155" rx="8" fill="url(#gradL3)" stroke="#e9d5ff" stroke-width="1.5" filter="url(#shadow)"/>
+    <rect x="15" y="12" width="240" height="24" rx="4" fill="#7e22ce"/>
+    <text x="25" y="28" fill="#ffffff" font-size="11" font-weight="700">LAPISAN 3: INFERENSI &amp; MODEL AI</text>
+    <text x="265" y="28" fill="#581c87" font-size="11">Groq AI Cloud Infrastructure · Ultra-Fast Inference · Strict Grounded Evidence Verification</text>
+
+    <!-- AI Box 1: Text Evaluator -->
+    <rect x="15" y="45" width="320" height="95" rx="6" fill="#ffffff" stroke="#d8b4fe" stroke-width="1.2"/>
+    <text x="25" y="65" fill="#0f172a" font-size="12" font-weight="700">LLM Text Evaluator (Groq)</text>
+    <text x="25" y="82" fill="#475569" font-size="10.5">• Model: openai/gpt-oss-20b</text>
+    <text x="25" y="97" fill="#475569" font-size="10.5">• Temperature: 0.0 · Format: json_object</text>
+    <text x="25" y="112" fill="#475569" font-size="10.5">• Penilaian Kode Informatika &amp; Laporan PDF</text>
+    <text x="25" y="127" fill="#7e22ce" font-size="10" font-weight="600">Diskrit Anchor: {0, 25, 50, 75, 100}</text>
+
+    <!-- AI Box 2: Multimodal Vision -->
+    <rect x="350" y="45" width="330" height="95" rx="6" fill="#ffffff" stroke="#d8b4fe" stroke-width="1.2"/>
+    <text x="360" y="65" fill="#0f172a" font-size="12" font-weight="700">Multimodal Vision Engine (Groq)</text>
+    <text x="360" y="82" fill="#475569" font-size="10.5">• Model Terkini: qwen/qwen3.8-27b Vision</text>
+    <text x="360" y="97" fill="#475569" font-size="10.5">• Ekstraksi Fitur Visual Portofolio DKV</text>
+    <text x="360" y="112" fill="#475569" font-size="10.5">• Observasi Terstruktur: Hirarki, Tipografi, Warna</text>
+    <text x="360" y="127" fill="#7e22ce" font-size="10" font-weight="600">Upgrade dari 3.6-27b (Deprecate Fix)</text>
+
+    <!-- AI Box 3: Grounded Evidence Quote Engine -->
+    <rect x="695" y="45" width="330" height="95" rx="6" fill="#ffffff" stroke="#d8b4fe" stroke-width="1.2"/>
+    <text x="705" y="65" fill="#0f172a" font-size="12" font-weight="700">Grounded Evidence Quote Verifier</text>
+    <text x="705" y="82" fill="#475569" font-size="10.5">• PDF Marker: [PAGE:n:BLOCK:n]</text>
+    <text x="705" y="97" fill="#475569" font-size="10.5">• Source Code Marker: [FILE:n:Lx-Ly]</text>
+    <text x="705" y="112" fill="#475569" font-size="10.5">• Server-Side Substring Verification</text>
+    <text x="705" y="127" fill="#7e22ce" font-size="10" font-weight="600">Penolakan Total Halusinasi AI</text>
+  </g>
+
+  <!-- Connectors L3 -> L4 -->
+  <line x1="515" y1="630" x2="515" y2="660" stroke="#475569" stroke-width="1.5" marker-end="url(#arrow)"/>
+
+  <!-- LAYER 4: PERSISTENSI, CLOUD & COLD START RESILIENCE -->
+  <g transform="translate(30, 660)">
+    <rect x="0" y="0" width="1040" height="155" rx="8" fill="url(#gradL4)" stroke="#fde68a" stroke-width="1.5" filter="url(#shadow)"/>
+    <rect x="15" y="12" width="280" height="24" rx="4" fill="#b45309"/>
+    <text x="25" y="28" fill="#ffffff" font-size="11" font-weight="700">LAPISAN 4: PERSISTENSI &amp; CLOUD STORAGE</text>
+    <text x="305" y="28" fill="#78350f" font-size="11">Supabase Backend Suite · PostgreSQL with RLS · Private Object Storage · Fail-Safe Metadata</text>
+
+    <!-- DB Box 1: PostgreSQL & RPC -->
+    <rect x="15" y="45" width="320" height="95" rx="6" fill="#ffffff" stroke="#fcd34d" stroke-width="1.2"/>
+    <text x="25" y="65" fill="#0f172a" font-size="12" font-weight="700">Supabase PostgreSQL &amp; Stored Proc</text>
+    <text x="25" y="82" fill="#475569" font-size="10.5">• Tabel: job_postings, applications, assessments</text>
+    <text x="25" y="97" fill="#475569" font-size="10.5">• RPC atomik: consume_api_quota, release_lock</text>
+    <text x="25" y="112" fill="#475569" font-size="10.5">• Row Level Security (RLS) Multi-Tenant</text>
+    <text x="25" y="127" fill="#b45309" font-size="10" font-weight="600">ACID Transactions &amp; Strict Audit Logs</text>
+
+    <!-- DB Box 2: Object Storage -->
+    <rect x="350" y="45" width="330" height="95" rx="6" fill="#ffffff" stroke="#fcd34d" stroke-width="1.2"/>
+    <text x="360" y="65" fill="#0f172a" font-size="12" font-weight="700">Supabase Private Storage Bucket</text>
+    <text x="360" y="82" fill="#475569" font-size="10.5">• Bucket Privat: evidence-files &amp; resumes</text>
+    <text x="360" y="97" fill="#475569" font-size="10.5">• Signed URL 1 Jam (Akses Terbatas HR)</text>
+    <text x="360" y="112" fill="#475569" font-size="10.5">• Upload Berkas Asli Pelamar &amp; Preview</text>
+    <text x="360" y="127" fill="#b45309" font-size="10" font-weight="600">Otomasi Cascade Deletion Sesuai GDPR</text>
+
+    <!-- DB Box 3: Cold Start Resilience -->
+    <rect x="695" y="45" width="330" height="95" rx="6" fill="#ffffff" stroke="#fcd34d" stroke-width="1.2"/>
+    <text x="705" y="65" fill="#0f172a" font-size="12" font-weight="700">Fail-Safe Cold-Start Resilience</text>
+    <text x="705" y="82" fill="#475569" font-size="10.5">• Cadangan Metadata di raw_user_meta_data</text>
+    <text x="705" y="97" fill="#475569" font-size="10.5">• Rekoveri Otomatis saat Serverless Restart</text>
+    <text x="705" y="112" fill="#475569" font-size="10.5">• Cookie-Based Tombstone: Deleted Job IDs</text>
+    <text x="705" y="127" fill="#b45309" font-size="10" font-weight="600">Zero Data Loss Across Serverless Spin-ups</text>
+  </g>
+</svg>
