@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="utf-8" />
+  <meta name="generator" content="pandoc" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <title>PANDUAN_INSTALASI_DAN_PENGGUNAAN</title>
+  <style>
+    /* Default styles provided by pandoc.
+    ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+    */
+    span.smallcaps{font-variant: small-caps;}
+    div.columns{display: flex; gap: min(4vw, 1.5em);}
+    div.column{flex: auto; overflow-x: auto;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    /* The extra [class] is a hack that increases specificity enough to
+       override a similar rule in reveal.js */
+    ul.task-list[class]{list-style: none;}
+    ul.task-list li input[type="checkbox"] {
+      font-size: inherit;
+      width: 0.8em;
+      margin: 0 0.8em 0.2em -1.6em;
+      vertical-align: middle;
+    }
+    .display.math{display: block; text-align: center; margin: 0.5rem auto;}
+    /* CSS for syntax highlighting */
+    html { -webkit-text-size-adjust: 100%; }
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <link rel="stylesheet" href="manual_print.css" />
+</head>
+<body>
+<h1 id="panduan-tata-cara-instalasi-dan-penggunaan-aplikasi">PANDUAN
+TATA CARA INSTALASI DAN PENGGUNAAN APLIKASI</h1>
+<h2
+id="skillbridge-ai-platform-evaluasi-kesiapan-kerja-berbasis-bukti-dan-rekomendasi-adaptif-multi-bidang">SKILLBRIDGE
+AI: PLATFORM EVALUASI KESIAPAN KERJA BERBASIS BUKTI DAN REKOMENDASI
+ADAPTIF MULTI-BIDANG</h2>
+<hr />
+<p><strong>Informasi Dokumen:</strong> - <strong>Nama Aplikasi:</strong>
+Skillbridge AI - <strong>Versi Rilis:</strong> v1.0.0 (Production &amp;
+Prototype Release) - <strong>Tautan Live Deployment:</strong> <a
+href="https://skillbridge-6ndn.vercel.app">https://skillbridge-6ndn.vercel.app</a>
+- <strong>Repositori Resmi:</strong> <a
+href="https://github.com/rianszzz/skillbridge">https://github.com/rianszzz/skillbridge</a>
+- <strong>Tanggal Pembaruan:</strong> September 2026 - <strong>Target
+Pembaca:</strong> Administrator Sistem, Penguji Teknis, Reviewer/Klien,
+dan Pengguna Akhir (Mahasiswa/Lulusan Baru)</p>
+<hr />
+<h2 id="daftar-isi">DAFTAR ISI</h2>
+<ol type="1">
+<li><a href="#bab-i-pendahuluan--spesifikasi-sistem">BAB I. PENDAHULUAN
+&amp; SPESIFIKASI SISTEM</a>
+<ul>
+<li>1.1 Deskripsi Singkat Skillbridge AI</li>
+<li>1.2 Nilai Utama dan Siklus Pembelajaran Tertutup</li>
+<li>1.3 Prasyarat dan Kebutuhan Sistem Minimum (Hardware &amp;
+Software)</li>
+<li>1.4 Arsitektur dan Teknologi yang Digunakan</li>
+</ul></li>
+<li><a href="#bab-ii-panduan-instalasi--konfigurasi-sistem">BAB II.
+PANDUAN INSTALASI &amp; KONFIGURASI SISTEM</a>
+<ul>
+<li>2.1 Jalur Akses Cepat: Melalui Live Cloud Deployment (Tanpa
+Instalasi)</li>
+<li>2.2 Jalur Instalasi Mandiri: Menjalankan Server Lokal (Local
+Development)
+<ul>
+<li>2.2.1 Mengunduh Source Code (Clone Repository)</li>
+<li>2.2.2 Menginstal Dependensi Node.js</li>
+<li>2.2.3 Konfigurasi Variabel Lingkungan (.env.local)</li>
+<li>2.2.4 Setup Database &amp; Storage Supabase (Eksekusi Migrasi SQL
+001–005)</li>
+<li>2.2.5 Menjalankan dan Memvalidasi Server Lokal</li>
+</ul></li>
+</ul></li>
+<li><a
+href="#bab-iii-panduan-penggunaan-aplikasi-langkah-demi-langkah">BAB
+III. PANDUAN PENGGUNAAN APLIKASI LANGKAH DEMI LANGKAH</a>
+<ul>
+<li>3.1 Registrasi dan Otentikasi Pengguna (Masuk / Buat Akun)</li>
+<li>3.2 Menavigasi Beranda dan Memilih Jalur Spesialisasi Karir</li>
+<li>3.3 Formulir Pengajuan Penilaian Portofolio Lintas 3 Bidang
+<ul>
+<li>3.3.1 Bidang Informatika (Repositori GitHub Publik)</li>
+<li>3.3.2 Bidang Desain Komunikasi Visual / DKV (Karya Gambar &amp;
+Deskripsi)</li>
+<li>3.3.3 Bidang Bisnis &amp; Pemasaran (Dokumen Laporan PDF)</li>
+</ul></li>
+<li>3.4 Menyetujui Kebijakan Etika dan Pemrosesan AI (Consent Gate)</li>
+<li>3.5 Memahami Laporan Hasil Penilaian Berbobot (Rubrik 1.1 &amp;
+Bukti Ter-grounding)</li>
+<li>3.6 Mempelajari Rekomendasi Materi Terkurasi Berdasarkan Kesenjangan
+Skill</li>
+<li>3.7 Memantau Riwayat Penilaian dan Selisih Peningkatan
+(<em>Reassessment Diff</em>)</li>
+<li>3.8 Melakukan Simulasi Wawancara Adaptif Terintegrasi</li>
+</ul></li>
+<li><a
+href="#bab-iv-fitur-pengujian-instan-sidang-demo-seeds-fallback">BAB IV.
+FITUR PENGUJIAN INSTAN SIDANG (DEMO SEEDS FALLBACK)</a>
+<ul>
+<li>4.1 Tujuan dan Manfaat Fitur Demo Seed</li>
+<li>4.2 Daftar Tautan Demo Seed Terverifikasi Lintas Bidang</li>
+</ul></li>
+<li><a href="#bab-v-panduan-pemecahan-masalah-troubleshooting--faq">BAB
+V. PANDUAN PEMECAHAN MASALAH (TROUBLESHOOTING) &amp; FAQ</a>
+<ul>
+<li>5.1 Penanganan Error HTTP 429 (AI Rate Limit Groq / Kuota
+Harian)</li>
+<li>5.2 Penanganan Kesalahan Validasi File (Format Magic Bytes &amp;
+Batas 4 MB)</li>
+<li>5.3 Masalah Konfirmasi Email Supabase / Safe Links</li>
+<li>5.4 Repositori GitHub Tidak Ditemukan atau Format URL Salah</li>
+</ul></li>
+<li><a href="#bab-vi-batasan-sistem-keamanan--dukungan-teknis">BAB VI.
+BATASAN SISTEM, KEAMANAN, &amp; DUKUNGAN TEKNIS</a>
+<ul>
+<li>6.1 Batasan Fungsional Prototipe</li>
+<li>6.2 Jaminan Keamanan dan Privasi Data</li>
+<li>6.3 Kontak dan Dukungan Pengembang</li>
+</ul></li>
+</ol>
+<hr />
+<div style="page-break-after: always;">
+
+</div>
+<h2 id="bab-i.-pendahuluan-spesifikasi-sistem">BAB I. PENDAHULUAN &amp;
+SPESIFIKASI SISTEM</h2>
+<h3 id="deskripsi-singkat-skillbridge-ai">1.1 Deskripsi Singkat
+Skillbridge AI</h3>
+<p><strong>Skillbridge AI</strong> adalah platform inovasi evaluasi
+kesiapan kerja (<em>job-readiness assessment</em>) berbasis bukti
+portofolio otentik bagi mahasiswa tingkat akhir dan lulusan baru.
+Berbeda dengan platform konvensional yang hanya melakukan pencocokan
+kata kunci pada teks CV (resume parsing), Skillbridge AI melakukan
+analisis substantif terhadap karya nyata di tiga disiplin ilmu utama: 1.
+<strong>Informatika (Junior Web Developer):</strong> Mengevaluasi
+repositori kode sumber publik, struktur direktori, kualitas arsitektur,
+dokumentasi README, dan riwayat commit Git. 2. <strong>Desain Komunikasi
+Visual / DKV (Junior Graphic Designer):</strong> Mengevaluasi karya
+visual digital (PNG/JPEG) bersama penjelasan proses kreatif, hierarki
+visual, konsistensi warna/tipografi, dan pemecahan masalah desain. 3.
+<strong>Bisnis &amp; Pemasaran Digital (Junior Digital
+Marketer):</strong> Mengevaluasi dokumen laporan kampanye pemasaran
+dalam format PDF, metodologi funnel, ketepatan metrik (CTR, CPA, ROAS),
+dan transparansi batasan data.</p>
+<h3 id="nilai-utama-dan-siklus-pembelajaran-tertutup">1.2 Nilai Utama
+dan Siklus Pembelajaran Tertutup</h3>
+<p>Sistem dirancang dengan filosofi <strong>siklus pembelajaran tertutup
+(<em>closed-loop learning</em>)</strong>, di mana asesmen tidak berhenti
+pada perolehan nilai semata, melainkan memandu peningkatan
+berkelanjutan:</p>
+<pre class="text"><code>[Bukti Kerja Otentik] 
+       ↓ 
+[Ekstraksi &amp; Validasi Statis] 
+       ↓ 
+[Penilaian Rubrik 1.1 Berbobot (Server-Calculated)] 
+       ↓ 
+[Analisis Kesenjangan (Skill Gaps) &amp; Kurasi Materi Belajar] 
+       ↓ 
+[Latihan Wawancara Teknis Adaptif Berbasis Gap] 
+       ↓ 
+[Penyerahan Bukti Baru &amp; Pengukuran Peningkatan (+Δ Diff)]</code></pre>
+<h3 id="prasyarat-dan-kebutuhan-sistem-minimum">1.3 Prasyarat dan
+Kebutuhan Sistem Minimum</h3>
+<h4 id="a.-kebutuhan-pengguna-akhir-client-side">A. Kebutuhan Pengguna
+Akhir (Client Side)</h4>
+<p>Untuk mengakses dan menggunakan platform Skillbridge AI melalui
+peramban web: - <strong>Perangkat:</strong> Komputer desktop, laptop,
+tablet, atau smartphone (antarmuka responsif penuh). - <strong>Peramban
+Web (Browser):</strong> Google Chrome (v100+), Mozilla Firefox (v100+),
+Microsoft Edge (v100+), Apple Safari (v15+). - <strong>Koneksi
+Internet:</strong> Minimal 1 Mbps stabil (untuk transmisi upload bukti
+dan streaming respon AI). - <strong>Format Bukti yang Didukung:</strong>
+- Tautan URL Repositori GitHub Publik (format:
+<code>https://github.com/pemilik/nama-repo</code>). - Gambar Portofolio
+DKV: Format PNG atau JPEG, resolusi maksimal 10.000 × 10.000 piksel,
+ukuran file <span class="math inline"> ≤ 4 MB</span>. - Dokumen Laporan
+Pemasaran: Format PDF asli (<em>bukan hasil scan foto</em>) dengan text
+layer, maksimal 15 halaman, ukuran file <span class="math inline"> ≤ 4
+MB</span>.</p>
+<h4 id="b.-kebutuhan-administrator-developer-server-side-setup-lokal">B.
+Kebutuhan Administrator / Developer (Server Side Setup Lokal)</h4>
+<p>Jika ingin melakukan instalasi mandiri dari kode sumber (<em>source
+code</em>): - <strong>Sistem Operasi:</strong> macOS, Linux
+(Ubuntu/Debian/Fedora), atau Windows 10/11 (disarankan memakai WSL2). -
+<strong>Runtime Lingkungan:</strong> Node.js versi 20.x LTS atau versi
+22.x LTS (disertai <code>npm</code> versi 9.x+). - <strong>Git:</strong>
+Git CLI versi 2.30+ untuk clone repositori. - <strong>Akun Layanan
+Eksternal (Tersedia Paket Gratis / Free Tier):</strong> -
+<strong>Supabase Account:</strong> Untuk penyediaan PostgreSQL database,
+Supabase Auth, dan private file storage bucket. - <strong>Groq Cloud API
+Key:</strong> Untuk engine inferensi model LLM kecepatan tinggi
+(<code>openai/gpt-oss-20b</code> dan vision model multimodal).</p>
+<h3 id="arsitektur-dan-teknologi-yang-digunakan">1.4 Arsitektur dan
+Teknologi yang Digunakan</h3>
+<ul>
+<li><strong>Frontend &amp; Fullstack Framework:</strong> Next.js versi
+16.3 (App Router, Turbopack, React 19).</li>
+<li><strong>Bahasa Pemrograman:</strong> TypeScript (Strict Type
+Safety).</li>
+<li><strong>Styling UI:</strong> Tailwind CSS (Desain antarmuka bersih,
+aksesibel, dan minim beban komputasi browser).</li>
+<li><strong>Backend &amp; Database:</strong> Supabase PostgreSQL dengan
+Row-Level Security (RLS) dan RPC transaksi kuota.</li>
+<li><strong>Penyimpanan Berkas Privat:</strong> Supabase Storage Private
+Bucket (<code>evidence-private</code>).</li>
+<li><strong>Mesin Inferensi AI:</strong> Groq LPU™ Inference Engine
+(latensi ultra-cepat ~5–8 detik per evaluasi penuh).</li>
+<li><strong>Hosting Produksi:</strong> Vercel Global Edge Network dengan
+perlindungan header keamanan HSTS, CSP, dan CORS ketat.</li>
+</ul>
+<hr />
+<div style="page-break-after: always;">
+
+</div>
+<h2 id="bab-ii.-panduan-instalasi-konfigurasi-sistem">BAB II. PANDUAN
+INSTALASI &amp; KONFIGURASI SISTEM</h2>
+<p>Penguji atau klien memiliki <strong>dua pilihan</strong> untuk
+mengevaluasi aplikasi: 1. <strong>Jalur Cepat (Recommended):</strong>
+Membuka tautan deployment cloud resmi yang sudah online 24/7 di Vercel.
+2. <strong>Jalur Lokal (Self-Hosted):</strong> Menginstal dan
+menjalankan aplikasi pada mesin komputer lokal penguji.</p>
+<h3 id="jalur-akses-cepat-melalui-live-cloud-deployment">2.1 Jalur Akses
+Cepat: Melalui Live Cloud Deployment</h3>
+<p>Aplikasi telah terpasang secara utuh pada infrastruktur cloud Vercel
+produksi: - <strong>Alamat URL:</strong> <a
+href="https://skillbridge-6ndn.vercel.app">https://skillbridge-6ndn.vercel.app</a>
+- <strong>Status Endpoint Health Check:</strong> <a
+href="https://skillbridge-6ndn.vercel.app/api/health">https://skillbridge-6ndn.vercel.app/api/health</a>
+(harus menghasilkan <code>{"status":"ok"}</code>).</p>
+<p>Pada jalur ini, <strong>Anda tidak perlu menginstal apa pun di
+komputer Anda</strong>. Anda dapat langsung melompat ke <a
+href="#bab-iii-panduan-penggunaan-aplikasi-langkah-demi-langkah">BAB
+III. PANDUAN PENGGUNAAN APLIKASI</a>.</p>
+<hr />
+<h3
+id="jalur-instalasi-mandiri-menjalankan-server-lokal-local-development">2.2
+Jalur Instalasi Mandiri: Menjalankan Server Lokal (Local
+Development)</h3>
+<p>Bagi penguji teknis yang ingin meninjau source code dan menjalankan
+aplikasi secara lokal, ikuti 5 langkah terstruktur berikut:</p>
+<h4 id="langkah-1-mengunduh-source-code-clone-repository">Langkah 1:
+Mengunduh Source Code (Clone Repository)</h4>
+<p>Buka aplikasi Terminal (pada macOS/Linux) atau Git Bash (pada
+Windows), lalu jalankan perintah:</p>
+<div class="sourceCode" id="cb2"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># 1. Clone repositori dari GitHub</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> clone https://github.com/rianszzz/skillbridge.git</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="co"># 2. Masuk ke direktori proyek</span></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="bu">cd</span> skillbridge</span></code></pre></div>
+<h4 id="langkah-2-menginstal-dependensi-node.js">Langkah 2: Menginstal
+Dependensi Node.js</h4>
+<p>Pastikan Node.js v20 atau v22 telah terpasang pada komputer Anda
+(<code>node -v</code>). Pasang seluruh paket dependensi dengan
+menjalankan:</p>
+<div class="sourceCode" id="cb3"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> install</span></code></pre></div>
+<p><em>Tunggu hingga proses instalasi selesai. Seluruh pustaka Next.js,
+React, Supabase SDK, dan utility akan terpasang di folder
+<code>node_modules</code>.</em></p>
+<h4 id="langkah-3-konfigurasi-variabel-lingkungan-.env.local">Langkah 3:
+Konfigurasi Variabel Lingkungan (.env.local)</h4>
+<p>Duplikasi berkas contoh konfigurasi <code>.env.example</code> menjadi
+<code>.env.local</code>:</p>
+<div class="sourceCode" id="cb4"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">cp</span> .env.example .env.local</span></code></pre></div>
+<p>Buka berkas <code>.env.local</code> menggunakan text editor (VS Code,
+Nano, dsb), lalu lengkapi variabel berikut:</p>
+<pre class="env"><code># -------------------------------------------------------------
+# 1. GROQ CLOUD API (Mesin Evaluasi AI)
+# Dapatkan API Key gratis di https://console.groq.com/keys
+# -------------------------------------------------------------
+GROQ_API_KEY=gsk_your_groq_api_key_here
+
+# -------------------------------------------------------------
+# 2. SUPABASE POSTGRESQL &amp; AUTH
+# Dapatkan di Supabase Dashboard -&gt; Project Settings -&gt; API
+# -------------------------------------------------------------
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6...
+SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6...
+
+# -------------------------------------------------------------
+# 3. KREDENSIAL OPSIONAL / DEV HELPER
+# -------------------------------------------------------------
+SUPABASE_URL=https://your-project-id.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6...</code></pre>
+<blockquote>
+<p><strong>CATATAN PENTING KEAMANAN:</strong> - Kunci
+<code>GROQ_API_KEY</code> dan <code>SUPABASE_SERVICE_ROLE_KEY</code>
+adalah rahasia server. <strong>JANGAN</strong> memberi awalan
+<code>NEXT_PUBLIC_</code> agar tidak bocor ke browser client. - Kunci
+<code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> bersifat publik dan aman
+dibaca di browser untuk manajemen sesi login pengguna.</p>
+</blockquote>
+<h4
+id="langkah-4-setup-database-storage-supabase-eksekusi-migrasi-sql">Langkah
+4: Setup Database &amp; Storage Supabase (Eksekusi Migrasi SQL)</h4>
+<p>Masuk ke dashboard proyek Supabase Anda (<a
+href="https://supabase.com/dashboard">https://supabase.com/dashboard</a>),
+lalu buka menu <strong>SQL Editor</strong>. Jalankan skrip migrasi yang
+terdapat di folder <code>supabase/migrations/</code> secara
+berurutan:</p>
+<ol type="1">
+<li><strong>Migrasi Struktur Dasar:</strong> Buka file
+<code>supabase/migrations/001_prototype.sql</code>, salin seluruh
+isinya, tempel ke SQL Editor Supabase, lalu klik <strong>Run</strong>.
+<em>(Membuat tabel <code>profiles</code>, <code>evidence</code>,
+<code>rubrics</code>, <code>assessments</code>,
+<code>criterion_scores</code>, dsb).</em></li>
+<li><strong>Migrasi Bucket Penyimpanan:</strong> Jalankan file
+<code>supabase/migrations/002_evidence_storage.sql</code>. <em>(Membuat
+bucket penyimpanan privat bernama <code>evidence-private</code> dengan
+proteksi RLS).</em></li>
+<li><strong>Migrasi Hardening &amp; Kuota API:</strong> Jalankan file
+<code>supabase/migrations/003_security_hardening.sql</code>.
+<em>(Menerapkan stored procedure pembatasan kuota dan cascade
+delete).</em></li>
+<li><strong>Migrasi Persistensi Wawancara:</strong> Jalankan file
+<code>supabase/migrations/005_interview_persistence.sql</code> jika
+tersedia. <em>(Mencatat sesi interaksi tanya-jawab wawancara).</em></li>
+</ol>
+<p>Selanjutnya, tambahkan URL redirect lokal pada dashboard Supabase
+Anda: - Masuk ke <strong>Authentication</strong> <span
+class="math inline">→</span> <strong>URL Configuration</strong> <span
+class="math inline">→</span> <strong>Redirect URLs</strong>. -
+Tambahkan: <code>http://localhost:3000/auth</code> dan
+<code>http://localhost:3000</code>.</p>
+<h4 id="langkah-5-menjalankan-dan-memvalidasi-server-lokal">Langkah 5:
+Menjalankan dan Memvalidasi Server Lokal</h4>
+<p>Sebelum menjalankan server, Anda dapat memverifikasi kualitas kode
+dan suite unit test otomatis (33 test) dengan perintah:</p>
+<div class="sourceCode" id="cb6"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> run check</span></code></pre></div>
+<p>Jika seluruh pemeriksaan lulus (hijau), jalankan server
+development:</p>
+<div class="sourceCode" id="cb7"><pre
+class="sourceCode bash"><code class="sourceCode bash"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="ex">npm</span> run dev</span></code></pre></div>
+<p>Buka peramban web dan kunjungi alamat:</p>
+<pre class="text"><code>http://localhost:3000</code></pre>
+<p>Server lokal Skillbridge AI kini telah aktif dan siap digunakan
+secara penuh.</p>
+<hr />
+<div style="page-break-after: always;">
+
+</div>
+<h2 id="bab-iii.-panduan-penggunaan-aplikasi-langkah-demi-langkah">BAB
+III. PANDUAN PENGGUNAAN APLIKASI LANGKAH DEMI LANGKAH</h2>
+<p>Bagian ini menyajikan panduan pengoperasian fitur bagi pengguna umum
+maupun penguji sidang komprehensif, dilengkapi ilustrasi tangkapan layar
+antarmuka nyata.</p>
+<h3 id="registrasi-dan-otentikasi-pengguna-masuk-buat-akun">3.1
+Registrasi dan Otentikasi Pengguna (Masuk / Buat Akun)</h3>
+<ol type="1">
+<li>Akses halaman awal aplikasi di
+<code>https://skillbridge-6ndn.vercel.app</code> (atau
+<code>http://localhost:3000</code>).</li>
+<li>Klik tombol <strong>Masuk</strong> atau <strong>Daftar</strong> pada
+sudut kanan atas bilah navigasi (<em>navbar</em>).</li>
+<li>Masukkan alamat email dan kata sandi Anda:
+<ul>
+<li>Jika membuat akun baru: Isi form pendaftaran, klik
+<strong>Daftar</strong>. Sistem akan mengirimkan email konfirmasi (atau
+langsung mengarahkan Anda ke dasbor jika auto-confirm diaktifkan).</li>
+<li>Jika sudah memiliki akun: Masukkan kredensial, lalu klik
+<strong>Masuk</strong>.</li>
+</ul></li>
+<li>Setelah berhasil masuk, bilah navigasi akan menampilkan tautan
+<strong>Penilaian</strong>, <strong>Riwayat</strong>, dan tombol
+<strong>Keluar</strong>.</li>
+</ol>
+<hr />
+<h3 id="menavigasi-beranda-dan-memilih-jalur-spesialisasi-karir">3.2
+Menavigasi Beranda dan Memilih Jalur Spesialisasi Karir</h3>
+<p>Halaman beranda (<em>Landing Page</em>) memperkenalkan proposisi
+nilai dan metodologi evaluasi platform:</p>
+<figure>
+<img src="validation/live-test-evidence/01_landing_page.png"
+alt="Antarmuka Beranda (Landing Page) Skillbridge AI Produksi" />
+<figcaption aria-hidden="true">Antarmuka Beranda (Landing Page)
+Skillbridge AI Produksi</figcaption>
+</figure>
+<p><em>Gambar 1. Tampilan Halaman Beranda Skillbridge AI pada Peramban
+Desktop.</em></p>
+<p><strong>Panduan Elemen Beranda:</strong> - <strong>Hero
+Banner:</strong> Menjelaskan visi evaluasi berbasis portofolio otentik
+(<em>“Ukur kesiapan. Tunjukkan buktinya”</em>). - <strong>Tiga Tahapan
+Kerja:</strong> 1. <em>Bukti:</em> Unggah karya nyata (kode, desain,
+laporan). 2. <em>Rubrik:</em> Dapatkan evaluasi objektif 4 kriteria
+dengan kutipan bukti. 3. <em>Langkah Berikutnya:</em> Dapatkan kurasi
+modul belajar dan latihan wawancara. - <strong>Tiga Kartu Jalur
+Karir:</strong> - <em>Junior Web Developer:</em> Standar industri
+rekayasa perangkat lunak modern. - <em>Junior Graphic Designer:</em>
+Standar industri komunikasi visual dan desain merek. - <em>Junior
+Digital Marketer:</em> Standar industri strategi pertumbuhan dan
+akuisisi digital. - Klik tombol <strong>Mulai Evaluasi
+Portofolio</strong> untuk langsung berpindah ke formulir penilaian.</p>
+<hr />
+<h3 id="formulir-penyerahan-bukti-penilaian-lintas-3-bidang">3.3
+Formulir Penyerahan Bukti Penilaian Lintas 3 Bidang</h3>
+<p>Akses halaman penilaian melalui menu <strong>Penilaian</strong>
+(<code>/assess</code>).</p>
+<figure>
+<img src="validation/live-test-evidence/02_form_penilaian_3_bidang.png"
+alt="Formulir Penyerahan Bukti Penilaian Lintas Tiga Bidang dengan Persetujuan AI" />
+<figcaption aria-hidden="true">Formulir Penyerahan Bukti Penilaian
+Lintas Tiga Bidang dengan Persetujuan AI</figcaption>
+</figure>
+<p><em>Gambar 2. Formulir Penyerahan Bukti Multi-Bidang dan Panel
+Panduan Kontekstual.</em></p>
+<h4 id="bidang-informatika-repositori-github-publik">3.3.1 Bidang
+Informatika (Repositori GitHub Publik)</h4>
+<ol type="1">
+<li>Pada pilihan bidang, pilih <strong>Informatika (Junior Web
+Developer)</strong>.</li>
+<li>Pada kolom input URL, masukkan tautan repositori GitHub publik Anda.
+<ul>
+<li><em>Format yang valid:</em>
+<code>https://github.com/username/repository-name</code></li>
+<li><em>Contoh uji:</em>
+<code>https://github.com/octocat/Hello-World</code> atau repositori
+proyek Anda.</li>
+</ul></li>
+<li><em>Catatan Keamanan:</em> Sistem tidak pernah menjalankan kode Anda
+(<em>Zero RCE Execution</em>). Sistem hanya membaca file konfigurasi dan
+source code terpilih via REST API untuk penilaian statis.</li>
+</ol>
+<h4
+id="bidang-desain-komunikasi-visual-dkv-karya-gambar-deskripsi">3.3.2
+Bidang Desain Komunikasi Visual / DKV (Karya Gambar &amp;
+Deskripsi)</h4>
+<ol type="1">
+<li>Pilih opsi bidang <strong>Desain Komunikasi Visual (Junior Graphic
+Designer)</strong>.</li>
+<li>Klik tombol upload berkas dan pilih file gambar portofolio (PNG atau
+JPEG, maksimal 4 MB).</li>
+<li>Pada kolom deskripsi proses kreatif, tuliskan narasi singkat
+mencakup:
+<ul>
+<li>Latar belakang brief dan target audiens desain.</li>
+<li>Proses iterasi atau eksplorasi konsep.</li>
+<li>Alasan pemilihan palet warna dan tipografi.</li>
+</ul></li>
+</ol>
+<h4 id="bidang-bisnis-pemasaran-dokumen-laporan-pdf">3.3.3 Bidang Bisnis
+&amp; Pemasaran (Dokumen Laporan PDF)</h4>
+<ol type="1">
+<li>Pilih opsi bidang <strong>Bisnis &amp; Pemasaran (Junior Digital
+Marketer)</strong>.</li>
+<li>Klik tombol upload berkas dan pilih dokumen laporan kampanye
+pemasaran dalam format PDF (maksimal 15 halaman dan ukuran file <span
+class="math inline"> ≤ 4 MB</span>).</li>
+<li>Pastikan PDF memiliki <em>text layer</em> yang dapat diblok/disalin
+(bukan gambar hasil scan foto).</li>
+</ol>
+<hr />
+<h3 id="menyetujui-kebijakan-etika-dan-pemrosesan-ai-consent-gate">3.4
+Menyetujui Kebijakan Etika dan Pemrosesan AI (Consent Gate)</h3>
+<p>Untuk menjamin kepatuhan privasi data dan tata kelola kecerdasan
+buatan (<em>AI Governance</em>): 1. Pengguna wajib membaca penjelasan
+privasi pada panel sebelah kanan formulir. 2. Centang kotak persetujuan
+(<em>consent checkbox</em>): &gt; <em>“Saya menyetujui pemrosesan bukti
+kerja ini oleh model AI pihak ketiga sesuai ketentuan privasi.”</em> 3.
+Tombol <strong>Kirim untuk Dinilai</strong> akan aktif setelah kotak
+persetujuan dicentang. 4. Klik <strong>Kirim untuk Dinilai</strong>.
+Sistem akan melakukan ekstraksi bukti dan inferensi evaluasi (durasi
+rata-rata: 5–15 detik).</p>
+<hr />
+<h3
+id="memahami-laporan-hasil-penilaian-berbobot-rubrik-1.1-bukti-ter-grounding">3.5
+Memahami Laporan Hasil Penilaian Berbobot (Rubrik 1.1 &amp; Bukti
+Ter-grounding)</h3>
+<p>Setelah pemrosesan selesai, pengguna akan diarahkan ke halaman hasil
+(<code>/results/[id]</code>):</p>
+<figure>
+<img
+src="validation/live-test-evidence/03_hasil_penilaian_kriteria_bukti.png"
+alt="Hasil Penilaian Portofolio Berdasarkan Rubrik 1.1 Ter-grounding" />
+<figcaption aria-hidden="true">Hasil Penilaian Portofolio Berdasarkan
+Rubrik 1.1 Ter-grounding</figcaption>
+</figure>
+<p><em>Gambar 3. Halaman Hasil Penilaian Lengkap dengan Skor Berbobot
+dan Grounding Bukti.</em></p>
+<p><strong>Penjelasan Komponen Hasil Penilaian:</strong> 1. <strong>Skor
+Akhir Berbobot (Contoh: 50/100):</strong> Dihitung secara matematis di
+server menggunakan rumus <span class="math inline">∑(skor
+kriteria × bobot)</span>. Model AI tidak dapat mengarang skor akhir ini.
+2. <strong>Banner Transparansi Data Seed:</strong> Jika menggunakan data
+demo sidang, banner kuning transparan menegaskan bahwa data tersebut
+adalah seed validasi cadangan offline, bukan hasil live palsu. 3.
+<strong>Evaluasi 4 Kriteria Rubrik 1.1:</strong> - <em>Kualitas Kode
+(Bobot 35%):</em> Menilai modularitas, konsistensi sintaks, dan
+penanganan error. - <em>Struktur Proyek (Bobot 25%):</em> Menilai
+kerapian struktur direktori dan konfigurasi paket. - <em>Dokumentasi
+(Bobot 20%):</em> Menilai kelengkapan petunjuk README dan kejelasan
+arsitektur. - <em>Riwayat Kontribusi (Bobot 20%):</em> Menilai keaktifan
+dan pesan commit Git yang bermakna. 4. <strong>Anchor Diskrit:</strong>
+Skor per kriteria menggunakan standar diskrit <span
+class="math inline">0, 25, 50, 75, 100</span> atau <code>null</code>
+jika bukti belum mencukupi (<em>insufficient evidence</em>). 5.
+<strong>Kutipan Bukti Ter-grounding Fisik:</strong> Setiap penilaian
+menyertakan penanda fisik yang dapat diaudit, seperti
+<code>[FILE:1:L12-L28]</code> atau <code>[COMMITS:1]</code>. 6.
+<strong>Badge Selisih (<em>Diff Badge</em>):</strong> Menampilkan
+peningkatan relatif terhadap pengujian sebelumnya (misal:
+<code>+25</code> atau <code>Baru dinilai</code>).</p>
+<hr />
+<h3
+id="mempelajari-rekomendasi-materi-terkurasi-berdasarkan-kesenjangan-skill">3.6
+Mempelajari Rekomendasi Materi Terkurasi Berdasarkan Kesenjangan
+Skill</h3>
+<p>Tepat di bawah rincian kriteria, sistem menyintesis kesenjangan
+kompetensi pengguna:</p>
+<figure>
+<img
+src="validation/live-test-evidence/04_rekomendasi_materi_terkurasi.png"
+alt="Sintesis Kesenjangan Kompetensi dan Rekomendasi Materi Pembelajaran Terkurasi" />
+<figcaption aria-hidden="true">Sintesis Kesenjangan Kompetensi dan
+Rekomendasi Materi Pembelajaran Terkurasi</figcaption>
+</figure>
+<p><em>Gambar 4. Panel Analisis Kekuatan, Gap Kompetensi, dan
+Rekomendasi Modul Terkurasi.</em></p>
+<ol type="1">
+<li><strong>Panel Analisis Otomatis:</strong>
+<ul>
+<li><em>Kekuatan:</em> Menyoroti kelebihan yang berhasil dibuktikan
+portofolio.</li>
+<li><em>Gap Utama:</em> Merangkum 1–2 kelemahan paling signifikan yang
+perlu diperbaiki.</li>
+<li><em>Batasan Penilaian:</em> Menjelaskan batas audit statis tanpa
+runtime eksekusi.</li>
+</ul></li>
+<li><strong>Tiga Kartu Materi Terkurasi:</strong>
+<ul>
+<li>Sistem mengambil maksimal 3 modul rujukan dari 30 katalog terkurasi
+resmi (<code>learning-catalog.ts</code>).</li>
+<li>Setiap kartu memuat judul modul, deskripsi relevansi, tingkat
+kesulitan (<em>Beginner/Intermediate</em>), dan tautan langsung ke
+dokumentasi resmi industri (MDN Web Docs, Next.js Docs, GitHub Docs,
+Google Analytics Academy, Material Design, dsb).</li>
+</ul></li>
+<li><strong>Tombol Navigasi Aksi:</strong>
+<ul>
+<li>Klik <strong>Mulai wawancara</strong> untuk berlatih menjawab
+pertanyaan terkait gap Anda.</li>
+<li>Klik <strong>Nilai bukti baru</strong> untuk mengirimkan perbaikan
+portofolio Anda.</li>
+<li>Klik <strong>Hapus hasil</strong> untuk menghapus riwayat penilaian
+secara permanen (<em>cascade deletion</em>).</li>
+</ul></li>
+</ol>
+<hr />
+<h3
+id="memantau-riwayat-penilaian-dan-selisih-peningkatan-reassessment-diff">3.7
+Memantau Riwayat Penilaian dan Selisih Peningkatan (Reassessment
+Diff)</h3>
+<p>Pilih menu <strong>Riwayat</strong> (<code>/history</code>) untuk
+meninjau seluruh jejak asesmen yang pernah Anda lakukan:</p>
+<figure>
+<img
+src="validation/live-test-evidence/05_riwayat_dan_reassessment_diff.png"
+alt="Rekapitulasi Riwayat Akun dan Penanda Perbandingan Penilaian Ulang (Reassessment Diff)" />
+<figcaption aria-hidden="true">Rekapitulasi Riwayat Akun dan Penanda
+Perbandingan Penilaian Ulang (Reassessment Diff)</figcaption>
+</figure>
+<p><em>Gambar 5. Halaman Riwayat Penilaian dan Launcher Simulasi
+Re-assessment Diff.</em></p>
+<ul>
+<li>Menampilkan daftar kronologis pengujian lengkap dengan tanggal,
+bidang, target peran, skor berbobot, dan status kelengkapan bukti.</li>
+<li>Kepatuhan prinsip <em>Safe Null</em>: Portofolio yang tidak
+menyertakan bukti minimal diberi status <code>—/100</code> (<em>bukti
+belum cukup</em>), bukan nol palsu.</li>
+<li><strong>Badge Peningkatan (<em>+25 Δ</em>):</strong> Menggambarkan
+kemajuan nyata kandidat setelah merevisi portofolio (misalnya dari
+revisi awal 25/100 menjadi 50/100).</li>
+</ul>
+<hr />
+<h3 id="melakukan-simulasi-wawancara-adaptif-terintegrasi">3.8 Melakukan
+Simulasi Wawancara Adaptif Terintegrasi</h3>
+<p>Klik tombol <strong>Mulai wawancara</strong> pada halaman hasil atau
+buka halaman <code>/interview/[id]</code>:</p>
+<figure>
+<img src="validation/live-test-evidence/06_sesi_wawancara_adaptif.png"
+alt="Sesi Wawancara Teknis Adaptif Berbasis Kesenjangan Bukti" />
+<figcaption aria-hidden="true">Sesi Wawancara Teknis Adaptif Berbasis
+Kesenjangan Bukti</figcaption>
+</figure>
+<p><em>Gambar 6. Simulasi Wawancara Adaptif dengan AI Evaluator Berbasis
+Dialog Multi-Turn.</em></p>
+<p><strong>Tata Cara Sesi Wawancara:</strong> 1. Klik tombol
+<strong>Mulai pertanyaan pertama</strong>. Sistem akan membaca 2
+kesenjangan (<em>skill gaps</em>) utama portofolio Anda dan menyusun
+pertanyaan teknis kontekstual. 2. Tuliskan jawaban teknis Anda pada
+kotak teks <strong>Jawaban Anda</strong> (maksimal 3.000 karakter). 3.
+Klik tombol <strong>Kirim jawaban</strong>. 4. Pewawancara AI akan
+menganalisis respon Anda, memberikan kalimat umpan balik konstruktif,
+lalu mengajukan pertanyaan pendalaman berikutnya. 5. <strong>Indikator
+Progres:</strong> Melacak jumlah jawaban Anda (misal: <em>Wawancara ·
+1/5 jawaban</em>). Sesi dibatasi maksimal 5 putaran tanya-jawab. 6.
+<strong>Pemisahan Skor:</strong> Umpan balik wawancara bersifat
+kualitatif formatif dan terpisah tegas dari nilai bukti kerja fisik
+portofolio Anda.</p>
+<hr />
+<div style="page-break-after: always;">
+
+</div>
+<h2 id="bab-iv.-fitur-pengujian-instan-sidang-demo-seeds-fallback">BAB
+IV. FITUR PENGUJIAN INSTAN SIDANG (DEMO SEEDS FALLBACK)</h2>
+<h3 id="tujuan-dan-manfaat-fitur-demo-seed">4.1 Tujuan dan Manfaat Fitur
+Demo Seed</h3>
+<p>Untuk keperluan demonstrasi sidang komprehensif atau pengujian cepat
+oleh klien: - Kadang kala kuota API pihak ketiga (Groq LPU) mengalami
+lonjakan atau antrian jaringan kampus sedang lambat. - Skillbridge AI
+dilengkapi <strong>4 data seed terverifikasi deterministik</strong> yang
+mengimplementasikan RFC 4122 UUID v4
+(<code>src/lib/demo-seed.ts</code>). - Fitur ini dapat dibuka
+<strong>langsung tanpa perlu login akun</strong> (<em>guest-resilient
+mode</em>).</p>
+<h3 id="daftar-tautan-demo-seed-terverifikasi-lintas-bidang">4.2 Daftar
+Tautan Demo Seed Terverifikasi Lintas Bidang</h3>
+<p>Buka tautan berikut pada browser Anda untuk menguji demonstrasi
+instan:</p>
+<table>
+<colgroup>
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+<col style="width: 20%" />
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left;">Bidang Studi</th>
+<th style="text-align: left;">Target Peran</th>
+<th style="text-align: left;">Keterangan Demonstrasi</th>
+<th style="text-align: left;">Tautan Langsung Halaman Hasil</th>
+<th style="text-align: left;">Tautan Langsung Simulasi Wawancara</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>Informatika (Revisi
+2)</strong></td>
+<td style="text-align: left;">Junior Web Developer</td>
+<td style="text-align: left;">Hasil Sedang (<strong>50/100</strong>)
+dengan badge kenaikan <strong><code>+25 Δ</code></strong></td>
+<td style="text-align: left;"><a
+href="https://skillbridge-6ndn.vercel.app/results/00000000-0000-4000-8000-000000000002"><code>/results/00000000-0000-4000-8000-000000000002</code></a></td>
+<td style="text-align: left;"><a
+href="https://skillbridge-6ndn.vercel.app/interview/00000000-0000-4000-8000-000000000002"><code>/interview/00000000-0000-4000-8000-000000000002</code></a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Informatika (Revisi
+1)</strong></td>
+<td style="text-align: left;">Junior Web Developer</td>
+<td style="text-align: left;">Hasil Lemah (<strong>25/100</strong>)
+sebelum perbaikan dokumentasi</td>
+<td style="text-align: left;"><a
+href="https://skillbridge-6ndn.vercel.app/results/00000000-0000-4000-8000-000000000001"><code>/results/00000000-0000-4000-8000-000000000001</code></a></td>
+<td style="text-align: left;"><a
+href="https://skillbridge-6ndn.vercel.app/interview/00000000-0000-4000-8000-000000000001"><code>/interview/00000000-0000-4000-8000-000000000001</code></a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Desain Visual (DKV)</strong></td>
+<td style="text-align: left;">Junior Graphic Designer</td>
+<td style="text-align: left;">Hasil Sedang (<strong>50/100</strong>)
+evaluasi visual &amp; brief desain</td>
+<td style="text-align: left;"><a
+href="https://skillbridge-6ndn.vercel.app/results/00000000-0000-4000-8000-000000000022"><code>/results/00000000-0000-4000-8000-000000000022</code></a></td>
+<td style="text-align: left;"><a
+href="https://skillbridge-6ndn.vercel.app/interview/00000000-0000-4000-8000-000000000022"><code>/interview/00000000-0000-4000-8000-000000000022</code></a></td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>Pemasaran
+(Marketing)</strong></td>
+<td style="text-align: left;">Junior Digital Marketer</td>
+<td style="text-align: left;">Hasil Sedang (<strong>61/100</strong>)
+evaluasi laporan metrik kampanye</td>
+<td style="text-align: left;"><a
+href="https://skillbridge-6ndn.vercel.app/results/00000000-0000-4000-8000-000000000032"><code>/results/00000000-0000-4000-8000-000000000032</code></a></td>
+<td style="text-align: left;"><a
+href="https://skillbridge-6ndn.vercel.app/interview/00000000-0000-4000-8000-000000000032"><code>/interview/00000000-0000-4000-8000-000000000032</code></a></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<div style="page-break-after: always;">
+
+</div>
+<h2 id="bab-v.-panduan-pemecahan-masalah-troubleshooting-faq">BAB V.
+PANDUAN PEMECAHAN MASALAH (TROUBLESHOOTING) &amp; FAQ</h2>
+<h3 id="penanganan-error-http-429-ai-rate-limit-groq-kuota-harian">5.1
+Penanganan Error HTTP 429 (AI Rate Limit Groq / Kuota Harian)</h3>
+<ul>
+<li><strong>Gejala:</strong> Muncul pesan pop-up merah: <em>“Layanan AI
+sedang sibuk. Coba lagi setelah satu menit.”</em> atau <em>“Batas kuota
+penilaian tercapai.”</em></li>
+<li><strong>Penyebab:</strong>
+<ol type="1">
+<li><em>Provider Rate Limit:</em> Batas kecepatan akun Groq free tier
+(~8.000 token per menit) tercapai karena pengujian serentak.</li>
+<li><em>Security Quota:</em> Sistem membatasi maksimal 10 kali penilaian
+per akun per hari untuk mencegah penyalahgunaan.</li>
+</ol></li>
+<li><strong>Solusi:</strong>
+<ul>
+<li>Tunggu jeda waktu 60 detik (<em>Retry-After</em> header).</li>
+<li>Gunakan <strong>Jalur Demo Seed</strong> pada Bab IV untuk
+demonstrasi bebas kuota.</li>
+<li>Untuk instalasi lokal, ganti <code>GROQ_API_KEY</code> pada
+<code>.env.local</code> dengan API key baru dari konsol Groq.</li>
+</ul></li>
+</ul>
+<h3
+id="penanganan-kesalahan-validasi-file-format-magic-bytes-batas-4-mb">5.2
+Penanganan Kesalahan Validasi File (Format Magic Bytes &amp; Batas 4
+MB)</h3>
+<ul>
+<li><strong>Gejala:</strong> Muncul error: <em>“Format bukti tidak
+didukung. Gunakan PDF, PNG, atau JPEG sesuai bidang”</em> atau
+<em>“Ukuran bukti harus lebih dari 0 dan maksimal 4 MB.”</em></li>
+<li><strong>Penyebab:</strong>
+<ul>
+<li>Sistem memeriksa <strong>Magic Bytes biner file</strong>
+(<code>%PDF</code> atau <code>\x89PNG</code>), bukan hanya ekstensi nama
+file. File palsu (misal berkas teks yang dinamai <code>.pdf</code>) akan
+ditolak server.</li>
+<li>Berkas melebihi ukuran 4.194.304 byte.</li>
+</ul></li>
+<li><strong>Solusi:</strong>
+<ul>
+<li>Pastikan dokumen diekspor langsung dari aplikasi resminya
+(Canva/Photoshop untuk PNG, Microsoft Word/Google Docs untuk PDF).</li>
+<li>Kompres ukuran file jika melebihi 4 MB sebelum diunggah.</li>
+</ul></li>
+</ul>
+<h3 id="masalah-konfirmasi-email-supabase-safe-links">5.3 Masalah
+Konfirmasi Email Supabase / Safe Links</h3>
+<ul>
+<li><strong>Gejala:</strong> Tautan konfirmasi email dianggap
+kedaluwarsa atau redirect ke <code>localhost:3000</code> saat
+menggunakan Vercel.</li>
+<li><strong>Penyebab:</strong> URL redirect di dashboard Supabase belum
+diperbarui dengan domain Vercel.</li>
+<li><strong>Solusi:</strong>
+<ul>
+<li>Buka Supabase Dashboard <span class="math inline">→</span>
+<strong>Authentication</strong> <span class="math inline">→</span>
+<strong>URL Configuration</strong>.</li>
+<li>Masukkan domain produksi Anda ke dalam <strong>Site URL</strong> dan
+<strong>Redirect URLs</strong>:
+<ul>
+<li><code>https://skillbridge-6ndn.vercel.app/auth</code></li>
+<li><code>https://*.vercel.app/auth</code></li>
+</ul></li>
+<li>Klik <strong>Save Changes</strong>.</li>
+</ul></li>
+</ul>
+<h3 id="repositori-github-tidak-ditemukan-atau-format-url-salah">5.4
+Repositori GitHub Tidak Ditemukan atau Format URL Salah</h3>
+<ul>
+<li><strong>Gejala:</strong> Error: <em>“Gunakan URL repositori GitHub
+publik yang valid.”</em></li>
+<li><strong>Penyebab:</strong> Repositori berstatus <em>Private</em>,
+mengarah ke domain selain GitHub, atau format URL memuat path
+cabang/file (misal: <code>/tree/main/...</code>).</li>
+<li><strong>Solusi:</strong>
+<ul>
+<li>Pastikan visibilitas repositori diubah menjadi
+<strong>Public</strong> pada pengaturan GitHub.</li>
+<li>Gunakan format URL induk murni:
+<code>https://github.com/pemilik/nama-repo</code>.</li>
+</ul></li>
+</ul>
+<hr />
+<div style="page-break-after: always;">
+
+</div>
+<h2 id="bab-vi.-batasan-sistem-keamanan-dukungan-teknis">BAB VI. BATASAN
+SISTEM, KEAMANAN, &amp; DUKUNGAN TEKNIS</h2>
+<h3 id="batasan-fungsional-prototipe">6.1 Batasan Fungsional
+Prototipe</h3>
+<ol type="1">
+<li><strong>Analisis Kode Statis:</strong> Evaluasi Informatika
+dilakukan secara analisis statis sintaks dan struktur; sistem tidak
+menjalankan kode atau mengeksekusi <em>test suite</em> runtime
+pengguna.</li>
+<li><strong>Kebutuhan Text Layer pada PDF:</strong> Parser laporan
+Bisnis/Pemasaran memerlukan dokumen digital ber-text layer; dokumen
+hasil scan gambar/foto saat ini belum didukung (OCR belum aktif).</li>
+<li><strong>Sifat Penilaian Indikatif:</strong> Penilaian bersifat
+diagnostik formatif berdasarkan bukti yang diserahkan dan rubrik acuan
+Skillbridge AI; hasil bukan sertifikasi kompetensi hukum atau jaminan
+penerimaan kerja.</li>
+</ol>
+<h3 id="jaminan-keamanan-dan-privasi-data">6.2 Jaminan Keamanan dan
+Privasi Data</h3>
+<ul>
+<li><strong>Zero-Storage of Untrusted Code:</strong> Kode repositori
+tidak disimpan permanen di server dan tidak pernah dieksekusi.</li>
+<li><strong>Private Storage Bucket:</strong> Berkas gambar dan PDF
+tersimpan di bucket privat Supabase ber-enkripsi yang hanya dapat
+diakses melalui signed URL milik akun pengunggah.</li>
+<li><strong>Perlindungan Injeksi Prompt:</strong> Teks bukti dibersihkan
+dari zero-width obfuscation dan filter adversarial instruksi model.</li>
+<li><strong>Hak Penghapusan Penuh:</strong> Pengguna berhak menghapus
+data penilaian kapan saja melalui tombol <em>Hapus Hasil</em>, yang akan
+memicu penghapusan menyeluruh (<em>cascade delete</em>) di database dan
+penyimpanan fisik.</li>
+</ul>
+<h3 id="kontak-dan-dukungan-pengembang">6.3 Kontak dan Dukungan
+Pengembang</h3>
+<p>Jika Anda mengalami kendala teknis atau memiliki pertanyaan lebih
+lanjut seputar platform Skillbridge AI, silakan hubungi tim pengembang:
+- <strong>Pengembang:</strong> Tim Mahasiswa Informatika &amp;
+Pengembang Skillbridge AI - <strong>Institusi:</strong> Universitas
+Gunadarma — Laboratorium Informatika (Proposal Kompres 16) -
+<strong>Tautan Repositori Proyek:</strong> <a
+href="https://github.com/rianszzz/skillbridge">https://github.com/rianszzz/skillbridge</a>
+- <strong>Tautan Live Platform:</strong> <a
+href="https://skillbridge-6ndn.vercel.app">https://skillbridge-6ndn.vercel.app</a></p>
+<hr />
+<p><em>Dokumen Buku Panduan Resmi Skillbridge AI — Versi Cetak Standar
+Industri 2026.</em></p>
+</body>
+</html>

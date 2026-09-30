@@ -1,0 +1,206 @@
+@page {
+  size: A4;
+  margin: 18mm 16mm 20mm 16mm;
+  @bottom-center {
+    content: "Skillbridge AI — Dokumen Panduan Instalasi dan Penggunaan Aplikasi";
+    font-size: 8pt;
+    color: #64748b;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  @bottom-right {
+    content: "Halaman " counter(page);
+    font-size: 8pt;
+    color: #64748b;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 9.5pt;
+  line-height: 1.55;
+  color: #0f172a;
+  background: #ffffff;
+  margin: 0;
+  padding: 0;
+}
+
+/* Cover / Header section */
+h1:first-of-type {
+  font-size: 22pt;
+  font-weight: 800;
+  color: #0369a1;
+  text-align: center;
+  margin-top: 25px;
+  margin-bottom: 8px;
+  line-height: 1.25;
+}
+
+h2:first-of-type {
+  font-size: 13pt;
+  font-weight: 600;
+  color: #475569;
+  text-align: center;
+  border: none;
+  margin-top: 0;
+  margin-bottom: 25px;
+}
+
+hr {
+  border: 0;
+  height: 1px;
+  background: #cbd5e1;
+  margin: 16px 0;
+}
+
+/* Chapter Headings */
+h2 {
+  font-size: 14pt;
+  font-weight: 700;
+  color: #0284c7;
+  border-bottom: 2px solid #0284c7;
+  padding-bottom: 5px;
+  margin-top: 24px;
+  margin-bottom: 12px;
+  page-break-after: avoid;
+}
+
+h3 {
+  font-size: 11pt;
+  font-weight: 600;
+  color: #1e293b;
+  margin-top: 16px;
+  margin-bottom: 8px;
+  page-break-after: avoid;
+}
+
+h4 {
+  font-size: 10pt;
+  font-weight: 600;
+  color: #334155;
+  margin-top: 12px;
+  margin-bottom: 6px;
+  page-break-after: avoid;
+}
+
+p {
+  margin-top: 0;
+  margin-bottom: 8px;
+  text-align: justify;
+}
+
+ul, ol {
+  margin-top: 0;
+  margin-bottom: 10px;
+  padding-left: 22px;
+}
+
+li {
+  margin-bottom: 4px;
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 12px 0 16px 0;
+  font-size: 8.5pt;
+  line-height: 1.35;
+  page-break-inside: avoid;
+}
+
+th, td {
+  border: 1px solid #cbd5e1;
+  padding: 6px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  background-color: #f1f5f9;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+tr:nth-child(even) td {
+  background-color: #f8fafc;
+}
+
+/* Code and Pre */
+code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, Courier, monospace;
+  font-size: 8.5pt;
+  background-color: #f1f5f9;
+  color: #0369a1;
+  padding: 1px 4px;
+  border-radius: 3px;
+  border: 1px solid #e2e8f0;
+}
+
+pre {
+  background-color: #0f172a;
+  color: #f8fafc;
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 8pt;
+  line-height: 1.35;
+  overflow-x: auto;
+  page-break-inside: avoid;
+  margin: 10px 0;
+}
+
+pre code {
+  background-color: transparent;
+  color: #f8fafc;
+  border: none;
+  padding: 0;
+  font-size: 8pt;
+}
+
+/* Blockquotes / Callout notes */
+blockquote {
+  margin: 12px 0;
+  padding: 10px 16px;
+  background-color: #f0f9ff;
+  border-left: 4px solid #0284c7;
+  color: #0369a1;
+  border-radius: 0 4px 4px 0;
+  page-break-inside: avoid;
+}
+
+blockquote p {
+  margin: 0;
+  font-size: 9pt;
+}
+
+/* Images and figures */
+img {
+  max-width: 96%;
+  height: auto;
+  display: block;
+  margin: 12px auto 4px auto;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  page-break-inside: avoid;
+}
+
+em {
+  color: #475569;
+  font-size: 8.5pt;
+  display: block;
+  text-align: center;
+  margin-top: 4px;
+  margin-bottom: 14px;
+  font-style: italic;
+}
+
+/* Links */
+a {
+  color: #0284c7;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
