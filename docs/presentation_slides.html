@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Skillbridge AI — Slide Presentasi Finalis</title>
+  <style>
+    @page {
+      size: 1920px 1080px;
+      margin: 0;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #000;
+      color: #0f172a;
+      -webkit-font-smoothing: antialiased;
+    }
+    .slide {
+      width: 1920px;
+      height: 1080px;
+      page-break-after: always;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 60px 80px 40px 80px;
+    }
+
+    /* THEMES */
+    .theme-dark {
+      background: #0A192F;
+      color: #ffffff;
+    }
+    .theme-light {
+      background: #F8FAFC;
+      color: #0F172A;
+    }
+
+    /* HEADER */
+    .eyebrow {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .theme-dark .eyebrow { color: #38BDF8; }
+    .theme-light .eyebrow { color: #0284C7; }
+
+    .title {
+      font-size: 40px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      margin-bottom: 30px;
+      line-height: 1.15;
+    }
+    .theme-dark .title { color: #FFFFFF; }
+    .theme-light .title { color: #0F172A; }
+
+    /* CONTENT LAYOUTS */
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 30px;
+      flex: 1;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 40px;
+      flex: 1;
+    }
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 25px;
+      flex: 1;
+    }
+    .grid-6 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      gap: 24px;
+      flex: 1;
+    }
+
+    /* CARDS */
+    .card {
+      border-radius: 16px;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      position: relative;
+    }
+    .theme-light .card {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+    }
+    .theme-dark .card {
+      background: #0F172A;
+      border: 1px solid #1E293B;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+    }
+
+    .card-num {
+      font-size: 38px;
+      font-weight: 800;
+      color: #0284C7;
+      margin-bottom: 12px;
+      line-height: 1;
+    }
+    .card-title {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 12px;
+      line-height: 1.3;
+    }
+    .theme-dark .card-title { color: #F8FAFC; }
+    .theme-light .card-title { color: #0F172A; }
+
+    .card-desc {
+      font-size: 15px;
+      line-height: 1.55;
+    }
+    .theme-dark .card-desc { color: #CBD5E1; }
+    .theme-light .card-desc { color: #64748B; }
+
+    /* STAT CARD */
+    .stat-val {
+      font-size: 46px;
+      font-weight: 900;
+      color: #38BDF8;
+      margin-bottom: 4px;
+      line-height: 1;
+    }
+
+    /* FOOTER & SPEAKER NOTES BAR */
+    .footer-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 15px;
+      border-top: 1px solid rgba(148, 163, 184, 0.2);
+      font-size: 13px;
+    }
+    .theme-dark .footer-bar { color: #64748B; }
+    .theme-light .footer-bar { color: #94A3B8; }
+
+    .speaker-note-hint {
+      background: rgba(2, 132, 199, 0.1);
+      border-left: 3px solid #0284C7;
+      padding: 6px 14px;
+      border-radius: 4px;
+      font-size: 12.5px;
+      color: #38BDF8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .theme-light .speaker-note-hint {
+      background: #E0F2FE;
+      color: #0369A1;
+    }
+
+    /* IMAGES */
+    .slide-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      border-radius: 12px;
+      border: 1px solid #CBD5E1;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ==========================================
+       SLIDE 1: COVER
+  =========================================== -->
+  <section class="slide theme-dark">
+    <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; max-width: 1300px;">
+      <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 24px;">
+        <span style="background: #38BDF8; color: #0A192F; font-size: 14px; font-weight: 800; padding: 6px 16px; border-radius: 20px; letter-spacing: 1.5px;">FINALIS KOMPRES 16</span>
+        <span style="color: #94A3B8; font-size: 15px; font-weight: 600;">TEMA: AI INNOVATION</span>
+      </div>
+      <h1 style="font-size: 72px; font-weight: 900; line-height: 1.1; margin-bottom: 20px; letter-spacing: -1px;">
+        SKILLBRIDGE <span style="color: #38BDF8;">AI</span>
+      </h1>
+      <p style="font-size: 26px; line-height: 1.45; color: #CBD5E1; margin-bottom: 40px; font-weight: 400;">
+        Sistem Evaluasi Kesiapan Kerja Multi-Bidang Berbasis Large Language Model untuk Penilaian Bukti Nyata dan Rekomendasi Pembelajaran Adaptif
+      </p>
+      <div style="display: flex; gap: 40px; font-size: 16px; color: #94A3B8; border-top: 1px solid #1E293B; padding-top: 24px;">
+        <div><strong>Institusi:</strong> Universitas Gunadarma</div>
+        <div><strong>Laboratorium:</strong> Laboratorium Informatika</div>
+        <div><strong>Tahun:</strong> 2026</div>
+      </div>
+    </div>
+    <div class="footer-bar">
+      <div class="speaker-note-hint">🎙️ <strong>Presenter Note (30 dtk):</strong> Salam, perkenalkan diri/tim, dan tegaskan bahwa Skillbridge AI mentransformasi evaluasi kesiapan kerja dari klaim teks CV menjadi pembuktian karya nyata.</div>
+      <div>Slide 01 / 10</div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       SLIDE 2: MASALAH KESIAPAN KERJA
+  =========================================== -->
+  <section class="slide theme-light">
+    <div>
+      <div class="eyebrow">Latar Belakang & Masalah</div>
+      <div class="title">Kesenjangan Antara Ijazah/CV dengan Kebutuhan Industri Nyata</div>
+    </div>
+    <div class="grid-3">
+      <div class="card">
+        <div class="card-num">01</div>
+        <div class="card-title">1.033.182 Sarjana & Diploma Menganggur</div>
+        <div class="card-desc">Data BPS membuktikan tingginya pengangguran terdidik akibat ketidaksesuaian (mismatch) antara kurikulum kampus dengan ekspektasi standar industri saat ini.</div>
+      </div>
+      <div class="card">
+        <div class="card-num">02</div>
+        <div class="card-title">CV & IPK Tidak Membaca Bukti Keterampilan</div>
+        <div class="card-desc">Resume teks rentan keyword stuffing dan klaim palsu. CV tidak dapat membuktikan apakah pelamar mampu menulis clean code, mendesain berorientasi brief, atau menganalisis data.</div>
+      </div>
+      <div class="card">
+        <div class="card-num">03</div>
+        <div class="card-title">Ketiadaan Umpan Balik Kesiapan yang Terukur</div>
+        <div class="card-desc">Mahasiswa sering kali baru menyadari kelemahannya setelah berkali-kali ditolak wawancara kerja, tanpa pernah tahu kelemahan spesifik dan materi apa yang harus dipelajari.</div>
+      </div>
+    </div>
+    <div class="footer-bar">
+      <div class="speaker-note-hint">🎙️ <strong>Presenter Note (45 dtk):</strong> Tekankan paradoks 1 juta pengangguran terdidik. Masalahnya bukan kekurangan gelar, tapi CV adalah sinyal bising. Industri butuh bukti nyata.</div>
+      <div>Slide 02 / 10</div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       SLIDE 3: SOLUSI CLOSED LOOP
+  =========================================== -->
+  <section class="slide theme-dark">
+    <div>
+      <div class="eyebrow">Solusi Utama</div>
+      <div class="title">Siklus Pembelajaran Tertutup (Closed-Loop Learning)</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 16px; flex: 1; justify-content: center;">
+      <div class="card" style="padding: 18px 28px; flex-direction: row; align-items: center; justify-content: space-between;">
+        <div style="font-size: 19px; font-weight: 700; color: #38BDF8; width: 260px;">1. Bukti Otentik</div>
+        <div style="font-size: 16px; color: #CBD5E1; flex: 1;">Pengguna mengirimkan repositori GitHub publik, berkas gambar DKV, atau laporan PDF Pemasaran.</div>
+      </div>
+      <div class="card" style="padding: 18px 28px; flex-direction: row; align-items: center; justify-content: space-between;">
+        <div style="font-size: 19px; font-weight: 700; color: #38BDF8; width: 260px;">2. Analisis Statis & Visi</div>
+        <div style="font-size: 16px; color: #CBD5E1; flex: 1;">Ekstraksi sintaks, struktur proyek, dan observasi visual multimodal 2-stage tanpa mengeksekusi kode pengguna.</div>
+      </div>
+      <div class="card" style="padding: 18px 28px; flex-direction: row; align-items: center; justify-content: space-between;">
+        <div style="font-size: 19px; font-weight: 700; color: #38BDF8; width: 260px;">3. Rubrik 1.1 Berbobot</div>
+        <div style="font-size: 16px; color: #CBD5E1; flex: 1;">Penilaian objektif 4 kriteria berbobot. Skor akhir dihitung matematis server (bukan karangan model).</div>
+      </div>
+      <div class="card" style="padding: 18px 28px; flex-direction: row; align-items: center; justify-content: space-between;">
+        <div style="font-size: 19px; font-weight: 700; color: #38BDF8; width: 260px;">4. Rekomendasi Terarah</div>
+        <div style="font-size: 16px; color: #CBD5E1; flex: 1;">Maksimal 3 modul resmi industri (MDN, Next.js, GitHub Docs) yang memetakan kesenjangan terbesar secara presisi.</div>
+      </div>
+      <div class="card" style="padding: 18px 28px; flex-direction: row; align-items: center; justify-content: space-between;">
+        <div style="font-size: 19px; font-weight: 700; color: #38BDF8; width: 260px;">5. Wawancara & Kenaikan</div>
+        <div style="font-size: 16px; color: #CBD5E1; flex: 1;">Latihan wawancara adaptif 5 pertanyaan dari gap nyata, lalu kirim revisi untuk mengukur peningkatan (+Δ).</div>
+      </div>
+    </div>
+    <div class="footer-bar">
+      <div class="speaker-note-hint">🎙️ <strong>Presenter Note (45 dtk):</strong> Jelaskan siklus tertutup: tidak hanya menghakimi nilai, tapi memandu belajar, menguji lewat wawancara, dan mengukur progres perbaikan.</div>
+      <div>Slide 03 / 10</div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       SLIDE 4: ARSITEKTUR & MULTI-MODEL
+  =========================================== -->
+  <section class="slide theme-light">
+    <div>
+      <div class="eyebrow">Fondasi Teknologi</div>
+      <div class="title">Arsitektur Fullstack Modern & Multi-Model AI Pipeline</div>
+    </div>
+    <div class="grid-4">
+      <div class="card">
+        <div style="font-size: 14px; font-weight: 800; color: #0284C7; margin-bottom: 8px;">FRONTEND & BACKEND API</div>
+        <div class="card-title">Next.js 16.3 (Turbopack, React 19)</div>
+        <div class="card-desc">Menggunakan App Router dan API Routes serverless tanpa overhead microservice. Styling antarmuka responsif dan aksesibel dibangun dengan Tailwind CSS v4.</div>
+      </div>
+      <div class="card">
+        <div style="font-size: 14px; font-weight: 800; color: #0284C7; margin-bottom: 8px;">EVALUATOR TEKS & WAWANCARA</div>
+        <div class="card-title">openai/gpt-oss-20b (via Groq LPU)</div>
+        <div class="card-desc">Mengevaluasi bukti kode, dokumen laporan, kepatuhan Rubrik 1.1 ber-anchor diskrit {0,25,50,75,100}, kutipan bukti exact, serta memandu simulasi wawancara adaptif.</div>
+      </div>
+      <div class="card">
+        <div style="font-size: 14px; font-weight: 800; color: #0284C7; margin-bottom: 8px;">OBSERVER VISUAL MULTIMODAL</div>
+        <div class="card-title">qwen/qwen3.8-27b (via Groq LPU)</div>
+        <div class="card-desc">Arsitektur 2-stage sequential: membaca berkas gambar DKV dan mengubahnya menjadi observasi terstruktur (warna, tata letak, hierarki) sebelum dinilai evaluator teks.</div>
+      </div>
+      <div class="card">
+        <div style="font-size: 14px; font-weight: 800; color: #0284C7; margin-bottom: 8px;">DATABASE, STORAGE & AUTH</div>
+        <div class="card-title">Supabase PostgreSQL & Private Storage</div>
+        <div class="card-desc">Isolasi data ketat via Row-Level Security (RLS), private storage bucket untuk file bukti, serta stored procedure (RPC) untuk pembatasan kuota dan cascade delete.</div>
+      </div>
+    </div>
+    <div class="footer-bar">
+      <div class="speaker-note-hint">🎙️ <strong>Presenter Note (45 dtk):</strong> Jelaskan arsitektur terpadu Next.js + Groq LPU + Supabase. Tekankan pendekatan multi-model: vision observer terpisah dari text evaluator.</div>
+      <div>Slide 04 / 10</div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       SLIDE 5: CAKUPAN 3 BIDANG STUDI
+  =========================================== -->
+  <section class="slide theme-light">
+    <div>
+      <div class="eyebrow">Cakupan Multi-Bidang</div>
+      <div class="title">Tiga Disiplin Ilmu dengan Tiga Modalitas Bukti Kerja Nyata</div>
+    </div>
+    <div class="grid-3">
+      <div class="card">
+        <div style="font-size: 13px; font-weight: 800; color: #0284C7;">BIDANG 01</div>
+        <div class="card-title" style="margin-bottom: 4px;">Informatika</div>
+        <div style="font-size: 13px; color: #64748B; margin-bottom: 16px;">Junior Web Developer • URL GitHub</div>
+        <div style="font-size: 14px; font-weight: 700; color: #0F172A; margin-bottom: 8px;">Kriteria Rubrik 1.1:</div>
+        <div class="card-desc" style="line-height: 1.8;">
+          • Kualitas Kode (Bobot 35%)<br>
+          • Struktur Proyek (Bobot 25%)<br>
+          • Dokumentasi README (Bobot 20%)<br>
+          • Riwayat Kontribusi Git (Bobot 20%)
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-size: 13px; font-weight: 800; color: #0284C7;">BIDANG 02</div>
+        <div class="card-title" style="margin-bottom: 4px;">Desain Komunikasi Visual</div>
+        <div style="font-size: 13px; color: #64748B; margin-bottom: 16px;">Junior Graphic Designer • Gambar PNG/JPG</div>
+        <div style="font-size: 14px; font-weight: 700; color: #0F172A; margin-bottom: 8px;">Kriteria Rubrik 1.1:</div>
+        <div class="card-desc" style="line-height: 1.8;">
+          • Konsistensi Visual (Bobot 30%)<br>
+          • Proses & Iterasi Desain (Bobot 25%)<br>
+          • Narasi & Brief Desain (Bobot 20%)<br>
+          • Pemecahan Masalah (Bobot 25%)
+        </div>
+      </div>
+      <div class="card">
+        <div style="font-size: 13px; font-weight: 800; color: #0284C7;">BIDANG 03</div>
+        <div class="card-title" style="margin-bottom: 4px;">Bisnis & Pemasaran</div>
+        <div style="font-size: 13px; color: #64748B; margin-bottom: 16px;">Junior Digital Marketer • Dokumen PDF</div>
+        <div style="font-size: 14px; font-weight: 700; color: #0F172A; margin-bottom: 8px;">Kriteria Rubrik 1.1:</div>
+        <div class="card-desc" style="line-height: 1.8;">
+          • Metodologi Kampanye (Bobot 25%)<br>
+          • Penggunaan Data & Bukti (Bobot 25%)<br>
+          • Hasil Terukur CTR/ROAS (Bobot 30%)<br>
+          • Kualitas Laporan & Batasan (Bobot 20%)
+        </div>
+      </div>
+    </div>
+    <div class="footer-bar">
+      <div class="speaker-note-hint">🎙️ <strong>Presenter Note (45 dtk):</strong> Tunjukkan bahwa Skillbridge tidak mono-disiplin: mendukung kode Git, gambar karya desain, dan PDF metrik kampanye bisnis dengan total bobot tepat 1.0.</div>
+      <div>Slide 05 / 10</div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       SLIDE 6: HASIL UJI COBA BENCHMARK
+  =========================================== -->
+  <section class="slide theme-dark">
+    <div>
+      <div class="eyebrow">Validasi & Kinerja</div>
+      <div class="title">Hasil Pengujian Empiris 27 Run Benchmark & Performa</div>
+    </div>
+    <div class="grid-6">
+      <div class="card">
+        <div class="stat-val">100%</div>
+        <div class="card-title" style="font-size: 17px;">Kepatuhan Skema</div>
+        <div class="card-desc">27/27 run menghasilkan JSON terstruktur valid tanpa kegagalan array.</div>
+      </div>
+      <div class="card">
+        <div class="stat-val">100%</div>
+        <div class="card-title" style="font-size: 17px;">Kepatuhan Anchor</div>
+        <div class="card-desc">108/108 kriteria mematuhi skala diskrit resmi {0, 25, 50, 75, 100}.</div>
+      </div>
+      <div class="card">
+        <div class="stat-val">1,28</div>
+        <div class="card-title" style="font-size: 17px;">Rata-rata Std Dev</div>
+        <div class="card-desc">Stabilitas tinggi antar 3 run pengulangan (6 dari 9 sampel s = 0.0).</div>
+      </div>
+      <div class="card">
+        <div class="stat-val">2,78</div>
+        <div class="card-title" style="font-size: 17px;">MAE vs Manusia</div>
+        <div class="card-desc">Mean Absolute Error terhadap baseline manusia (88,9% exact match).</div>
+      </div>
+      <div class="card">
+        <div class="stat-val">8,27s</div>
+        <div class="card-title" style="font-size: 17px;">Median Latensi</div>
+        <div class="card-desc">Informatika ~5s, DKV ~21s (multimodal), Pemasaran ~7s. Sangat responsif.</div>
+      </div>
+      <div class="card">
+        <div class="stat-val">Rp 8</div>
+        <div class="card-title" style="font-size: 17px;">Biaya per Asesmen</div>
+        <div class="card-desc">Biaya Groq LPU ~$0,0005 per penilaian, sangat hemat untuk skala kampus.</div>
+      </div>
+    </div>
+    <div class="footer-bar">
+      <div class="speaker-note-hint">🎙️ <strong>Presenter Note (45 dtk):</strong> Paparkan bukti kuantitatif 27 run pengujian: keandalan skema 100%, variansi minimal (s=1.28), selisih dari manusia hanya 2.78 poin, dan biaya super murah Rp 8.</div>
+      <div>Slide 06 / 10</div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       SLIDE 7: DOKUMENTASI PROTOTIPE LIVE
+  =========================================== -->
+  <section class="slide theme-light">
+    <div>
+      <div class="eyebrow">Bukti Prototipe</div>
+      <div class="title">Transparansi Penilaian: Skor Ter-grounding & Selisih (+Δ)</div>
+    </div>
+    <div class="grid-2" style="align-items: center;">
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div class="card">
+          <div class="card-title" style="color: #0284C7;">Fitur Transparansi Hasil:</div>
+          <div class="card-desc" style="font-size: 16px; line-height: 1.8;">
+            ✔ <strong>Skor Berbobot Server (50/100):</strong> Dihitung matematis transparan dari 4 kriteria.<br>
+            ✔ <strong>Banner Demo Terverifikasi:</strong> Menjamin integritas demonstrasi tanpa klaim palsu.<br>
+            ✔ <strong>Kutipan Bukti Fisik:</strong> Penanda exact <code>[FILE:1:L12-L28]</code> & <code>[COMMITS:1]</code>.<br>
+            ✔ <strong>Badge Reassessment (+25 Δ):</strong> Mengukur lompatan skor setelah portofolio direvisi.<br>
+            ✔ <strong>3 Modul Resmi:</strong> Rujukan belajar resmi (MDN, Next.js, GitHub Docs).
+          </div>
+        </div>
+      </div>
+      <div style="height: 520px; display: flex; align-items: center; justify-content: center;">
+        <img class="slide-img" src="validation/live-test-evidence/03_hasil_penilaian_kriteria_bukti.png" alt="Hasil Penilaian">
+      </div>
+    </div>
+    <div class="footer-bar">
+      <div class="speaker-note-hint">🎙️ <strong>Presenter Note (45 dtk):</strong> Tunjukkan tangkapan layar live: setiap penilaian punya kutipan bukti baris kode fisik, dan ada badge peningkatan +25 delta saat kandidat mengirim revisi.</div>
+      <div>Slide 07 / 10</div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       SLIDE 8: WAWANCARA ADAPTIF
+  =========================================== -->
+  <section class="slide theme-light">
+    <div>
+      <div class="eyebrow">Latihan & Umpan Balik</div>
+      <div class="title">Simulasi Wawancara Adaptif dari Kesenjangan Nyata</div>
+    </div>
+    <div class="grid-2" style="align-items: center;">
+      <div style="height: 520px; display: flex; align-items: center; justify-content: center;">
+        <img class="slide-img" src="validation/live-test-evidence/06_sesi_wawancara_adaptif.png" alt="Sesi Wawancara">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        <div class="card">
+          <div class="card-title" style="color: #0284C7;">Karakteristik Modul Wawancara:</div>
+          <div class="card-desc" style="font-size: 16px; line-height: 1.8;">
+            • <strong>Pertanyaan Berbasis Gap Riil:</strong> Membidik 2 kelemahan terbesar portofolio.<br>
+            • <strong>Dialog Multi-Turn Berkesinambungan:</strong> Pewawancara AI merespons jawaban, memberi umpan balik, lalu melanjutkan pertanyaan.<br>
+            • <strong>Persistensi Database PostgreSQL:</strong> Sesi aman dari refresh browser.<br>
+            • <strong>Pemisahan Skor Asesmen:</strong> Nilai latihan wawancara tidak mengotori kemurnian skor bukti kerja fisik.
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bar">
+      <div class="speaker-note-hint">🎙️ <strong>Presenter Note (45 dtk):</strong> Jelaskan wawancara adaptif: bukan kuis statis, tetapi pertanyaan terarah dari kelemahan portofolio. Kandidat berlatih membela argumen teknisnya.</div>
+      <div>Slide 08 / 10</div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       SLIDE 9: KEAMANAN & BATASAN SISTEM
+  =========================================== -->
+  <section class="slide theme-dark">
+    <div>
+      <div class="eyebrow">Keamanan & Etika AI</div>
+      <div class="title">Tata Kelola Keamanan Data, Etika AI, dan Batasan Sistem</div>
+    </div>
+    <div class="grid-4">
+      <div class="card">
+        <div style="font-size: 14px; font-weight: 800; color: #38BDF8; margin-bottom: 8px;">AUDIT KEAMANAN</div>
+        <div class="card-title">28/28 Uji Keamanan Lulus (100%)</div>
+        <div class="card-desc">Proteksi endpoint 401 Unauthorized, verifikasi biner magic bytes (%PDF, PNG), batas ukuran 4 MB (HTTP 413), dan pemetaan rate limit 429 Retry-After.</div>
+      </div>
+      <div class="card">
+        <div style="font-size: 14px; font-weight: 800; color: #38BDF8; margin-bottom: 8px;">ZERO RCE EXECUTION</div>
+        <div class="card-title">Inspeksi Kode Statis Tanpa Eksekusi</div>
+        <div class="card-desc">Repositori GitHub hanya dibaca via REST API secara tekstual. Kode pengguna tidak pernah dijalankan di runtime server untuk mencegah Remote Code Execution.</div>
+      </div>
+      <div class="card">
+        <div style="font-size: 14px; font-weight: 800; color: #38BDF8; margin-bottom: 8px;">PROMPT INJECTION DEFENSE</div>
+        <div class="card-title">Normalisasi Unicode & Adversarial Filter</div>
+        <div class="card-desc">Menghapus zero-width characters tersembunyi. Teks manipulatif 'ignore instructions' diblokir sebelum mencapai model evaluator.</div>
+      </div>
+      <div class="card">
+        <div style="font-size: 14px; font-weight: 800; color: #38BDF8; margin-bottom: 8px;">BATASAN SISTEM YANG JUJUR</div>
+        <div class="card-title">Penilaian Indikatif Portofolio</div>
+        <div class="card-desc">Sistem mengevaluasi bukti yang diserahkan, bukan verifikasi hukum kepemilikan karya atau jaminan penerimaan kerja. PDF memerlukan text-layer.</div>
+      </div>
+    </div>
+    <div class="footer-bar">
+      <div class="speaker-note-hint">🎙️ <strong>Presenter Note (30 dtk):</strong> Tegaskan aspek kepatuhan: 28 skenario audit keamanan lulus 100%, zero RCE, pertahanan anti-prompt injection, serta transparansi batasan sistem.</div>
+      <div>Slide 09 / 10</div>
+    </div>
+  </section>
+
+  <!-- ==========================================
+       SLIDE 10: KESIMPULAN & ROADMAP
+  =========================================== -->
+  <section class="slide theme-dark">
+    <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; max-width: 1400px;">
+      <div class="eyebrow">Penutup & Rencana Lanjutan</div>
+      <h2 style="font-size: 48px; font-weight: 800; color: #FFFFFF; margin-bottom: 24px;">Siap untuk Demonstrasi Sidang Komprehensif</h2>
+      <div style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 36px;">
+        <div style="font-size: 18px; color: #CBD5E1; line-height: 1.6;">
+          <strong>1. Validasi Terbukti:</strong> Berhasil membuktikan alur evaluasi kesiapan kerja berbasis bukti secara utuh pada 3 disiplin ilmu (Informatika, DKV, Marketing).<br>
+          <strong>2. Keandalan AI:</strong> Skema Rubrik 1.1 dan observasi visual multimodal menjamin 100% konsistensi skema dan 0% halusinasi kelulusan.<br>
+          <strong>3. Hemat & Terjangkau:</strong> Beroperasi sangat efisien (latensi ~8 detik, biaya ~Rp 8/asesmen) dan siap diuji coba live maupun offline fallback.
+        </div>
+      </div>
+      <div style="background: #0F172A; border: 1px solid #1E293B; border-radius: 12px; padding: 24px; display: flex; justify-content: space-between; align-items: center;">
+        <div>
+          <div style="font-size: 13px; color: #94A3B8; margin-bottom: 4px;">TAUTAN LIVE DEPLOYMENT RESMI</div>
+          <div style="font-size: 20px; font-weight: 700; color: #38BDF8;">https://skillbridge-6ndn.vercel.app</div>
+        </div>
+        <div>
+          <div style="font-size: 13px; color: #94A3B8; margin-bottom: 4px;">KODE SUMBER GITHUB</div>
+          <div style="font-size: 20px; font-weight: 700; color: #FFFFFF;">github.com/rianszzz/skillbridge</div>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bar">
+      <div class="speaker-note-hint">🎙️ <strong>Presenter Note (30 dtk):</strong> Akhiri dengan percaya diri: Skillbridge AI siap didemonstrasikan. Ucapkan terima kasih kepada Dewan Penguji dan buka sesi tanya-jawab.</div>
+      <div>Slide 10 / 10</div>
+    </div>
+  </section>
+
+</body>
+</html>
